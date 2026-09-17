@@ -1,336 +1,450 @@
 (function () {
-  const LOGICAL_W = MAP_W * TILE;
-  const LOGICAL_H = MAP_H * TILE;
-
   const STATE = {
     TITLE: 'title',
-    INTRO: 'intro',
-    PLAYING: 'playing',
-    DIALOGUE: 'dialogue',
-    FINALE_TALK: 'finaleTalk',
-    FINALE_END: 'finaleEnd',
+    HOWTO: 'howto',
+    PLAY: 'play',
+    PAUSE: 'pause',
+    FINALE: 'finale',
+    END: 'end',
   };
 
+  const IDS = [
+    'title-screen', 'howto-screen', 'howto-intro', 'howto-controls', 'pause-screen',
+    'end-screen', 'end-credits', 'end-dedication', 'hud', 'hud-count', 'zone-label',
+    'value-flash', 'mute', 'replay', 'start-btn', 'howto-btn', 'resume-btn', 'restart-btn',
+  ];
+
+  // Dónde vive cada color dentro del logo (coordenadas del logo nativo de 32x22).
+  const LOGO_SLOTS = {
+    respaldo: { x: 16, y: 11 },
+    oportunidad: { x: 26, y: 3 },
+    aprendizaje: { x: 15, y: 9 },
+    confianza: { x: 4, y: 13 },
+    equipo: { x: 16, y: 18 },
+  };
+  const LOGO_SCALE = 3;
+  const LOGO_X = Math.round((VIEW_W - 32 * LOGO_SCALE) / 2);
+  const LOGO_Y = 16;
+
   let ctx = null;
-  let background = null;
   let state = STATE.TITLE;
   let player = null;
-  let devs = null;
-  let doorOpen = false;
+  let entities = [];
   let time = 0;
-  let talkedCount = 0;
-  let confetti = [];
-  let pendingDev = null;
-  let finaleTriggered = false;
-
+  let camX = 0;
+  let collected = [];
+  let sceneId = null;
+  let labelTimer = 0;
+  let flashTimer = 0;
+  let finale = null;
+  let logoCanvas = null;
   const el = {};
 
   function cacheElements() {
-    ['title-screen', 'end-screen', 'hud', 'hud-count', 'mute', 'end-credits', 'end-dedication'].forEach(
-      function (id) {
-        el[id] = document.getElementById(id);
-      }
-    );
+    IDS.forEach(function (id) {
+      el[id] = document.getElementById(id);
+    });
   }
 
-  function buildBackground() {
-    background = document.createElement('canvas');
-    background.width = LOGICAL_W;
-    background.height = LOGICAL_H;
-    const g = background.getContext('2d');
-    g.imageSmoothingEnabled = false;
-    drawBackground(g);
+  function show(id) {
+    el[id].classList.add('is-visible');
+  }
+
+  function hide(id) {
+    el[id].classList.remove('is-visible');
   }
 
   function updateHud() {
-    el['hud-count'].textContent = talkedCount + '/5';
-    el.hud.classList.toggle('is-complete', talkedCount >= 5);
+    el['hud-count'].textContent = collected.length + '/' + VALUES.length;
+    el.hud.classList.toggle('is-complete', collected.length >= VALUES.length);
   }
 
-  function startGame() {
-    el['title-screen'].classList.remove('is-visible');
-    el.hud.classList.add('is-visible');
-    Audio8.startMusic();
-    state = STATE.INTRO;
-    Dialogue.open(MESSAGES.intro.name, MESSAGES.intro.lines, function () {
-      state = STATE.PLAYING;
+  function showZoneLabel(text) {
+    el['zone-label'].textContent = text;
+    el['zone-label'].classList.add('is-visible');
+    labelTimer = 2;
+  }
+
+  function showValueFlash(label) {
+    el['value-flash'].textContent = '¡' + label + '!';
+    el['value-flash'].classList.add('is-visible');
+    flashTimer = 1.3;
+  }
+
+  function fillHowto() {
+    el['howto-intro'].textContent = MESSAGES.howto.intro.replace('{n}', VALUES.length);
+    el['howto-controls'].innerHTML = '';
+    MESSAGES.howto.controls.forEach(function (row) {
+      const li = document.createElement('li');
+      const k = document.createElement('b');
+      k.textContent = row[0];
+      const d = document.createElement('span');
+      d.textContent = row[1];
+      li.appendChild(k);
+      li.appendChild(d);
+      el['howto-controls'].appendChild(li);
     });
   }
 
-  function moveDevsToMeeting() {
-    FINALE_SPOTS.forEach(function (spot) {
-      const dev = devs.find(function (d) {
-        return d.key === spot.key;
-      });
-      dev.x = spot.col * TILE;
-      dev.y = spot.row * TILE;
-      dev.standing = true;
-    });
-  }
-
-  function onDevTalked(dev) {
-    dev.talked = true;
-    talkedCount += 1;
+  function resetRun() {
+    const first = LEVEL.scenes[0];
+    player = createPlayer((first.start + 2) * TILE, (GROUND_ROW - 2) * TILE);
+    entities = createEntities();
+    collected = [];
+    sceneId = null;
+    finale = null;
+    camX = 0;
     updateHud();
-    if (talkedCount >= 5) {
-      doorOpen = true;
-      moveDevsToMeeting();
-      Audio8.unlocked();
-      state = STATE.DIALOGUE;
-      Dialogue.open(MESSAGES.unlock.name, MESSAGES.unlock.lines, function () {
-        state = STATE.PLAYING;
+  }
+
+  function startRun() {
+    hide('title-screen');
+    hide('howto-screen');
+    show('hud');
+    resetRun();
+    Audio8.startMusic();
+    state = STATE.PLAY;
+  }
+
+  function respawn() {
+    const scene = sceneAtCol(Math.floor(player.x / TILE));
+    player.x = (scene.start + 1) * TILE;
+    player.y = (GROUND_ROW - 2) * TILE;
+    player.vx = 0;
+    player.vy = 0;
+    player.hurtFlash = 0.7;
+    Audio8.hurt();
+  }
+
+  function onPiece(valueId) {
+    if (collected.indexOf(valueId) !== -1) return;
+    collected.push(valueId);
+    updateHud();
+    const value = VALUE_BY_ID[valueId];
+    if (value) showValueFlash(value.label);
+    Audio8.pickup();
+  }
+
+  function startFinale() {
+    if (finale) return;
+    state = STATE.FINALE;
+    hide('hud');
+    el['zone-label'].classList.remove('is-visible');
+    Audio8.fanfare();
+
+    const order = ['respaldo'].concat(
+      VALUES.map(function (v) {
+        return v.id;
+      }).filter(function (id) {
+        return id !== 'respaldo';
+      })
+    );
+    const mine = order.filter(function (id) {
+      return collected.indexOf(id) !== -1;
+    });
+    const n = Math.max(1, mine.length);
+
+    finale = {
+      t: 0,
+      phase: 'gather',
+      flipped: false,
+      pieces: mine.map(function (id, i) {
+        const slot = LOGO_SLOTS[id] || { x: 16, y: 11 };
+        return {
+          id: id,
+          color: (VALUE_BY_ID[id] || {}).color || '#f4f0e6',
+          fromX: VIEW_W / 2 - (n * 22) / 2 + i * 22,
+          fromY: 186,
+          toX: LOGO_X + slot.x * LOGO_SCALE - 8,
+          toY: LOGO_Y + slot.y * LOGO_SCALE - 8,
+          delay: i * 0.2,
+        };
+      }),
+      have: collected.slice(),
+    };
+  }
+
+  function drawLogoParts(g, x, y, have) {
+    const has = function (id) {
+      return have.indexOf(id) !== -1;
+    };
+    if (has('respaldo')) {
+      px(g, x, y, 32, 22, '#0d0a12');
+      px(g, x, y, 32, 1, '#3a3244');
+      px(g, x, y + 21, 32, 1, '#3a3244');
+    }
+    if (has('oportunidad')) px(g, x + 22, y + 2, 8, 3, '#8f2fd4');
+    if (has('aprendizaje')) {
+      px(g, x + 4, y + 6, 3, 9, '#f4f0e6');
+      px(g, x + 11, y + 3, 3, 12, '#f4f0e6');
+      px(g, x + 7, y + 9, 4, 3, '#f4f0e6');
+      px(g, x + 17, y + 6, 3, 9, '#f4f0e6');
+      px(g, x + 20, y + 6, 7, 3, '#f4f0e6');
+      px(g, x + 20, y + 12, 7, 3, '#f4f0e6');
+    }
+    if (has('confianza')) px(g, x + 2, y + 11, 4, 4, '#e0453e');
+    if (has('equipo')) px(g, x + 3, y + 17, 26, 3, '#f2c50a');
+  }
+
+  function buildLogoCanvas(have) {
+    const c = document.createElement('canvas');
+    c.width = 32;
+    c.height = 22;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    drawLogoParts(g, 0, 0, have);
+    return c;
+  }
+
+  function easeOut(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function updateFinale(dt) {
+    finale.t += dt;
+    const f = finale;
+
+    if (f.phase === 'gather') {
+      const last = f.pieces.length ? f.pieces[f.pieces.length - 1].delay + 0.75 : 0.5;
+      if (f.t >= last + 0.35) {
+        f.phase = 'flip';
+        f.t = 0;
+        Audio8.ding();
+      }
+      return;
+    }
+
+    if (f.phase === 'flip') {
+      if (!f.flipped && f.t >= 0.35) {
+        f.flipped = true;
+        logoCanvas = buildLogoCanvas(f.have);
+      }
+      if (f.t >= 0.75) {
+        f.phase = 'devs';
+        f.t = 0;
+        Audio8.unlocked();
+      }
+      return;
+    }
+
+    if (f.phase === 'devs') {
+      if (f.t >= 1.1) {
+        f.phase = 'message';
+        f.t = 0;
+        const msg = collected.length >= VALUES.length ? MESSAGES.finale : MESSAGES.incomplete;
+        Dialogue.open(msg.name, msg.lines, function () {
+          state = STATE.END;
+          el['end-credits'].textContent = MESSAGES.credits.join('  ·  ');
+          el['end-dedication'].textContent = MESSAGES.dedication;
+          show('end-screen');
+        });
+      }
+    }
+  }
+
+  function drawFinale() {
+    const f = finale;
+    ctx.fillStyle = 'rgba(13, 10, 18, 0.82)';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    if (f.phase === 'gather') {
+      f.pieces.forEach(function (p) {
+        const t = Math.max(0, Math.min(1, (f.t - p.delay) / 0.75));
+        const e = easeOut(t);
+        drawPieceIcon(ctx, p.fromX + (p.toX - p.fromX) * e, p.fromY + (p.toY - p.fromY) * e, p.color, 0);
       });
       return;
     }
-    state = STATE.PLAYING;
-  }
 
-  function tryInteract() {
-    const dev = nearestDev(player, devs);
-    if (!dev) return;
-    pendingDev = dev;
-    state = STATE.DIALOGUE;
-    Audio8.confirm();
-    const msg = MESSAGES.devs[dev.key];
-    Dialogue.open(msg.name, msg.lines, function () {
-      onDevTalked(pendingDev);
-      pendingDev = null;
-    });
-  }
+    const cx = LOGO_X + (32 * LOGO_SCALE) / 2;
+    let sx = 1;
+    if (f.phase === 'flip') {
+      sx = f.t < 0.35 ? 1 - f.t / 0.35 : (f.t - 0.35) / 0.4;
+      sx = Math.max(0.02, Math.min(1, sx));
+    }
 
-  function spawnConfetti() {
-    const colors = ['#e0453e', '#e8c25a', '#4a8fd4', '#4fa06a', '#b061c0', '#f4f0e6'];
-    confetti = [];
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    for (let i = 0; i < 90; i++) {
-      confetti.push({
-        x: Math.random() * LOGICAL_W,
-        y: -Math.random() * LOGICAL_H,
-        vy: 18 + Math.random() * 34,
-        vx: (Math.random() - 0.5) * 16,
-        size: 1 + Math.floor(Math.random() * 2),
-        color: colors[Math.floor(Math.random() * colors.length)],
-        sway: Math.random() * Math.PI * 2,
+    ctx.save();
+    ctx.translate(cx, 0);
+    ctx.scale(sx, 1);
+    ctx.translate(-cx, 0);
+    if (f.flipped || f.phase !== 'flip') {
+      if (!logoCanvas) logoCanvas = buildLogoCanvas(f.have);
+      ctx.drawImage(logoCanvas, LOGO_X, LOGO_Y, 32 * LOGO_SCALE, 22 * LOGO_SCALE);
+    } else {
+      f.pieces.forEach(function (p) {
+        drawPieceIcon(ctx, p.toX, p.toY, p.color, 0);
       });
     }
-  }
+    ctx.restore();
 
-  function showEndScreen() {
-    el['end-credits'].textContent = MESSAGES.credits.join('  ·  ');
-    el['end-dedication'].textContent = MESSAGES.dedication;
-    el['end-screen'].classList.add('is-visible');
-    el.hud.classList.remove('is-visible');
-  }
-
-  function triggerFinale() {
-    finaleTriggered = true;
-    state = STATE.FINALE_TALK;
-    spawnConfetti();
-    Audio8.fanfare();
-    Dialogue.open(MESSAGES.finale.name, MESSAGES.finale.lines, function () {
-      state = STATE.FINALE_END;
-      showEndScreen();
-    });
-  }
-
-  function checkFinaleTrigger() {
-    if (finaleTriggered || talkedCount < 5) return;
-    const inMeetingRoom = player.x > 14 * TILE && player.y > 5 * TILE;
-    if (inMeetingRoom) triggerFinale();
-  }
-
-  function updateConfetti(dt) {
-    confetti.forEach(function (p) {
-      p.sway += dt * 3;
-      p.y += p.vy * dt;
-      p.x += (p.vx + Math.sin(p.sway) * 10) * dt;
-      if (p.y > LOGICAL_H) {
-        p.y = -4;
-        p.x = Math.random() * LOGICAL_W;
-      }
-    });
-  }
-
-  function drawConfetti() {
-    confetti.forEach(function (p) {
-      ctx.fillStyle = p.color;
-      ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size + 1);
-    });
-  }
-
-  const PING = {
-    aCol: 16,
-    bCol: 21,
-    row: 3,
-    lift: 8,
-    rallySeconds: 0.85,
-  };
-
-  function drawPaddle(x, y, flip) {
-    ctx.fillStyle = '#6b4a2a';
-    ctx.fillRect(x + (flip ? 3 : 1), y + 4, 2, 2);
-    ctx.fillStyle = '#c9454a';
-    ctx.fillRect(x + (flip ? 0 : 2), y, 3, 5);
-    ctx.fillStyle = '#e06a6a';
-    ctx.fillRect(x + (flip ? 1 : 3), y + 1, 1, 2);
-  }
-
-  function drawPingPongScene() {
-    const baseY = PING.row * TILE + PING.lift;
-    const beat = Math.floor(time * 4) % 2;
-    const ax = PING.aCol * TILE;
-    const bx = PING.bCol * TILE;
-    const ay = baseY + beat;
-    const by = baseY + (1 - beat);
-
-    drawSprite(ctx, 'pingpongA', 0, ax, ay, false);
-    drawSprite(ctx, 'pingpongB', 0, bx, by, true);
-    drawPaddle(ax + 13, ay + 7, false);
-    drawPaddle(bx, by + 7, true);
-
-    const cycle = (time % (PING.rallySeconds * 2)) / PING.rallySeconds;
-    const p = cycle < 1 ? cycle : 2 - cycle;
-    const from = (PING.aCol + 1) * TILE + 8;
-    const to = (PING.bCol - 1) * TILE + 6;
-    const ballX = from + (to - from) * p;
-    const ballY = (PING.row + 1) * TILE - 2 - Math.sin(p * Math.PI) * 7;
-    ctx.fillStyle = '#f4f0e6';
-    ctx.fillRect(Math.round(ballX), Math.round(ballY), 2, 2);
-  }
-
-  function drawEntities() {
-    const drawables = [];
-
-    devs.forEach(function (d) {
-      drawables.push({
-        y: d.y,
-        draw: function () {
-          if (d.standing) drawSprite(ctx, d.key + 'Stand', 0, d.x, d.y, false);
-          else drawDevSitting(ctx, d, time);
-        },
+    if (f.phase === 'devs' || f.phase === 'message') {
+      const names = ['daniel', 'diana', 'nicolas', 'guillermo', 'felipe'];
+      const baseY = LOGO_Y + 22 * LOGO_SCALE + 6;
+      names.forEach(function (name, i) {
+        const appear = f.phase === 'message' ? 1 : Math.max(0, Math.min(1, (f.t - i * 0.12) / 0.25));
+        if (appear <= 0) return;
+        const x = VIEW_W / 2 - names.length * 11 + i * 22;
+        const y = baseY - Math.round((1 - appear) * 8);
+        drawSprite(ctx, name, 0, x, y, false);
       });
-      if (d.standing) return;
-      drawables.push({
-        y: (d.row + 1) * TILE,
-        draw: function () {
-          drawMonitor(ctx, d.col * TILE, (d.row + 1) * TILE, d.monitor);
-        },
-      });
-    });
-
-    drawables.push({
-      y: player.y,
-      draw: function () {
-        drawPlayer(ctx, player);
-      },
-    });
-
-    drawables.sort(function (a, b) {
-      return a.y - b.y;
-    });
-    drawables.forEach(function (d) {
-      d.draw();
-    });
-  }
-
-  function drawIndicators() {
-    if (state !== STATE.PLAYING) return;
-    const near = nearestDev(player, devs);
-    devs.forEach(function (d) {
-      if (d.talked || d.standing) return;
-      if (d === near) drawPrompt(ctx, d.x, d.y, time);
-      else drawHeart(ctx, d.x, d.y, time);
-    });
+    }
   }
 
   function render() {
-    ctx.drawImage(background, 0, 0);
-    drawPingPongScene();
-    drawDoor(ctx, DOOR.col * TILE, DOOR.row * TILE, doorOpen);
-    drawEntities();
-    drawIndicators();
-    if (finaleTriggered) drawConfetti();
+    ctx.fillStyle = '#15101d';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    ctx.save();
+    ctx.translate(-Math.round(camX), 0);
+    drawLevel(ctx, camX);
+    drawEntities(ctx, entities, time);
+    drawPlayer(ctx, player, time);
+    ctx.restore();
+
+    if (state === STATE.FINALE || state === STATE.END) drawFinale();
   }
 
   function handleInput() {
+    const confirm = Engine.wasPressed('action') || Engine.wasPressed('jump');
+
     if (state === STATE.TITLE) {
-      if (Engine.wasPressed('action')) {
+      if (confirm) {
         Engine.consume('action');
+        Engine.consume('jump');
         Audio8.confirm();
-        startGame();
+        hide('title-screen');
+        show('howto-screen');
+        state = STATE.HOWTO;
       }
       return;
     }
 
-    if (Dialogue.isOpen()) {
-      if (Engine.wasPressed('action')) {
+    if (state === STATE.HOWTO) {
+      if (confirm || Engine.wasPressed('pause')) {
         Engine.consume('action');
-        Dialogue.advance();
+        Engine.consume('jump');
+        Engine.consume('pause');
+        Audio8.confirm();
+        startRun();
       }
       return;
     }
 
-    if (state === STATE.PLAYING && Engine.wasPressed('action')) {
+    if (state === STATE.PLAY && Engine.wasPressed('pause')) {
+      Engine.consume('pause');
+      state = STATE.PAUSE;
+      show('pause-screen');
+      return;
+    }
+
+    if (state === STATE.PAUSE && (Engine.wasPressed('pause') || confirm)) {
+      Engine.consume('pause');
       Engine.consume('action');
-      tryInteract();
+      Engine.consume('jump');
+      hide('pause-screen');
+      state = STATE.PLAY;
+      return;
+    }
+
+    if (Dialogue.isOpen() && confirm) {
+      Engine.consume('action');
+      Engine.consume('jump');
+      Dialogue.advance();
     }
   }
 
   function frame(dt) {
     time += dt;
     handleInput();
-
     Dialogue.update(dt);
 
-    if (state === STATE.PLAYING) {
+    if (labelTimer > 0) {
+      labelTimer -= dt;
+      if (labelTimer <= 0) el['zone-label'].classList.remove('is-visible');
+    }
+    if (flashTimer > 0) {
+      flashTimer -= dt;
+      if (flashTimer <= 0) el['value-flash'].classList.remove('is-visible');
+    }
+
+    if (state === STATE.PLAY) {
+      const jumpPressed = Engine.wasPressed('jump');
+      if (jumpPressed) Engine.consume('jump');
       movePlayer(
         player,
         dt,
         {
-          up: Engine.isHeld('up'),
-          down: Engine.isHeld('down'),
           left: Engine.isHeld('left'),
           right: Engine.isHeld('right'),
+          jumpPressed: jumpPressed,
+          jumpHeld: Engine.isHeld('jump'),
         },
-        devs,
-        doorOpen
+        activeSolids(entities)
       );
-      checkFinaleTrigger();
+      if (player.justJumped) {
+        player.justJumped = false;
+        Audio8.jump();
+      }
+
+      updateEntities(entities, dt, player, {
+        onHit: respawn,
+        onPiece: onPiece,
+        onGoal: startFinale,
+      });
+
+      const scene = sceneAtCol(Math.floor((player.x + 8) / TILE));
+      if (scene.id !== sceneId) {
+        sceneId = scene.id;
+        showZoneLabel(scene.label);
+      }
+
+      camX = Math.max(0, Math.min(LEVEL_W - VIEW_W, player.x + 8 - VIEW_W / 2));
     }
 
-    if (finaleTriggered) updateConfetti(dt);
+    if (state === STATE.FINALE) updateFinale(dt);
+
     render();
   }
 
   function init() {
     cacheElements();
     Dialogue.init();
+    fillHowto();
     const canvas = document.getElementById('game');
-    ctx = Engine.init(canvas, LOGICAL_W, LOGICAL_H);
+    ctx = Engine.init(canvas, VIEW_W, VIEW_H);
     Engine.onFirstInput(function () {
       Audio8.unlock();
     });
-    buildBackground();
-    player = createPlayer();
-    devs = createDevs();
-    updateHud();
+    resetRun();
 
     el.mute.addEventListener('click', function () {
       const muted = Audio8.toggleMute();
       el.mute.textContent = muted ? '🔇' : '🔊';
-      el.mute.setAttribute('aria-label', muted ? 'Activar sonido' : 'Silenciar');
     });
-
-    document.getElementById('replay').addEventListener('click', function () {
+    el['start-btn'].addEventListener('click', function () {
+      if (state !== STATE.TITLE) return;
+      Audio8.unlock();
+      Audio8.confirm();
+      hide('title-screen');
+      show('howto-screen');
+      state = STATE.HOWTO;
+    });
+    el['howto-btn'].addEventListener('click', function () {
+      if (state !== STATE.HOWTO) return;
+      Audio8.confirm();
+      startRun();
+    });
+    el['resume-btn'].addEventListener('click', function () {
+      hide('pause-screen');
+      state = STATE.PLAY;
+    });
+    el['restart-btn'].addEventListener('click', function () {
+      hide('pause-screen');
+      resetRun();
+      state = STATE.PLAY;
+    });
+    el.replay.addEventListener('click', function () {
       window.location.reload();
-    });
-
-    el['title-screen'].addEventListener('click', function () {
-      if (state === STATE.TITLE) {
-        Audio8.unlock();
-        Audio8.confirm();
-        startGame();
-      }
     });
 
     Engine.start(frame);

@@ -140,22 +140,6 @@ const Audio8 = (function () {
       });
     },
 
-    jump: function () {
-      tone(520, 0, 0.09, 'square', 0.24);
-      tone(760, 0.05, 0.09, 'square', 0.18);
-    },
-
-    pickup: function () {
-      [660, 880, 1170].forEach(function (f, i) {
-        tone(f, i * 0.06, 0.13, 'square', 0.26);
-      });
-    },
-
-    hurt: function () {
-      tone(220, 0, 0.16, 'square', 0.26);
-      tone(150, 0.08, 0.2, 'square', 0.22);
-    },
-
     toggleMute: function () {
       muted = !muted;
       if (master) master.gain.value = muted ? 0 : 0.2;

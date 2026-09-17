@@ -1,17 +1,17 @@
 const Engine = (function () {
   const KEY_MAP = {
+    ArrowUp: 'up',
+    ArrowDown: 'down',
     ArrowLeft: 'left',
-    KeyA: 'left',
     ArrowRight: 'right',
+    KeyW: 'up',
+    KeyS: 'down',
+    KeyA: 'left',
     KeyD: 'right',
-    Space: 'jump',
-    ArrowUp: 'jump',
-    KeyW: 'jump',
-    KeyZ: 'jump',
+    KeyE: 'action',
+    Space: 'action',
     Enter: 'action',
     NumpadEnter: 'action',
-    KeyE: 'action',
-    Escape: 'pause',
   };
 
   const held = {};

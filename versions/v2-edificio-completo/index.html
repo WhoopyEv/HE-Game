@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hired Experts — Gracias, jefe</title>
+<style>
+  :root {
+    --ink: #f4f0e6;
+    --ink-dim: #b9b0c4;
+    --panel: #241a2b;
+    --panel-light: #3a2d46;
+    --gold: #e8c25a;
+    --red: #e0453e;
+    --game-w: 768px;
+    --game-h: 448px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #15101d;
+    color: var(--ink);
+    font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px;
+  }
+
+  #stage {
+    position: relative;
+    width: var(--game-w);
+    height: var(--game-h);
+    flex: none;
+    box-shadow: 0 0 0 3px var(--panel-light), 0 12px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  #game {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6%;
+    gap: 14px;
+  }
+
+  #title-screen, #end-screen {
+    background: rgba(21, 16, 29, 0.93);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  #title-screen.is-visible, #end-screen.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .title-main {
+    font-size: clamp(20px, 5.2vw, 40px);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+    text-shadow: 3px 3px 0 #7a4f2c;
+    margin: 0;
+  }
+
+  .title-sub {
+    font-size: clamp(12px, 2.4vw, 17px);
+    color: var(--ink);
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+
+  .title-prompt {
+    font-size: clamp(10px, 2vw, 14px);
+    color: var(--ink-dim);
+    animation: blink 1.3s steps(2, end) infinite;
+    margin: 0;
+  }
+
+  @keyframes blink { 50% { opacity: 0.25; } }
+
+  .heart-row { font-size: clamp(14px, 3vw, 22px); letter-spacing: 0.3em; }
+
+  #hud {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(36, 26, 43, 0.86);
+    border: 2px solid var(--panel-light);
+    font-size: clamp(10px, 1.7vw, 14px);
+    letter-spacing: 0.06em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  #hud.is-visible { opacity: 1; }
+  #hud.is-complete { border-color: var(--gold); color: var(--gold); }
+
+  #dialogue {
+    position: absolute;
+    left: 3%;
+    right: 3%;
+    bottom: 3%;
+    background: var(--panel);
+    border: 3px solid var(--gold);
+    padding: 12px 14px 14px;
+    text-align: left;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  #dialogue.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  #dialogue-name {
+    color: var(--gold);
+    font-size: clamp(10px, 1.8vw, 14px);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+  }
+
+  #dialogue-text {
+    font-size: clamp(11px, 2vw, 16px);
+    line-height: 1.55;
+    min-height: 3.1em;
+    margin: 0;
+  }
+
+  #dialogue-next {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    color: var(--gold);
+    font-size: clamp(10px, 1.6vw, 14px);
+    opacity: 0;
+  }
+
+  #dialogue-next.is-ready { opacity: 1; animation: blink 1s steps(2, end) infinite; }
+
+  .end-line { margin: 0; font-size: clamp(11px, 2.1vw, 16px); }
+  #end-credits { color: var(--gold); letter-spacing: 0.1em; font-size: clamp(11px, 2.2vw, 17px); }
+  #end-dedication { color: var(--ink-dim); font-size: clamp(10px, 1.8vw, 14px); }
+
+  button {
+    font-family: inherit;
+    font-size: clamp(11px, 1.9vw, 15px);
+    color: var(--ink);
+    background: var(--panel-light);
+    border: 2px solid var(--gold);
+    padding: 9px 18px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+  }
+
+  button:hover { background: var(--gold); color: var(--panel); }
+
+  button:focus-visible, #stage:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  #controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: var(--game-w);
+    max-width: 100%;
+    gap: 12px;
+  }
+
+  #dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 46px);
+    grid-template-rows: repeat(3, 46px);
+    gap: 3px;
+  }
+
+  #dpad button, #act {
+    background: var(--panel-light);
+    border: 2px solid #55456a;
+    color: var(--ink);
+    font-size: 17px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+  }
+
+  #dpad button.is-pressed, #act.is-pressed { background: var(--gold); color: var(--panel); }
+
+  .pad-up { grid-area: 1 / 2; }
+  .pad-left { grid-area: 2 / 1; }
+  .pad-right { grid-area: 2 / 3; }
+  .pad-down { grid-area: 3 / 2; }
+
+  #act {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    border-color: var(--gold);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  #mute {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 6px 10px;
+    font-size: 15px;
+    border-color: var(--panel-light);
+    z-index: 5;
+  }
+
+  #elevator {
+    background: rgba(21, 16, 29, 0.94);
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  #elevator.is-visible { opacity: 1; pointer-events: auto; }
+
+  .elev-title {
+    margin: 0;
+    color: var(--gold);
+    font-size: clamp(11px, 2.1vw, 15px);
+    letter-spacing: 0.18em;
+  }
+
+  #elev-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: min(320px, 82%);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2px;
+  }
+
+  .elev-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(58, 45, 70, 0.66);
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-size: clamp(10px, 1.8vw, 13px);
+  }
+
+  .elev-row.is-sel { border-color: var(--gold); background: var(--panel-light); }
+  .elev-num { width: 1.3em; text-align: center; font-weight: 700; }
+  .elev-row.is-here .elev-num { color: var(--gold); }
+  .elev-name { flex: 1; text-align: left; color: var(--ink-dim); letter-spacing: 0.06em; }
+  .elev-row.is-sel .elev-name { color: var(--ink); }
+  .elev-mark { width: 1.3em; text-align: center; color: var(--red); }
+  .elev-hint { margin: 0; font-size: clamp(9px, 1.6vw, 12px); color: var(--ink-dim); }
+
+  #floor-label {
+    position: absolute;
+    bottom: 11%;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 94%;
+    padding: 9px 22px;
+    background: rgba(36, 26, 43, 0.93);
+    border: 3px solid var(--gold);
+    color: var(--gold);
+    font-size: clamp(13px, 3vw, 23px);
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  #floor-label.is-visible { opacity: 1; }
+
+  #bubble {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, calc(-100% - 12px));
+    max-width: 46%;
+    padding: 7px 10px 8px;
+    background: #f4f0e6;
+    color: #241a2b;
+    border: 2px solid #241a2b;
+    border-radius: 14px;
+    font-size: clamp(9px, 1.5vw, 12px);
+    line-height: 1.45;
+    text-align: left;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+    z-index: 3;
+  }
+
+  #bubble.is-visible { opacity: 1; }
+
+  #bubble::before, #bubble::after {
+    content: '';
+    position: absolute;
+    left: var(--tail, 50%);
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+  }
+
+  #bubble::before {
+    bottom: -10px;
+    transform: translateX(-50%);
+    border-top: 10px solid #241a2b;
+  }
+
+  #bubble::after {
+    bottom: -6px;
+    transform: translateX(-50%) scale(0.72);
+    border-top: 10px solid #f4f0e6;
+  }
+
+  #bubble-name {
+    font-weight: 700;
+    font-size: 0.86em;
+    letter-spacing: 0.08em;
+    color: #7a4f2c;
+    margin-bottom: 3px;
+  }
+
+  #help-modal {
+    background: rgba(21, 16, 29, 0.95);
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 6;
+  }
+
+  #help-modal.is-visible { opacity: 1; pointer-events: auto; }
+
+  .help-title {
+    margin: 0;
+    color: var(--gold);
+    font-size: clamp(13px, 2.4vw, 18px);
+    letter-spacing: 0.16em;
+  }
+
+  .help-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: clamp(9px, 1.6vw, 13px);
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  .help-list b { color: var(--gold); }
+
+  #help {
+    position: fixed;
+    top: 10px;
+    right: 58px;
+    padding: 6px 12px;
+    font-size: 15px;
+    font-weight: 700;
+    border-color: var(--panel-light);
+    z-index: 5;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    #dpad, #act { display: none; }
+    #controls { justify-content: center; }
+  }
+
+  @media (max-width: 720px) {
+    .hint { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .title-prompt, #dialogue-next.is-ready { animation: none; }
+    #dialogue, #title-screen, #end-screen, #hud, #elevator, #floor-label, #bubble, #help-modal { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<button id="help" aria-label="Cómo jugar">?</button>
+<button id="mute" aria-label="Silenciar">🔊</button>
+
+<div id="stage">
+  <canvas id="game" aria-label="Edificio de Hired Experts"></canvas>
+
+  <div id="floor-label"></div>
+
+  <div id="bubble">
+    <div id="bubble-name"></div>
+    <div id="bubble-text"></div>
+  </div>
+
+  <div id="hud"><span>❤</span><span id="hud-count">0/6</span></div>
+
+  <div id="dialogue">
+    <div id="dialogue-name"></div>
+    <p id="dialogue-text"></p>
+    <span id="dialogue-next">▼</span>
+  </div>
+
+  <div id="title-screen" class="layer is-visible">
+    <p class="heart-row">🛡 ❤ 🛡</p>
+    <h1 class="title-main">HIRED EXPERTS</h1>
+    <p class="title-sub">Día de Amor y Amistad</p>
+    <p class="title-prompt">Presiona ENTER para entrar al edificio</p>
+  </div>
+
+  <div id="help-modal" class="layer">
+    <h2 class="help-title">CÓMO JUGAR</h2>
+    <ul class="help-list">
+      <li><b>Flechas</b> o <b>WASD</b> — caminar por el piso</li>
+      <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar y avanzar el diálogo</li>
+      <li><b>E</b> frente al ascensor — abrir el panel de pisos</li>
+      <li>En el ascensor: <b>↑ ↓</b> eliges piso, <b>E</b> vas, <b>← →</b> sales</li>
+      <li>Los mensajes opcionales salen solos al acercarte a la persona</li>
+      <li>Reúne los <b>6 ❤</b> y súbete a la terraza, donde te espera Marce</li>
+      <li>En celular: usa el <b>D-pad</b> y el botón <b>E</b> de abajo</li>
+    </ul>
+    <button id="help-close">Cerrar</button>
+  </div>
+
+  <div id="elevator" class="layer">
+    <p class="elev-title">ASCENSOR</p>
+    <ul id="elev-list"></ul>
+    <p class="elev-hint">↑ ↓ elegir piso · E ir · ← → salir</p>
+  </div>
+
+  <div id="end-screen" class="layer">
+    <p class="heart-row">❤ ❤ ❤ ❤ ❤</p>
+    <p class="end-line">Gracias, <strong>Hired Experts</strong>.</p>
+    <p class="end-line" style="color:var(--ink-dim);font-size:clamp(10px,1.8vw,13px)">8 pisos · 6 mensajes · un solo equipo</p>
+    <p class="end-line" id="end-credits"></p>
+    <p class="end-line" id="end-dedication"></p>
+    <button id="replay">Volver a jugar</button>
+  </div>
+</div>
+
+<div id="controls">
+  <div id="dpad">
+    <button class="pad-up" data-action="up" aria-label="Arriba">▲</button>
+    <button class="pad-left" data-action="left" aria-label="Izquierda">◀</button>
+    <button class="pad-right" data-action="right" aria-label="Derecha">▶</button>
+    <button class="pad-down" data-action="down" aria-label="Abajo">▼</button>
+  </div>
+  <p class="hint">Flechas o WASD para caminar · E o ESPACIO para hablar y usar el ascensor</p>
+  <button id="act" data-action="action" aria-label="Hablar">E</button>
+</div>
+
+<script src="src/sprites.js"></script>
+<script src="src/map.js"></script>
+<script src="src/building.js"></script>
+<script src="src/messages.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/characters.js"></script>
+<script src="src/dialogue.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/game.js"></script>
+</body>
+</html>

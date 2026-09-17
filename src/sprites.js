@@ -6,7 +6,8 @@ const PALETTE = {
   b: '#d9a441',
   B: '#a9762a',
   s: '#f0c090',
-  S: '#c68f5e',
+  u: '#c98c5a',
+  i: '#8a5a34',
   t: '#c94f4f',
   T: '#96343a',
   o: '#e8c25a',
@@ -30,85 +31,11 @@ const PALETTE = {
   Y: '#a88a1e',
   e: '#e07a3e',
   E: '#a04f22',
+  z: '#3b4a63',
+  Z: '#222b3b',
 };
 
-const SPARTAN_DOWN_0 = [
-  '......RrrR....m.',
-  '......RrrR...mMm',
-  '.....RrrrrR..mMm',
-  '...kkbbbbbbkk.M.',
-  '...kbbbbbbbbk.n.',
-  '...kbkkbbkkbk.n.',
-  '...kbkkbbkkbk.n.',
-  '...kbbbkkbbbk.n.',
-  '....kbbkkbbk..n.',
-  '....kkTTTTkk..n.',
-  '.kOOkTTTTTTk..n.',
-  'kOooOkTTTTTkssn.',
-  'kOoyoOTTTTTk..n.',
-  'kOooOkssssk...n.',
-  '.kOOknnkknnk..n.',
-  '..kk.kk..kk.....',
-];
-
-const SPARTAN_DOWN_1 = [
-  '......RrrR....m.',
-  '......RrrR...mMm',
-  '.....RrrrrR..mMm',
-  '...kkbbbbbbkk.M.',
-  '...kbbbbbbbbk.n.',
-  '...kbkkbbkkbk.n.',
-  '...kbkkbbkkbk.n.',
-  '...kbbbkkbbbk.n.',
-  '....kbbkkbbk..n.',
-  '....kkTTTTkk..n.',
-  '.kOOkTTTTTTk..n.',
-  'kOooOkTTTTTkssn.',
-  'kOoyoOTTTTTk..n.',
-  'kOooOkssssk...n.',
-  '.kOOnnk.knnk..n.',
-  '..kkk.....kk....',
-];
-
-const SPARTAN_UP_0 = [
-  '......RrrR....m.',
-  '......RrrR...mMm',
-  '.....RrrrrR..mMm',
-  '...kkbbbbbbkk.M.',
-  '...kbbbbbbbbk.n.',
-  '...kbbbbbbbbk.n.',
-  '...kBbbbbbbBk.n.',
-  '...kBBBBBBBBk.n.',
-  '....kBBBBBBk..n.',
-  '....kkTTTTkk..n.',
-  '.kOOkTTTTTTk..n.',
-  'kOooOkTTTTTkssn.',
-  'kOoyoOTTTTTk..n.',
-  'kOooOkssssk...n.',
-  '.kOOknnkknnk..n.',
-  '..kk.kk..kk.....',
-];
-
-const SPARTAN_UP_1 = [
-  '......RrrR....m.',
-  '......RrrR...mMm',
-  '.....RrrrrR..mMm',
-  '...kkbbbbbbkk.M.',
-  '...kbbbbbbbbk.n.',
-  '...kbbbbbbbbk.n.',
-  '...kBbbbbbbBk.n.',
-  '...kBBBBBBBBk.n.',
-  '....kBBBBBBk..n.',
-  '....kkTTTTkk..n.',
-  '.kOOkTTTTTTk..n.',
-  'kOooOkTTTTTkssn.',
-  'kOoyoOTTTTTk..n.',
-  'kOooOkssssk...n.',
-  '.kOOnnk.knnk..n.',
-  '..kkk.....kk....',
-];
-
-const SPARTAN_SIDE_0 = [
+const SPARTAN_RUN_0 = [
   '....RrrrrrR...m.',
   '...RrrrrrrrR.mMm',
   '..RrrrrrrrrRmMm.',
@@ -127,7 +54,7 @@ const SPARTAN_SIDE_0 = [
   '.....kk..kk.....',
 ];
 
-const SPARTAN_SIDE_1 = [
+const SPARTAN_RUN_1 = [
   '....RrrrrrR...m.',
   '...RrrrrrrrR.mMm',
   '..RrrrrrrrrRmMm.',
@@ -146,76 +73,140 @@ const SPARTAN_SIDE_1 = [
   '...kkk.....kk...',
 ];
 
+const SPARTAN_JUMP = [
+  '....RrrrrrR.....',
+  '...RrrrrrrrR.m..',
+  '..RrrrrrrrrRmMm.',
+  '..kRrrrrrrrRkMm.',
+  '...kbbbbbbbbkM..',
+  '...kbbbbbkkskn..',
+  '...kbbbbbkkskn..',
+  '...kbbbbbbbskn..',
+  '....kbbbbbbk.n..',
+  '...kkkTTTTkkn...',
+  '..kOkTTTTTTTk...',
+  '.kOokTTTTTTTks..',
+  '.kOokkTTTTTk....',
+  '..kOkkssssk.....',
+  '..knnk..knnk....',
+  '.kkk......kkk...',
+];
+
 function rep(ch, n) {
   return new Array(n + 1).join(ch);
 }
 
-function buildDevSit(hair, hairDark, shirt, shirtDark) {
-  return [
-    [
-      '................',
-      '.....kkkkkk.....',
-      '....k' + hairDark + rep(hair, 4) + hairDark + 'k....',
-      '...k' + hairDark + rep(hair, 6) + hairDark + 'k...',
-      '...k' + hair + 'ss' + rep(hair, 2) + 'ss' + hair + 'k...',
-      '...k' + rep('s', 8) + 'k...',
-      '...kss' + 'k' + 'ss' + 'k' + 'ss' + 'k...',
-      '....k' + rep('s', 6) + 'k....',
-      '.....k' + rep('s', 4) + 'k.....',
-      '..kk' + rep(shirt, 8) + 'kk..',
-      '.ks' + rep(shirt, 10) + 'sk.',
-      '.ks' + rep(shirt, 10) + 'sk.',
-      '.k' + shirtDark + rep(shirt, 10) + shirtDark + 'k.',
-      '.kk' + rep(shirtDark, 10) + 'kk.',
-      '..kk' + rep(shirtDark, 8) + 'kk..',
-      '....' + rep('k', 8) + '....',
-    ],
-  ];
-}
-
-function buildDevStand(hair, hairDark, shirt, shirtDark) {
+function buildStand(st) {
+  const s = st.skin || 's';
+  const pants = st.pants || 'C';
+  const hair = st.hair;
+  const hD = st.hairDark;
+  const sh = st.shirt;
+  const shD = st.shirtDark;
   return [
     '................',
     '.....kkkkkk.....',
-    '....k' + hairDark + rep(hair, 4) + hairDark + 'k....',
-    '...k' + hairDark + rep(hair, 6) + hairDark + 'k...',
-    '...k' + hair + 'ss' + rep(hair, 2) + 'ss' + hair + 'k...',
-    '...k' + rep('s', 8) + 'k...',
-    '...kss' + 'k' + 'ss' + 'k' + 'ss' + 'k...',
-    '....k' + rep('s', 6) + 'k....',
-    '.....k' + rep('s', 5) + 'k....',
-    '..kk' + rep(shirt, 8) + 'kk..',
-    '.ks' + rep(shirt, 10) + 'sk.',
-    '.ks' + rep(shirt, 10) + 'sk.',
-    '.kk' + rep(shirtDark, 10) + 'kk.',
-    '...k' + rep('C', 8) + 'k...',
+    '....k' + hD + rep(hair, 4) + hD + 'k....',
+    '...k' + hD + rep(hair, 6) + hD + 'k...',
+    '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
+    '...k' + rep(s, 8) + 'k...',
+    '...k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k...',
+    '....k' + rep(s, 6) + 'k....',
+    '.....k' + rep(s, 5) + 'k....',
+    '..kk' + rep(sh, 8) + 'kk..',
+    '.k' + s + rep(sh, 10) + s + 'k.',
+    '.k' + s + rep(sh, 10) + s + 'k.',
+    '.kk' + rep(shD, 10) + 'kk.',
+    '...k' + rep(pants, 8) + 'k...',
     '...knnk..knnk...',
     '...kkk...kkk....',
   ];
 }
 
+function buildStandLong(st) {
+  const s = st.skin || 's';
+  const pants = st.pants || 'C';
+  const hair = st.hair;
+  const hD = st.hairDark;
+  const sh = st.shirt;
+  const shD = st.shirtDark;
+  return [
+    '................',
+    '.....kkkkkk.....',
+    '....k' + hD + rep(hair, 4) + hD + 'k....',
+    '...k' + hD + rep(hair, 6) + hD + 'k...',
+    '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
+    '...k' + hair + rep(s, 6) + hair + 'k...',
+    '...k' + hair + s + 'k' + rep(s, 2) + 'k' + s + hair + 'k...',
+    '...k' + hair + rep(s, 6) + hair + 'k...',
+    '....k' + hair + rep(s, 3) + hair + 'k....',
+    '..k' + hair + rep(sh, 8) + hair + 'k..',
+    '.k' + hair + rep(sh, 10) + hair + 'k.',
+    '.k' + s + rep(sh, 10) + s + 'k.',
+    '.kk' + rep(shD, 10) + 'kk.',
+    '...k' + rep(pants, 8) + 'k...',
+    '...knnk..knnk...',
+    '...kkk...kkk....',
+  ];
+}
+
+// Los 5 del equipo de desarrollo, para la escena final.
+// Rasgos genéricos por ahora; Diana es la del pelo largo.
 const DEV_STYLES = {
-  daniel: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C' },
-  diana: { hair: 'e', hairDark: 'E', shirt: 'p', shirtDark: 'P' },
-  nicolas: { hair: 'j', hairDark: 'J', shirt: 'g', shirtDark: 'G' },
-  guillermo: { hair: 'n', hairDark: 'H', shirt: 'y', shirtDark: 'Y' },
-  felipe: { hair: 'h', hairDark: 'H', shirt: 'e', shirtDark: 'E' },
+  daniel: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
+  diana: { hair: 'e', hairDark: 'E', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'Z', long: true },
+  nicolas: { hair: 'j', hairDark: 'J', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z' },
+  guillermo: { hair: 'n', hairDark: 'H', shirt: 'y', shirtDark: 'Y', skin: 'i', pants: 'Z' },
+  felipe: { hair: 'H', hairDark: 'k', shirt: 't', shirtDark: 'T', skin: 'u', pants: 'Z' },
 };
 
 const SPRITES = {
-  spartanDown: [SPARTAN_DOWN_0, SPARTAN_DOWN_1],
-  spartanUp: [SPARTAN_UP_0, SPARTAN_UP_1],
-  spartanSide: [SPARTAN_SIDE_0, SPARTAN_SIDE_1],
+  spartanRun: [SPARTAN_RUN_0, SPARTAN_RUN_1],
+  spartanJump: [SPARTAN_JUMP],
 };
 
-Object.keys(DEV_STYLES).forEach(function (name) {
-  const style = DEV_STYLES[name];
-  SPRITES[name + 'Sit'] = buildDevSit(style.hair, style.hairDark, style.shirt, style.shirtDark);
-  SPRITES[name + 'Stand'] = [buildDevStand(style.hair, style.hairDark, style.shirt, style.shirtDark)];
+Object.keys(DEV_STYLES).forEach(function (key) {
+  const st = DEV_STYLES[key];
+  SPRITES[key] = [st.long ? buildStandLong(st) : buildStand(st)];
 });
 
-SPRITES.pingpongA = [buildDevStand('H', 'k', 'w', 'W')];
-SPRITES.pingpongB = [buildDevStand('n', 'H', 't', 'T')];
+const spriteCache = {};
+
+function makeSpriteCanvas(frame) {
+  const c = document.createElement('canvas');
+  c.width = 16;
+  c.height = 16;
+  const g = c.getContext('2d');
+  frame.forEach(function (row, y) {
+    for (let x = 0; x < row.length; x++) {
+      const color = PALETTE[row[x]];
+      if (!color) continue;
+      g.fillStyle = color;
+      g.fillRect(x, y, 1, 1);
+    }
+  });
+  return c;
+}
+
+function getSprite(name, frame) {
+  const id = name + ':' + frame;
+  if (!spriteCache[id]) spriteCache[id] = makeSpriteCanvas(SPRITES[name][frame]);
+  return spriteCache[id];
+}
+
+function drawSprite(ctx, name, frame, x, y, flip) {
+  if (!SPRITES[name]) return;
+  const img = getSprite(name, frame);
+  if (!flip) {
+    ctx.drawImage(img, Math.round(x), Math.round(y));
+    return;
+  }
+  ctx.save();
+  ctx.translate(Math.round(x) + 16, Math.round(y));
+  ctx.scale(-1, 1);
+  ctx.drawImage(img, 0, 0);
+  ctx.restore();
+}
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { PALETTE, SPRITES, DEV_STYLES };

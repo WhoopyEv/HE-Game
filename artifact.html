@@ -6,8 +6,8 @@
     --panel-light: #3a2d46;
     --gold: #e8c25a;
     --red: #e0453e;
-    --game-w: 768px;
-    --game-h: 448px;
+    --game-w: 640px;
+    --game-h: 352px;
   }
 
   * { box-sizing: border-box; }
@@ -57,21 +57,16 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 6%;
-    gap: 14px;
-  }
-
-  #title-screen, #end-screen {
-    background: rgba(21, 16, 29, 0.93);
+    padding: 5%;
+    gap: 12px;
+    background: rgba(21, 16, 29, 0.94);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.35s ease;
+    transition: opacity 0.25s ease;
+    z-index: 4;
   }
 
-  #title-screen.is-visible, #end-screen.is-visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
+  .layer.is-visible { opacity: 1; pointer-events: auto; }
 
   .title-main {
     font-size: clamp(20px, 5.2vw, 40px);
@@ -82,42 +77,123 @@
     margin: 0;
   }
 
-  .title-sub {
-    font-size: clamp(12px, 2.4vw, 17px);
-    color: var(--ink);
-    letter-spacing: 0.08em;
-    margin: 0;
-  }
-
+  .title-sub { font-size: clamp(12px, 2.4vw, 17px); margin: 0; letter-spacing: 0.08em; }
   .title-prompt {
-    font-size: clamp(10px, 2vw, 14px);
+    font-size: clamp(10px, 2vw, 13px);
     color: var(--ink-dim);
-    animation: blink 1.3s steps(2, end) infinite;
     margin: 0;
+    animation: blink 1.3s steps(2, end) infinite;
   }
-
   @keyframes blink { 50% { opacity: 0.25; } }
 
-  .heart-row { font-size: clamp(14px, 3vw, 22px); letter-spacing: 0.3em; }
+  .screen-title {
+    margin: 0;
+    color: var(--gold);
+    font-size: clamp(13px, 2.6vw, 19px);
+    letter-spacing: 0.18em;
+  }
+
+  .howto-intro {
+    margin: 0;
+    max-width: 30em;
+    font-size: clamp(11px, 2vw, 15px);
+    line-height: 1.5;
+  }
+
+  #howto-controls {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: clamp(10px, 1.8vw, 13px);
+  }
+
+  #howto-controls li { display: flex; gap: 10px; align-items: baseline; }
+  #howto-controls b { color: var(--gold); min-width: 11em; text-align: right; }
+  #howto-controls span { color: var(--ink-dim); text-align: left; }
+  .howto-skip { margin: 0; font-size: clamp(9px, 1.6vw, 12px); color: var(--ink-dim); }
 
   #hud {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 10px;
+    left: 10px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
+    gap: 8px;
+    padding: 6px 12px;
     background: rgba(36, 26, 43, 0.86);
     border: 2px solid var(--panel-light);
-    font-size: clamp(10px, 1.7vw, 14px);
+    font-size: clamp(11px, 1.9vw, 15px);
     letter-spacing: 0.06em;
     opacity: 0;
     transition: opacity 0.3s ease;
+    z-index: 3;
   }
 
   #hud.is-visible { opacity: 1; }
   #hud.is-complete { border-color: var(--gold); color: var(--gold); }
+
+  .piece-icon {
+    width: 15px;
+    height: 15px;
+    border: 2px solid #241a2b;
+    background: conic-gradient(#e0453e 0 20%, #f2c50a 0 40%, #f4f0e6 0 60%, #8f2fd4 0 80%, #0d0a12 0 100%);
+    position: relative;
+  }
+
+  .piece-icon::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 4px;
+    width: 5px;
+    height: 5px;
+    border: 2px solid #241a2b;
+    border-left: 0;
+    background: #f2c50a;
+  }
+
+  #zone-label {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 7px 22px;
+    background: rgba(36, 26, 43, 0.93);
+    border: 3px solid var(--gold);
+    color: var(--gold);
+    font-size: clamp(14px, 3.2vw, 24px);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 3;
+  }
+
+  #value-flash {
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 16px;
+    background: rgba(36, 26, 43, 0.9);
+    border: 2px solid var(--ink);
+    color: var(--ink);
+    font-size: clamp(12px, 2.6vw, 20px);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 3;
+  }
+
+  #zone-label.is-visible, #value-flash.is-visible { opacity: 1; }
 
   #dialogue {
     position: absolute;
@@ -132,9 +208,10 @@
     transform: translateY(8px);
     pointer-events: none;
     transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 5;
   }
 
-  #dialogue.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  #dialogue.is-open { opacity: 1; transform: translateY(0); }
 
   #dialogue-name {
     color: var(--gold);
@@ -144,12 +221,7 @@
     margin-bottom: 6px;
   }
 
-  #dialogue-text {
-    font-size: clamp(11px, 2vw, 16px);
-    line-height: 1.55;
-    min-height: 3.1em;
-    margin: 0;
-  }
+  #dialogue-text { font-size: clamp(11px, 2vw, 16px); line-height: 1.55; min-height: 3.1em; margin: 0; }
 
   #dialogue-next {
     position: absolute;
@@ -164,7 +236,7 @@
 
   .end-line { margin: 0; font-size: clamp(11px, 2.1vw, 16px); }
   #end-credits { color: var(--gold); letter-spacing: 0.1em; font-size: clamp(11px, 2.2vw, 17px); }
-  #end-dedication { color: var(--ink-dim); font-size: clamp(10px, 1.8vw, 14px); }
+  #end-dedication { color: var(--ink-dim); font-size: clamp(10px, 1.8vw, 13px); }
 
   button {
     font-family: inherit;
@@ -172,16 +244,22 @@
     color: var(--ink);
     background: var(--panel-light);
     border: 2px solid var(--gold);
-    padding: 9px 18px;
+    padding: 9px 20px;
     cursor: pointer;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
   }
 
   button:hover { background: var(--gold); color: var(--panel); }
+  button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 
-  button:focus-visible, #stage:focus-visible {
-    outline: 3px solid var(--gold);
-    outline-offset: 3px;
+  #mute {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 6px 10px;
+    font-size: 15px;
+    border-color: var(--panel-light);
+    z-index: 6;
   }
 
   #controls {
@@ -193,18 +271,15 @@
     gap: 12px;
   }
 
-  #dpad {
-    display: grid;
-    grid-template-columns: repeat(3, 46px);
-    grid-template-rows: repeat(3, 46px);
-    gap: 3px;
-  }
+  #pad { display: flex; gap: 6px; }
 
-  #dpad button, #act {
+  #pad button, #jump {
     background: var(--panel-light);
     border: 2px solid #55456a;
     color: var(--ink);
-    font-size: 17px;
+    font-size: 18px;
+    width: 56px;
+    height: 52px;
     padding: 0;
     display: flex;
     align-items: center;
@@ -213,59 +288,31 @@
     touch-action: none;
   }
 
-  #dpad button.is-pressed, #act.is-pressed { background: var(--gold); color: var(--panel); }
+  #jump { width: 74px; height: 74px; border-radius: 50%; border-color: var(--gold); font-size: 13px; font-weight: 700; }
+  #pad button.is-pressed, #jump.is-pressed { background: var(--gold); color: var(--panel); }
 
-  .pad-up { grid-area: 1 / 2; }
-  .pad-left { grid-area: 2 / 1; }
-  .pad-right { grid-area: 2 / 3; }
-  .pad-down { grid-area: 3 / 2; }
-
-  #act {
-    width: 74px;
-    height: 74px;
-    border-radius: 50%;
-    border-color: var(--gold);
-    font-size: 15px;
-    font-weight: 700;
-  }
-
-  .hint {
-    font-size: 12px;
-    color: var(--ink-dim);
-    text-align: center;
-    letter-spacing: 0.05em;
-  }
-
-  #mute {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    padding: 6px 10px;
-    font-size: 15px;
-    border-color: var(--panel-light);
-    z-index: 5;
-  }
+  .hint { font-size: 12px; color: var(--ink-dim); text-align: center; letter-spacing: 0.05em; }
 
   @media (hover: hover) and (pointer: fine) {
-    #dpad, #act { display: none; }
+    #pad, #jump { display: none; }
     #controls { justify-content: center; }
   }
 
-  @media (max-width: 720px) {
-    .hint { display: none; }
-  }
+  @media (max-width: 720px) { .hint { display: none; } }
 
   @media (prefers-reduced-motion: reduce) {
+    .layer, #dialogue, #zone-label, #value-flash, #hud { transition: none; }
     .title-prompt, #dialogue-next.is-ready { animation: none; }
-    #dialogue, #title-screen, #end-screen, #hud { transition: none; }
   }
 </style>
 <button id="mute" aria-label="Silenciar">🔊</button>
 
 <div id="stage">
-  <canvas id="game" aria-label="Oficina de Hired Experts"></canvas>
+  <canvas id="game" aria-label="Hired Experts — Modo Historia"></canvas>
 
-  <div id="hud"><span>❤</span><span id="hud-count">0/5</span></div>
+  <div id="hud"><span class="piece-icon"></span><span id="hud-count">0/5</span></div>
+  <div id="zone-label"></div>
+  <div id="value-flash"></div>
 
   <div id="dialogue">
     <div id="dialogue-name"></div>
@@ -274,14 +321,29 @@
   </div>
 
   <div id="title-screen" class="layer is-visible">
-    <p class="heart-row">🛡 ❤ 🛡</p>
+    <p class="title-sub">🛡 ❤ 🛡</p>
     <h1 class="title-main">HIRED EXPERTS</h1>
     <p class="title-sub">Día de Amor y Amistad</p>
-    <p class="title-prompt">Presiona ENTER para entrar a la oficina</p>
+    <button id="start-btn">HISTORIA</button>
+    <p class="title-prompt">Presiona ENTER para empezar</p>
+  </div>
+
+  <div id="howto-screen" class="layer">
+    <h2 class="screen-title">CÓMO JUGAR</h2>
+    <p class="howto-intro" id="howto-intro"></p>
+    <ul id="howto-controls"></ul>
+    <button id="howto-btn">Empezar</button>
+    <p class="howto-skip">ESC para saltar</p>
+  </div>
+
+  <div id="pause-screen" class="layer">
+    <h2 class="screen-title">PAUSA</h2>
+    <button id="resume-btn">Seguir</button>
+    <button id="restart-btn">Reiniciar</button>
   </div>
 
   <div id="end-screen" class="layer">
-    <p class="heart-row">❤ ❤ ❤ ❤ ❤</p>
+    <p class="title-sub">❤ ❤ ❤ ❤ ❤</p>
     <p class="end-line">Gracias, <strong>Hired Experts</strong>.</p>
     <p class="end-line" id="end-credits"></p>
     <p class="end-line" id="end-dedication"></p>
@@ -290,21 +352,19 @@
 </div>
 
 <div id="controls">
-  <div id="dpad">
-    <button class="pad-up" data-action="up" aria-label="Arriba">▲</button>
-    <button class="pad-left" data-action="left" aria-label="Izquierda">◀</button>
-    <button class="pad-right" data-action="right" aria-label="Derecha">▶</button>
-    <button class="pad-down" data-action="down" aria-label="Abajo">▼</button>
+  <div id="pad">
+    <button data-action="left" aria-label="Izquierda">◀</button>
+    <button data-action="right" aria-label="Derecha">▶</button>
   </div>
-  <p class="hint">Flechas o WASD para caminar · E o ESPACIO para hablar</p>
-  <button id="act" data-action="action" aria-label="Hablar">E</button>
+  <p class="hint">← → o A D para moverte · ESPACIO para saltar · ESC para pausa</p>
+  <button id="jump" data-action="jump" aria-label="Saltar">SALTAR</button>
 </div>
 
 <script src="src/sprites.js"></script>
-<script src="src/map.js"></script>
+<script src="src/level.js"></script>
 <script src="src/messages.js"></script>
 <script src="src/engine.js"></script>
-<script src="src/characters.js"></script>
+<script src="src/actors.js"></script>
 <script src="src/dialogue.js"></script>
 <script src="src/audio.js"></script>
 <script src="src/game.js"></script>
