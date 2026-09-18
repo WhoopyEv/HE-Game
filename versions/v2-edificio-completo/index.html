@@ -67,17 +67,19 @@
     gap: 14px;
   }
 
-  #title-screen, #end-screen {
+  #title-screen, #end-screen, #howto-screen {
     background: rgba(21, 16, 29, 0.93);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s ease;
   }
 
-  #title-screen.is-visible, #end-screen.is-visible {
+  #title-screen.is-visible, #end-screen.is-visible, #howto-screen.is-visible {
     opacity: 1;
     pointer-events: auto;
   }
+
+  .howto-skip { margin: 0; font-size: clamp(9px, 1.6vw, 12px); color: var(--ink-dim); }
 
   .title-main {
     font-size: clamp(20px, 5.2vw, 40px);
@@ -498,7 +500,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .title-prompt, #dialogue-next.is-ready { animation: none; }
-    #dialogue, #title-screen, #end-screen, #hud, #elevator, #floor-label, #bubble, #help-modal { transition: none; }
+    #dialogue, #title-screen, #end-screen, #howto-screen, #hud, #elevator, #floor-label, #bubble, #help-modal { transition: none; }
   }
 </style>
 </head>
@@ -535,6 +537,17 @@
     <p class="title-prompt">Presiona ENTER para entrar al edificio</p>
   </div>
 
+  <div id="howto-screen" class="layer">
+    <h2 class="help-title">CÓMO JUGAR</h2>
+    <ul class="help-list">
+      <li><b>Flechas</b> o <b>WASD</b> — caminar</li>
+      <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar, avanzar y usar el ascensor</li>
+      <li>En celular: <b>D-pad</b> y botón <b>E</b></li>
+    </ul>
+    <button id="howto-btn">Empezar</button>
+    <p class="howto-skip">ESC para saltar</p>
+  </div>
+
   <div id="help-modal" class="layer">
     <h2 class="help-title">CÓMO JUGAR</h2>
     <ul class="help-list">
@@ -545,7 +558,7 @@
       <li>Los mensajes opcionales salen solos al acercarte a la persona</li>
       <li>En <b>operaciones</b> están los 5 del equipo de desarrollo: háblales para que te den su pieza</li>
       <li>Las <b>flechas doradas</b> del borde te apuntan a quién falta por visitar</li>
-      <li>Con las <b>5 piezas</b> se abre la terraza, donde te espera Marce</li>
+      <li>Con las <b>5 piezas</b> se abre la terraza, donde te espera Sergio</li>
       <li>En celular: usa el <b>D-pad</b> y el botón <b>E</b> de abajo</li>
     </ul>
     <button id="help-close">Cerrar</button>

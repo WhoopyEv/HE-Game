@@ -684,6 +684,19 @@ function itemPhone(ctx, x, y) {
   px(ctx, x + 3, y + 7, 3, 1, '#6f757f');
 }
 
+// El arco y la flecha de Cupido, para que Sergio lo lleve en la mano.
+function itemBow(ctx, x, y) {
+  px(ctx, x + 6, y, 1, 1, '#e8c25a');
+  px(ctx, x + 7, y + 1, 1, 2, '#e8c25a');
+  px(ctx, x + 8, y + 3, 1, 3, '#e8c25a');
+  px(ctx, x + 7, y + 6, 1, 2, '#e8c25a');
+  px(ctx, x + 6, y + 8, 1, 1, '#e8c25a');
+  px(ctx, x + 6, y + 1, 1, 7, '#f4f0e6');
+  px(ctx, x, y + 4, 8, 1, '#c9454a');
+  px(ctx, x, y + 3, 2, 1, '#e8c25a');
+  px(ctx, x, y + 5, 2, 1, '#e8c25a');
+}
+
 const DESK_ITEMS = {
   pineapple: itemPineapple,
   phone: itemPhone,
@@ -692,6 +705,7 @@ const DESK_ITEMS = {
   ball: itemBall,
   mug: itemMug,
   plant: itemPlant,
+  bow: itemBow,
 };
 
 function drawDeskItem(ctx, x, y, kind) {
@@ -719,6 +733,56 @@ function drawLogo(ctx, x, y) {
   px(ctx, x + 18, by + 14, 12, 3, w);
   // barra amarilla
   px(ctx, x + 2, by + 18, 28, 3, '#f2c50a');
+}
+
+// Placa de pared con el casco espartano de perfil dentro de un escudo dorado,
+// como el letrero metálico de la entrada de la oficina.
+function drawSpartanMural(ctx, x, y) {
+  const by = y - 10;
+  const plate = '#0d0a12';
+  const plateEdge = '#3a3244';
+  const gold = '#e8c25a';
+  const goldDark = '#a88a1e';
+  const steel = '#dcd6c8';
+  // placa de fondo
+  px(ctx, x, by, 36, 34, plate);
+  px(ctx, x, by, 36, 1, plateEdge);
+  px(ctx, x, by + 33, 36, 1, plateEdge);
+  // aro del escudo (círculo aproximado a bloques)
+  px(ctx, x + 9, by + 6, 18, 2, gold);
+  px(ctx, x + 6, by + 8, 3, 2, gold);
+  px(ctx, x + 27, by + 8, 3, 2, gold);
+  px(ctx, x + 4, by + 10, 2, 12, gold);
+  px(ctx, x + 30, by + 10, 2, 12, gold);
+  px(ctx, x + 6, by + 22, 3, 2, gold);
+  px(ctx, x + 27, by + 22, 3, 2, gold);
+  px(ctx, x + 9, by + 24, 18, 2, gold);
+  px(ctx, x + 9, by + 8, 18, 1, goldDark);
+  px(ctx, x + 8, by + 10, 1, 12, goldDark);
+  px(ctx, x + 27, by + 10, 1, 12, goldDark);
+  px(ctx, x + 9, by + 23, 18, 1, goldDark);
+  // casco corintio de perfil, asomando por encima del aro
+  px(ctx, x + 12, by, 4, 6, plate);
+  px(ctx, x + 16, by, 5, 4, plate);
+  px(ctx, x + 21, by, 4, 6, plate);
+  px(ctx, x + 11, by + 5, 15, 8, plate);
+  px(ctx, x + 11, by + 5, 15, 1, goldDark);
+  px(ctx, x + 13, by + 9, 1, 4, steel);
+  px(ctx, x + 22, by + 9, 1, 4, steel);
+  // HE grabado al centro del escudo, con los mismos colores del logo de
+  // recepción: letras blancas y los acentos rojo y morado del logo real.
+  const w = '#f4f0e6';
+  const red = '#e0453e';
+  const purple = '#8f2fd4';
+  px(ctx, x + 12, by + 14, 2, 9, w);
+  px(ctx, x + 12, by + 17, 6, 2, w);
+  px(ctx, x + 16, by + 14, 2, 9, w);
+  px(ctx, x + 12, by + 20, 2, 3, red);
+  px(ctx, x + 20, by + 14, 6, 2, w);
+  px(ctx, x + 20, by + 14, 2, 9, w);
+  px(ctx, x + 20, by + 17, 5, 2, w);
+  px(ctx, x + 20, by + 21, 6, 2, w);
+  px(ctx, x + 20, by + 14, 2, 3, purple);
 }
 
 const monitorCache = {};
@@ -771,6 +835,7 @@ const DECOR_DRAW = {
   nameplate: drawNameplate,
   banner: drawBanner,
   logo: drawLogo,
+  mural: drawSpartanMural,
   heart: drawHeartDecor,
   coffee: drawCoffeeMachine,
   robot: drawRobotVac,

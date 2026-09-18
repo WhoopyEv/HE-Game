@@ -191,15 +191,17 @@ function drawNpc(ctx, npc, time) {
   let bob = npc.stand || npc.still ? 0 : Math.floor(time * 4 + npc.col) % 2 === 0 ? 0 : 1;
   if (npc.party) bob = -Math.round(Math.abs(Math.sin(time * 3.4 + npc.col * 0.7)) * 3);
   const st = DEV_STYLES[npc.style];
-  if (!st || !st.wide) {
+  if (!st || (!st.wide && !st.tallBody)) {
     drawSprite(ctx, spriteOf(npc), 0, npc.x, npc.y + bob, npc.flip);
     return;
   }
+  // Diana (tallBody) se estira desde los pies hacia arriba: queda más alta y
+  // más esbelta, con piernas largas, sin moverse de su casilla.
   const cx = npc.x + 8;
   const cy = npc.y + 16;
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.scale(st.wide ? 1.18 : 1, 1);
+  ctx.scale(st.wide ? 1.18 : st.tallBody ? 0.94 : 1, st.tallBody ? 1.3 : 1);
   ctx.translate(-cx, -cy);
   drawSprite(ctx, spriteOf(npc), 0, npc.x, npc.y + bob, npc.flip);
   ctx.restore();

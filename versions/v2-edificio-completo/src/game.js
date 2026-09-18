@@ -3,8 +3,22 @@
   const VIEW_H = 224;
   const CULL = 24;
 
+  // Animación final (tomada de la v3): las piezas recogidas vuelan hasta armar
+  // el logo de Hired Experts antes del mensaje del equipo.
+  const LOGO_SLOTS = {
+    respaldo: { x: 16, y: 11 },
+    oportunidad: { x: 26, y: 3 },
+    aprendizaje: { x: 15, y: 9 },
+    confianza: { x: 4, y: 13 },
+    equipo: { x: 16, y: 18 },
+  };
+  const LOGO_SCALE = 3;
+  const LOGO_X = Math.round((VIEW_W - 32 * LOGO_SCALE) / 2);
+  const LOGO_Y = 18;
+
   const STATE = {
     TITLE: 'title',
+    HOWTO: 'howto',
     INTRO: 'intro',
     PLAYING: 'playing',
     DIALOGUE: 'dialogue',
@@ -14,7 +28,7 @@
   };
 
   const IDS = [
-    'title-screen', 'end-screen', 'hud', 'hud-count', 'hud-slots', 'mute', 'end-credits',
+    'title-screen', 'howto-screen', 'howto-btn', 'end-screen', 'hud', 'hud-count', 'hud-slots', 'mute', 'end-credits',
     'end-dedication', 'elevator', 'elev-list', 'floor-label', 'value-flash',
     'bubble', 'bubble-name', 'bubble-text', 'clouds', 'help', 'help-modal', 'help-close', 'stage',
   ];
@@ -34,6 +48,8 @@
   let confetti = [];
   let parade = null;
   let celebrateTimer = 0;
+  let finaleLogo = null;
+  let logoCanvas = null;
   let bubbleFor = null;
   let bubbleW = 0;
   let bubbleH = 0;
@@ -166,8 +182,15 @@
     });
   }
 
+  function showHowto() {
+    el['title-screen'].classList.remove('is-visible');
+    el['howto-screen'].classList.add('is-visible');
+    state = STATE.HOWTO;
+  }
+
   function startGame() {
     el['title-screen'].classList.remove('is-visible');
+    el['howto-screen'].classList.remove('is-visible');
     el.hud.classList.add('is-visible');
     Audio8.startMusic();
     updateHud();
@@ -254,6 +277,34 @@
     });
   }
 
+  // Zorro recorre en bucle los puntos de zorroPatrol, cambiando de dirección al
+  // llegar a cada uno; se voltea el sprite según hacia dónde camina.
+  function moveZorro(fs, dt) {
+    const cfg = fs.def.zorroPatrol;
+    if (!cfg) return;
+    const npc = fs.npcs.filter(function (n) {
+      return n.id === 'zorro';
+    })[0];
+    if (!npc) return;
+    if (npc.wp === undefined) npc.wp = 0;
+    const target = cfg.points[(npc.wp + 1) % cfg.points.length];
+    const tx = target.col * TILE;
+    const ty = target.row * TILE;
+    const dx = tx - npc.x;
+    const dy = ty - npc.y;
+    const dist = Math.hypot(dx, dy);
+    const step = cfg.speed * dt;
+    if (dist <= step) {
+      npc.x = tx;
+      npc.y = ty;
+      npc.wp = (npc.wp + 1) % cfg.points.length;
+    } else {
+      npc.x += (dx / dist) * step;
+      npc.y += (dy / dist) * step;
+      if (dx !== 0) npc.flip = dx < 0;
+    }
+  }
+
   // Después de hablar con Marce: todos van saliendo del ascensor y se reparten
   // por la terraza. Cuando el último llega, viene el mensaje del equipo.
   function startParade() {
@@ -294,7 +345,191 @@
     });
     if (parade.t < parade.total) return;
     parade = null;
-    triggerFinale();
+    startLogoGather();
+  }
+
+  // Ícono de pieza (de la v3): un rombo del color del valor con un brillito.
+  function drawPieceIcon(x, y, color, bob) {
+    const py = y + bob;
+    px(ctx, x + 1, py + 1, 14, 14, '#241a2b');
+    px(ctx, x + 2, py + 2, 12, 12, color);
+    px(ctx, x + 14, py + 5, 3, 6, '#241a2b');
+    px(ctx, x + 14, py + 6, 2, 4, color);
+    px(ctx, x + 1, py + 6, 2, 4, '#241a2b');
+    px(ctx, x + 3, py + 3, 4, 2, '#f4f0e6');
+    px(ctx, x + 3, py + 5, 2, 2, '#f4f0e6');
+  }
+
+  function drawLogoParts(g, x, y, have) {
+    const has = function (id) {
+      return have.indexOf(id) !== -1;
+    };
+    if (has('respaldo')) {
+      px(g, x, y, 32, 22, '#0d0a12');
+      px(g, x, y, 32, 1, '#3a3244');
+      px(g, x, y + 21, 32, 1, '#3a3244');
+    }
+    if (has('oportunidad')) px(g, x + 22, y + 2, 8, 3, '#8f2fd4');
+    if (has('aprendizaje')) {
+      px(g, x + 4, y + 6, 3, 9, '#f4f0e6');
+      px(g, x + 11, y + 3, 3, 12, '#f4f0e6');
+      px(g, x + 7, y + 9, 4, 3, '#f4f0e6');
+      px(g, x + 17, y + 6, 3, 9, '#f4f0e6');
+      px(g, x + 20, y + 6, 7, 3, '#f4f0e6');
+      px(g, x + 20, y + 12, 7, 3, '#f4f0e6');
+    }
+    if (has('confianza')) px(g, x + 2, y + 11, 4, 4, '#e0453e');
+    if (has('equipo')) px(g, x + 3, y + 17, 26, 3, '#f2c50a');
+  }
+
+  function buildLogoCanvas(have) {
+    const c = document.createElement('canvas');
+    c.width = 32;
+    c.height = 22;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    drawLogoParts(g, 0, 0, have);
+    return c;
+  }
+
+  function easeOutFinale(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  // Las piezas recogidas vuelan desde abajo hasta su lugar en el logo, el logo
+  // se voltea para mostrarse armado y luego aparece el equipo de desarrollo.
+  function startLogoGather() {
+    state = STATE.FINALE_TALK;
+    hideLabel();
+    const order = ['respaldo'].concat(
+      VALUES.map(function (v) {
+        return v.id;
+      }).filter(function (id) {
+        return id !== 'respaldo';
+      })
+    );
+    const mine = order.filter(function (id) {
+      return collected.indexOf(id) !== -1;
+    });
+    const n = Math.max(1, mine.length);
+    finaleLogo = {
+      t: 0,
+      phase: 'gather',
+      flipped: false,
+      triggered: false,
+      pieces: mine.map(function (id, i) {
+        const slot = LOGO_SLOTS[id] || { x: 16, y: 11 };
+        return {
+          id: id,
+          color: flashColorFor((VALUE_BY_ID[id] || {}).color || '#f4f0e6'),
+          fromX: VIEW_W / 2 - (n * 22) / 2 + i * 22,
+          fromY: VIEW_H - 40,
+          toX: LOGO_X + slot.x * LOGO_SCALE - 8,
+          toY: LOGO_Y + slot.y * LOGO_SCALE - 8,
+          delay: i * 0.2,
+        };
+      }),
+      have: collected.slice(),
+    };
+  }
+
+  function updateFinaleLogo(dt) {
+    const f = finaleLogo;
+    if (!f || f.triggered) return;
+    f.t += dt;
+
+    if (f.phase === 'gather') {
+      const last = f.pieces.length ? f.pieces[f.pieces.length - 1].delay + 0.75 : 0.5;
+      if (f.t >= last + 0.35) {
+        f.phase = 'flip';
+        f.t = 0;
+        Audio8.ding();
+      }
+      return;
+    }
+
+    if (f.phase === 'flip') {
+      if (!f.flipped && f.t >= 0.35) {
+        f.flipped = true;
+        logoCanvas = buildLogoCanvas(f.have);
+      }
+      if (f.t >= 0.75) {
+        f.phase = 'devs';
+        f.t = 0;
+        Audio8.unlocked();
+      }
+      return;
+    }
+
+    if (f.phase === 'devs' && f.t >= 1.1) {
+      f.triggered = true;
+      triggerFinale();
+    }
+  }
+
+  // Se dibuja en coordenadas de pantalla (fuera de la cámara del piso), igual
+  // que el confeti, para que quede fija encima de la terraza.
+  function drawFinaleLogo() {
+    const f = finaleLogo;
+    if (!f) return;
+    ctx.fillStyle = 'rgba(13, 10, 18, 0.72)';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    if (f.phase === 'gather') {
+      f.pieces.forEach(function (p) {
+        const t = Math.max(0, Math.min(1, (f.t - p.delay) / 0.75));
+        const e = easeOutFinale(t);
+        drawPieceIcon(p.fromX + (p.toX - p.fromX) * e, p.fromY + (p.toY - p.fromY) * e, p.color, 0);
+      });
+      return;
+    }
+
+    const cx = LOGO_X + (32 * LOGO_SCALE) / 2;
+    let sx = 1;
+    if (f.phase === 'flip' && !f.flipped) {
+      sx = f.t < 0.35 ? 1 - f.t / 0.35 : (f.t - 0.35) / 0.4;
+      sx = Math.max(0.02, Math.min(1, sx));
+    }
+
+    ctx.save();
+    ctx.translate(cx, 0);
+    ctx.scale(sx, 1);
+    ctx.translate(-cx, 0);
+    if (f.flipped || f.phase !== 'flip') {
+      if (!logoCanvas) logoCanvas = buildLogoCanvas(f.have);
+      ctx.drawImage(logoCanvas, LOGO_X, LOGO_Y, 32 * LOGO_SCALE, 22 * LOGO_SCALE);
+    } else {
+      f.pieces.forEach(function (p) {
+        drawPieceIcon(p.toX, p.toY, p.color, 0);
+      });
+    }
+    ctx.restore();
+
+    if (f.phase === 'devs' || f.triggered) {
+      const names = ['daniel', 'diana', 'nicolas', 'guillermo', 'felipe'];
+      const baseY = LOGO_Y + 22 * LOGO_SCALE + 8;
+      names.forEach(function (name, i) {
+        const appear = f.triggered ? 1 : Math.max(0, Math.min(1, (f.t - i * 0.12) / 0.25));
+        if (appear <= 0) return;
+        const x = VIEW_W / 2 - names.length * 11 + i * 22;
+        const y = baseY - Math.round((1 - appear) * 8);
+        const st = DEV_STYLES[name] || {};
+        const scaleX = st.wide ? 1.18 : 1;
+        const scaleY = st.tallBody ? 1.3 : 1;
+        if (scaleX !== 1 || scaleY !== 1) {
+          const cx2 = x + 8;
+          const cy2 = y + 16;
+          ctx.save();
+          ctx.translate(cx2, cy2);
+          ctx.scale(scaleX, scaleY);
+          ctx.translate(-cx2, -cy2);
+          drawSprite(ctx, name + 'Stand', 0, x, y, false);
+          ctx.restore();
+        } else {
+          drawSprite(ctx, name + 'Stand', 0, x, y, false);
+        }
+      });
+    }
   }
 
   function confirmElevator() {
@@ -366,8 +601,8 @@
     });
   }
 
-  function talkToMarce(fs) {
-    const m = MESSAGES.marce;
+  function talkToSergio(fs) {
+    const m = MESSAGES.sergio;
     Audio8.confirm();
     // En la terraza solo se entra con las cinco piezas, así que siempre es el final.
     if (floorIdx === TERRACE_IDX) {
@@ -394,7 +629,7 @@
 
   function talkTo(npc, fs) {
     if (npc.role === 'mission') {
-      talkToMarce(fs);
+      talkToSergio(fs);
       return;
     }
     const msg = npc.piece ? MESSAGES.devs[npc.id] : MESSAGES.extras[npc.id];
@@ -629,11 +864,21 @@
     updateClouds(fs, cam);
     drawGuides(fs, cam);
     if (partyOn) drawConfetti();
+    if (finaleLogo) drawFinaleLogo();
   }
 
   function handleInput() {
     if (helpOpen()) return;
     if (state === STATE.TITLE) {
+      if (Engine.wasPressed('action')) {
+        Engine.consume('action');
+        Audio8.confirm();
+        showHowto();
+      }
+      return;
+    }
+
+    if (state === STATE.HOWTO) {
       if (Engine.wasPressed('action')) {
         Engine.consume('action');
         Audio8.confirm();
@@ -709,6 +954,7 @@
     }
 
     if (parade) updateParade(dt);
+    if (finaleLogo) updateFinaleLogo(dt);
     if (celebrateTimer > 0) {
       celebrateTimer -= dt;
       if (celebrateTimer <= 0) {
@@ -717,6 +963,7 @@
       }
     }
     moveRobot(current());
+    moveZorro(current(), dt);
     if (partyOn) updateConfetti(dt);
     render();
   }
@@ -763,7 +1010,17 @@
       if (state !== STATE.TITLE) return;
       Audio8.unlock();
       Audio8.confirm();
+      showHowto();
+    });
+
+    el['howto-btn'].addEventListener('click', function () {
+      if (state !== STATE.HOWTO) return;
+      Audio8.confirm();
       startGame();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.code === 'Escape' && state === STATE.HOWTO) startGame();
     });
 
     Engine.start(frame);

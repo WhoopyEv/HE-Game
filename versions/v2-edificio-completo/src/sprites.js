@@ -241,7 +241,7 @@ function buildSitLong(st) {
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
-    '..k' + rep(sh, 10) + 'k..',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
     '..k' + rep(shD, 10) + 'k..',
     '..kk' + rep(shD, 8) + 'kk..',
     '....' + rep('k', 8) + '....',
@@ -267,7 +267,8 @@ function buildStandLong(st) {
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
-    '..k' + rep(shD, 10) + 'k..',
+    // el pelo sigue cayendo hasta la cadera, para que se note largo y no a la altura del hombro.
+    '.' + hair + 'k' + rep(shD, 10) + 'k' + hair + '.',
     '.k' + rep(skirt, 12) + 'k.',
     'k' + rep(skirt, 14) + 'k',
     '...k' + rep(s, 3) + 'kk' + rep(s, 3) + 'k...',
@@ -296,7 +297,7 @@ function buildStandTall(st) {
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
-    '..k' + rep(shD, 10) + 'k..',
+    '.' + hair + 'k' + rep(shD, 10) + 'k' + hair + '.',
     '.k' + rep(skirt, 12) + 'k.',
     'k' + rep(skirt, 14) + 'k',
     '...k' + rep(s, 3) + 'kk' + rep(s, 3) + 'k...',
@@ -419,6 +420,12 @@ function addGlasses(rows) {
   return rows;
 }
 
+// Bigote de Felipe: una barra oscura justo debajo de la nariz.
+function addMustache(rows) {
+  rows[7] = rows[7].slice(0, 6) + 'kkkk' + rows[7].slice(10);
+  return rows;
+}
+
 function addHeadset(rows, band, shade) {
   const b = band || 'c';
   const d = shade || 'C';
@@ -437,7 +444,9 @@ const DEV_STYLES = {
   diana: { hair: 'l', hairDark: 'L', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', long: true, tallBody: true },
   nicolas: { hair: 'h', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z', curly: true },
   guillermo: { hair: 'l', hairDark: 'L', shirt: 'f', shirtDark: 'F', skin: 'u', pants: 'F' },
-  felipe: { hair: 'l', hairDark: 'L', shirt: 't', shirtDark: 'T', skin: 's', pants: 'Z', glasses: true, spiky: true },
+  // Calvo: el pelo se pinta del mismo tono de piel, así queda liso y sin
+  // silueta de cabello (con lentes y bigote para reconocerlo igual).
+  felipe: { hair: 's', hairDark: 'u', shirt: 't', shirtDark: 'T', skin: 's', pants: 'Z', glasses: true, mustache: true },
 };
 
 function devFrame(st, sitting) {
@@ -445,6 +454,7 @@ function devFrame(st, sitting) {
   if (st.spiky) rows = spikyHair(rows, st.hair, st.hairDark);
   if (st.curly) rows = curlyHair(rows, st.hair, st.hairDark);
   if (st.glasses) rows = addGlasses(rows);
+  if (st.mustache) rows = addMustache(rows);
   if (st.headset) rows = addHeadset(rows, st.headset, st.headsetShade);
   return rows;
 }
@@ -502,13 +512,16 @@ SPRITES.logistica2Stand = [
   buildStand({ hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
 ];
 
-// Sergio de cupido: todo de blanco y con alitas a los lados.
+// Sergio de cupido: todo de blanco y con alas doradas grandes a los lados
+// (de la nuca a la cadera, más anchas que las alitas blancas originales).
 function buildCupid(st) {
   const rows = buildStand(st);
-  rows[8] = '.m' + rows[8].slice(2, 14) + 'm.';
-  rows[9] = 'mm' + rows[9].slice(2, 14) + 'mm';
-  rows[10] = 'mM' + rows[10].slice(2, 14) + 'Mm';
-  rows[11] = '.M' + rows[11].slice(2, 14) + 'M.';
+  rows[8] = 'O' + rows[8].slice(1, 15) + 'O';
+  rows[9] = 'Oo' + rows[9].slice(2, 14) + 'oO';
+  rows[10] = 'ooo' + rows[10].slice(3, 13) + 'ooo';
+  rows[11] = 'ooo' + rows[11].slice(3, 13) + 'ooo';
+  rows[12] = 'Oo' + rows[12].slice(2, 14) + 'oO';
+  rows[13] = 'O' + rows[13].slice(1, 15) + 'O';
   return rows;
 }
 

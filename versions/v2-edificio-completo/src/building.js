@@ -119,7 +119,7 @@ function floor1() {
   put(g, 12, 13, 'P');
 
   npcs.push({ id: 'recep', kind: 'staff', style: 'recep', col: 4, row: 2, role: 'none', monitor: 'flat' });
-  npcs.push({ id: 'marce', kind: 'boss', style: 'sergioBoss', col: 7, row: 7, role: 'mission', stand: true });
+  npcs.push({ id: 'sergio', kind: 'boss', style: 'sergioBoss', col: 7, row: 7, role: 'mission', stand: true, side: 'bow' });
   npcs.push({ id: 'brandon', kind: 'manager', style: 'brandon', col: 8, row: 4, role: 'optional', stand: true });
   // el de la entrada tambien es de logistica
   npcs.push({ id: 'porteria', kind: 'logistica', style: 'logistica2', col: 2, row: 7, role: 'optional', stand: true });
@@ -162,6 +162,17 @@ function floor1() {
   npcs.push({ id: 'josue', kind: 'logistica', style: 'josue', col: 26, row: 5, dy: 8, role: 'optional', stand: true, flip: true });
 
   npcs.push({ id: 'robot', kind: 'robot', style: 'robot', col: 2, row: 12, role: 'optional', stand: true, ghost: true });
+
+  // Gente de bienestar en sus propias actividades: sentados almorzando, con
+  // audífonos o de pie conversando, repartidos por las mesas del piso.
+  npcs.push({ id: 'wel1', kind: 'bienestar', style: 'agent3', col: 20, row: 8, role: 'none', notes: true });
+  npcs.push({ id: 'wel2', kind: 'bienestar', style: 'agent5', col: 24, row: 8, role: 'none', side: 'pineapple' });
+  npcs.push({ id: 'wel3', kind: 'bienestar', style: 'agent7', col: 28, row: 11, role: 'none', side: 'mug' });
+  npcs.push({ id: 'wel4', kind: 'bienestar', style: 'staff2', col: 33, row: 11, role: 'none', stand: true });
+  npcs.push({ id: 'wel5', kind: 'bienestar', style: 'sup1', col: 37, row: 8, role: 'none' });
+  npcs.push({ id: 'wel6', kind: 'bienestar', style: 'agent9', col: 35, row: 12, role: 'none', stand: true });
+  npcs.push({ id: 'wel7', kind: 'bienestar', style: 'agent0', col: 33, row: 3, role: 'none', notes: true });
+  npcs.push({ id: 'wel8', kind: 'bienestar', style: 'staff0', col: 37, row: 6, role: 'none', side: 'mug' });
 
   npcs.push(corridorStaff(1));
 
@@ -222,10 +233,10 @@ const OPS_BANKS = [
   { col0: 19, col1: 27, row: 13 },
 ];
 
-// Los cinco del equipo, repartidos por todo el piso: solo Diana queda cerca del
-// ascensor y Felipe está dentro de la sala de juntas.
+// Los cinco del equipo, repartidos por todo el piso, lejos de la salida del
+// ascensor para no taparle el paso a nadie; Felipe está dentro de la sala de juntas.
 const OPS_DEVS = [
-  { id: 'diana', col: 13, row: 2, piece: 'oportunidad', side: 'pineapple' },
+  { id: 'diana', col: 9, row: 2, piece: 'oportunidad', side: 'pineapple' },
   { id: 'nicolas', col: 36, row: 7, piece: 'aprendizaje', side: 'duck' },
   { id: 'daniel', col: 18, row: 11, piece: 'confianza', notes: true },
   { id: 'guillermo', col: 6, row: 17, piece: 'equipo', side: 'ball' },
@@ -299,8 +310,8 @@ function operaciones() {
 
   // el de logística saluda al lado del ascensor
   npcs.push({ id: 'logisticaOps', kind: 'logistica', style: 'logistica', col: 17, row: 1, role: 'optional', stand: true });
-  // el de la cara de zorro, junto a la punta del mesón
-  npcs.push({ id: 'zorro', kind: 'logistica', style: 'zorro', col: 13, row: 8, role: 'optional', stand: true });
+  // el de la cara de zorro anda de ronda por todo el piso (ver zorroPatrol más abajo)
+  npcs.push({ id: 'zorro', kind: 'logistica', style: 'zorro', col: 14, row: 2, role: 'optional', stand: true });
 
   // rincón del café, arriba a la izquierda
   fill(g, 1, 1, 4, 1, 'c');
@@ -347,6 +358,17 @@ function operaciones() {
     ],
     npcs: npcs,
     decor: decor,
+    // Ronda de Zorro: un circuito por los pasillos abiertos del piso, sin cruzar
+    // mesones ni la sala de juntas.
+    zorroPatrol: {
+      points: [
+        { col: 14, row: 2 },
+        { col: 37, row: 2 },
+        { col: 37, row: 11 },
+        { col: 14, row: 11 },
+      ],
+      speed: 42,
+    },
     decorTop: [
       { art: 'menu', col: 2, row: 0 },
       { art: 'coffee', col: 1, row: 1 },
@@ -397,6 +419,14 @@ const TERRACE_PARTY = [
   { id: 'pt13a', style: 'agent2', col: 11, row: 13 },
   { id: 'pt13b', style: 'agent8', col: 17, row: 13 },
   { id: 'pt13c', style: 'agent10', col: 23, row: 13 },
+  { id: 'pt13d', style: 'sup0', col: 5, row: 13 },
+  { id: 'pt13e', style: 'sup1', col: 20, row: 13 },
+  { id: 'pt13f', style: 'sup2', col: 29, row: 13 },
+  { id: 'pt03d', style: 'staff0', col: 3, row: 3 },
+  { id: 'pt03e', style: 'agent9', col: 29, row: 3 },
+  { id: 'pt06b', style: 'staff2', col: 3, row: 6 },
+  { id: 'pt09c', style: 'sup3', col: 3, row: 9 },
+  { id: 'pt11f', style: 'aseo3', col: 3, row: 11 },
 ];
 
 function terraza() {
@@ -438,7 +468,9 @@ function terraza() {
   });
 
   const npcs = [
-    { id: 'marce', kind: 'boss', style: 'sergioBoss', col: 5, row: 4, role: 'mission', stand: true },
+    { id: 'sergio', kind: 'boss', style: 'sergioBoss', col: 5, row: 4, role: 'mission', stand: true, side: 'bow' },
+    // Marce, detrás de su propia tienda.
+    { id: 'marce', kind: 'staff', style: 'marce', col: 4, row: 1, role: 'optional', stand: true },
   ];
 
   TERRACE_PARTY.forEach(function (p) {
@@ -497,6 +529,7 @@ function terraza() {
     npcs: npcs,
     decor: chairs,
     decorTop: hearts.concat([
+      { art: 'mural', col: 22, row: 1 },
       { art: 'menu', col: 3, row: 0 },
       { art: 'coffee', col: 2, row: 1 },
       { art: 'pastry', col: 5, row: 1 },

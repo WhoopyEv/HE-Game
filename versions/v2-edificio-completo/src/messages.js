@@ -27,11 +27,11 @@ const MESSAGES = {
     name: '',
     lines: [
       'Viernes en la mañana y el edificio tiene algo preparado.',
-      'Tú eres el Espartano. Marce te está esperando en recepción.',
+      'Tú eres el Espartano. Sergio te está esperando en recepción.',
     ],
   },
 
-  marce: {
+  sergio: {
     name: 'SERGIO (CUPIDO BOSS)',
     mission: [
       'Espartano, qué bueno verte por acá. Quiero pedirte una misión.',
@@ -49,7 +49,7 @@ const MESSAGES = {
 
   elevatorLocked: {
     name: '',
-    lines: ['Mejor primero hablo con Marce, allá en recepción.'],
+    lines: ['Mejor primero hablo con Sergio, allá en recepción.'],
   },
 
   // Sale cuando se intenta subir a la terraza sin las cinco piezas.
@@ -86,10 +86,7 @@ const MESSAGES = {
   extras: {
     aseo: {
       name: 'SERVICIOS GENERALES',
-      lines: [
-        'Nosotros vemos este edificio cuando ya no hay nadie: vacío, en silencio y listo para mañana.',
-        'Gracias a todos los que dejan su puesto como les gustaría encontrarlo.',
-      ],
+      lines: ['Gracias por el aseo general y por dejar siempre todo ordenado.'],
     },
     brandon: {
       name: 'BRANDON',
@@ -115,7 +112,11 @@ const MESSAGES = {
     },
     zorro: {
       name: 'ZORRO',
-      lines: ['Yo solo pasaba por el café, no por lo que están pensando.'],
+      lines: ['Si se hace algo, se hace bien.'],
+    },
+    marce: {
+      name: 'MARCE',
+      lines: ['Hoy no fío, mañana sí.'],
     },
     robot: {
       name: 'ASPIRADORA',
