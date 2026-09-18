@@ -27,12 +27,12 @@ const MESSAGES = {
     name: '',
     lines: [
       'Viernes en la mañana y el edificio tiene algo preparado.',
-      'Tú eres el Espartano. Sergio te está esperando en recepción.',
+      'Tú eres el Espartano. Sergio y Yesica te están esperando en recepción.',
     ],
   },
 
   sergio: {
-    name: 'SERGIO (CUPIDO BOSS)',
+    name: 'SERGIO Y YESICA (CUPIDOS)',
     mission: [
       'Espartano, qué bueno verte por acá. Quiero pedirte una misión.',
       'Hoy es Día de Amor y Amistad y los cinco del equipo de desarrollo tienen algo preparado para la empresa: una pieza cada uno.',
@@ -49,7 +49,7 @@ const MESSAGES = {
 
   elevatorLocked: {
     name: '',
-    lines: ['Mejor primero hablo con Sergio, allá en recepción.'],
+    lines: ['Mejor primero hablo con Sergio y Yesica, allá en recepción.'],
   },
 
   // Sale cuando se intenta subir a la terraza sin las cinco piezas.
@@ -107,7 +107,7 @@ const MESSAGES = {
       lines: ['¿Están trabajando? Pueden trabajar más fuerte.'],
     },
     sebastian: {
-      name: 'SEBASTIÁN',
+      name: 'SEBASTIÁN RODRÍGUEZ',
       lines: ['Zorro, no te lo lleves.'],
     },
     zorro: {
@@ -119,12 +119,28 @@ const MESSAGES = {
       lines: ['Hoy no fío, mañana sí.'],
     },
     robot: {
-      name: 'ASPIRADORA',
+      name: 'ESPERANCITA',
       lines: ['Bep, bop. Bep.'],
     },
     logisticaOps: {
       name: 'LOGÍSTICA',
       lines: ['¡Buen día, joven!'],
+    },
+    frehynner: {
+      name: 'FREHYNNER',
+      lines: ['¡Hoy pagan!!!'],
+    },
+    jonathan: {
+      name: 'JONATHAN',
+      lines: ['Bro, esto está muy family friendly.'],
+    },
+    danilo: {
+      name: 'DANILO',
+      lines: ['¡VENTAAAA!'],
+    },
+    dorilocos: {
+      name: 'BIENESTAR',
+      lines: ['Uff, qué buenos dorilocos.'],
     },
     ops1: {
       name: 'OPERACIONES',

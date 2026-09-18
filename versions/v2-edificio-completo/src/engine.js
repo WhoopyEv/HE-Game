@@ -12,6 +12,8 @@ const Engine = (function () {
     Space: 'action',
     Enter: 'action',
     NumpadEnter: 'action',
+    ShiftLeft: 'run',
+    ShiftRight: 'run',
   };
 
   const held = {};

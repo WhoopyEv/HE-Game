@@ -42,6 +42,7 @@ const Audio8 = (function () {
   let timer = null;
   let step = 0;
   let nextTime = 0;
+  let spartanCall = null;
 
   function ensure() {
     if (ready) return true;
@@ -140,9 +141,25 @@ const Audio8 = (function () {
       });
     },
 
+    // El grito de "¿cuál es su profesión?" antes de que salga la gente en la
+    // terraza. onEnded se llama al terminar el clip, o de una, si no se pudo
+    // reproducir (bloqueo del navegador, archivo faltante, etc).
+    playSpartanCall: function (onEnded) {
+      if (!spartanCall) {
+        spartanCall = new Audio('assets/300-espartanos.mp3');
+        spartanCall.preload = 'auto';
+      }
+      spartanCall.muted = muted;
+      spartanCall.currentTime = 0;
+      spartanCall.onended = onEnded || null;
+      const played = spartanCall.play();
+      if (played && played.catch) played.catch(function () { if (onEnded) onEnded(); });
+    },
+
     toggleMute: function () {
       muted = !muted;
       if (master) master.gain.value = muted ? 0 : 0.2;
+      if (spartanCall) spartanCall.muted = muted;
       return muted;
     },
 

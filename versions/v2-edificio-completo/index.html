@@ -273,6 +273,25 @@
     font-weight: 700;
   }
 
+  .action-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #run-btn {
+    background: var(--panel-light);
+    border: 2px solid #55456a;
+    color: var(--ink);
+    font-size: 10px;
+    padding: 5px 10px;
+    user-select: none;
+    touch-action: none;
+  }
+
+  #run-btn.is-pressed { background: var(--gold); color: var(--panel); }
+
   .hint {
     font-size: 12px;
     color: var(--ink-dim);
@@ -490,7 +509,7 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
-    #dpad, #act { display: none; }
+    #dpad, .action-col { display: none; }
     #controls { justify-content: center; }
   }
 
@@ -540,9 +559,9 @@
   <div id="howto-screen" class="layer">
     <h2 class="help-title">CÓMO JUGAR</h2>
     <ul class="help-list">
-      <li><b>Flechas</b> o <b>WASD</b> — caminar</li>
+      <li><b>Flechas</b> o <b>WASD</b> — caminar, con <b>MAYÚS</b> corres</li>
       <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar, avanzar y usar el ascensor</li>
-      <li>En celular: <b>D-pad</b> y botón <b>E</b></li>
+      <li>En celular: <b>D-pad</b>, botón <b>CORRER</b> y botón <b>E</b></li>
     </ul>
     <button id="howto-btn">Empezar</button>
     <p class="howto-skip">ESC para saltar</p>
@@ -552,14 +571,16 @@
     <h2 class="help-title">CÓMO JUGAR</h2>
     <ul class="help-list">
       <li><b>Flechas</b> o <b>WASD</b> — caminar por el piso</li>
+      <li>Mantén <b>MAYÚS</b> para correr</li>
       <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar y avanzar el diálogo</li>
       <li><b>E</b> frente al ascensor — abrir el panel de pisos</li>
       <li>En el ascensor: <b>↑ ↓</b> eliges piso, <b>E</b> vas, <b>← →</b> sales</li>
       <li>Los mensajes opcionales salen solos al acercarte a la persona</li>
       <li>En <b>operaciones</b> están los 5 del equipo de desarrollo: háblales para que te den su pieza</li>
       <li>Las <b>flechas doradas</b> del borde te apuntan a quién falta por visitar</li>
-      <li>Con las <b>5 piezas</b> se abre la terraza, donde te espera Sergio</li>
-      <li>En celular: usa el <b>D-pad</b> y el botón <b>E</b> de abajo</li>
+      <li>La <b>flecha verde</b> te apunta al ascensor cuando ya reuniste todo</li>
+      <li>Con las <b>5 piezas</b> se abre la terraza, donde te esperan Sergio y Yesica</li>
+      <li>En celular: usa el <b>D-pad</b>, el botón <b>CORRER</b> y el botón <b>E</b> de abajo</li>
     </ul>
     <button id="help-close">Cerrar</button>
   </div>
@@ -587,8 +608,11 @@
     <button class="pad-right" data-action="right" aria-label="Derecha">▶</button>
     <button class="pad-down" data-action="down" aria-label="Abajo">▼</button>
   </div>
-  <p class="hint">Flechas o WASD para caminar · E o ESPACIO para hablar y usar el ascensor</p>
-  <button id="act" data-action="action" aria-label="Hablar">E</button>
+  <p class="hint">Flechas o WASD para caminar · MAYÚS para correr · E o ESPACIO para hablar y usar el ascensor</p>
+  <div class="action-col">
+    <button id="run-btn" data-action="run" aria-label="Correr">CORRER</button>
+    <button id="act" data-action="action" aria-label="Hablar">E</button>
+  </div>
 </div>
 
 <script src="src/sprites.js"></script>

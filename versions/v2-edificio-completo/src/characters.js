@@ -1,5 +1,6 @@
 const SPRITE_SIZE = 16;
 const WALK_SPEED = 58;
+const RUN_MULT = 1.7;
 const ANIM_FPS = 7;
 const INTERACT_RANGE = 26;
 const BUBBLE_RANGE = 34;
@@ -105,13 +106,14 @@ function movePlayer(player, dt, input, floor, npcs) {
     dy *= inv;
   }
 
-  const nextX = player.x + dx * WALK_SPEED * dt;
+  const speed = WALK_SPEED * (input.run ? RUN_MULT : 1);
+  const nextX = player.x + dx * speed * dt;
   if (!boxBlocked(floor, nextX, player.y) && !npcBlocked(npcs, nextX, player.y)) player.x = nextX;
-  const nextY = player.y + dy * WALK_SPEED * dt;
+  const nextY = player.y + dy * speed * dt;
   if (!boxBlocked(floor, player.x, nextY) && !npcBlocked(npcs, player.x, nextY)) player.y = nextY;
 
   if (player.moving) {
-    player.animTime += dt;
+    player.animTime += dt * (input.run ? RUN_MULT : 1);
     player.frame = Math.floor(player.animTime * ANIM_FPS) % 2;
   } else {
     player.animTime = 0;
@@ -190,9 +192,12 @@ function drawPlayer(ctx, player) {
 function drawNpc(ctx, npc, time) {
   let bob = npc.stand || npc.still ? 0 : Math.floor(time * 4 + npc.col) % 2 === 0 ? 0 : 1;
   if (npc.party) bob = -Math.round(Math.abs(Math.sin(time * 3.4 + npc.col * 0.7)) * 3);
+  // Contoneo de cadera (Danilo): un vaivén horizontal al caminar.
+  const sway = npc.hipSway ? Math.sin(time * 6 + npc.col) * 1.6 : 0;
+  const px = npc.x + sway;
   const st = DEV_STYLES[npc.style];
   if (!st || (!st.wide && !st.tallBody)) {
-    drawSprite(ctx, spriteOf(npc), 0, npc.x, npc.y + bob, npc.flip);
+    drawSprite(ctx, spriteOf(npc), 0, px, npc.y + bob, npc.flip);
     return;
   }
   // Diana (tallBody) se estira desde los pies hacia arriba: queda más alta y
@@ -203,7 +208,19 @@ function drawNpc(ctx, npc, time) {
   ctx.translate(cx, cy);
   ctx.scale(st.wide ? 1.18 : st.tallBody ? 0.94 : 1, st.tallBody ? 1.3 : 1);
   ctx.translate(-cx, -cy);
-  drawSprite(ctx, spriteOf(npc), 0, npc.x, npc.y + bob, npc.flip);
+  drawSprite(ctx, spriteOf(npc), 0, px, npc.y + bob, npc.flip);
+  ctx.restore();
+}
+
+// Brillito que titila sobre una cabeza calva (Danilo).
+function drawHeadShine(ctx, x, y, t) {
+  const p = (Math.sin(t * 3) + 1) / 2;
+  if (p < 0.55) return;
+  ctx.save();
+  ctx.globalAlpha = (p - 0.55) / 0.45;
+  ctx.fillStyle = '#f4f0e6';
+  ctx.fillRect(x + 9, y - 3, 1, 5);
+  ctx.fillRect(x + 7, y - 1, 5, 1);
   ctx.restore();
 }
 

@@ -697,6 +697,16 @@ function itemBow(ctx, x, y) {
   px(ctx, x, y + 5, 2, 1, '#e8c25a');
 }
 
+// Paquete de dorilocos: bolsa de papas de colores, para la gente de bienestar.
+function itemChips(ctx, x, y) {
+  px(ctx, x, y + 1, 1, 6, '#a32b28');
+  px(ctx, x + 7, y + 1, 1, 6, '#a32b28');
+  px(ctx, x + 1, y, 6, 8, '#e0453e');
+  px(ctx, x + 1, y, 6, 2, '#8f2fd4');
+  px(ctx, x + 1, y + 6, 6, 2, '#f2c50a');
+  px(ctx, x + 2, y + 3, 4, 2, '#f4f0e6');
+}
+
 const DESK_ITEMS = {
   pineapple: itemPineapple,
   phone: itemPhone,
@@ -706,6 +716,7 @@ const DESK_ITEMS = {
   mug: itemMug,
   plant: itemPlant,
   bow: itemBow,
+  chips: itemChips,
 };
 
 function drawDeskItem(ctx, x, y, kind) {

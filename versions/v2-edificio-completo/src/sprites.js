@@ -399,6 +399,8 @@ const NAMED_STYLES = {
   mgrRh2: { hair: 'h', hairDark: 'H', shirt: 'p', shirtDark: 'P', skin: 'i', pants: 'Z' },
   mgrRh3: { hair: 'j', hairDark: 'J', shirt: 'c', shirtDark: 'C', skin: 'u', pants: 'Z', long: true },
   brandon: { hair: 'H', hairDark: 'k', shirt: 'o', shirtDark: 'O', skin: 'u', pants: 'Z' },
+  jonathan: { hair: 'n', hairDark: 'H', shirt: 'x', shirtDark: 'X', skin: 'u', pants: 'Z', long: true },
+  frehynner: { hair: 'n', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 'i', pants: 'Z' },
 };
 
 // --- el equipo de desarrollo ---
@@ -423,6 +425,13 @@ function addGlasses(rows) {
 // Bigote de Felipe: una barra oscura justo debajo de la nariz.
 function addMustache(rows) {
   rows[7] = rows[7].slice(0, 6) + 'kkkk' + rows[7].slice(10);
+  return rows;
+}
+
+// Barba de Brandon: cubre mandíbula y cuello con el color del pelo.
+function addBeard(rows, color) {
+  rows[7] = rows[7].slice(0, 5) + rep(color, 6) + rows[7].slice(11);
+  rows[8] = rows[8].slice(0, 6) + rep(color, 5) + rows[8].slice(11);
   return rows;
 }
 
@@ -490,6 +499,35 @@ Object.keys(NAMED_STYLES).forEach(function (key) {
   SPRITES[key + 'Stand'] = [personStand(NAMED_STYLES[key])];
 });
 
+SPRITES.brandonStand = [addBeard(SPRITES.brandonStand[0], NAMED_STYLES.brandon.hair)];
+SPRITES.frehynnerStand = [spikyHair(SPRITES.frehynnerStand[0], NAMED_STYLES.frehynner.hair, NAMED_STYLES.frehynner.hairDark)];
+// Se sienta en su puesto (como Sebastián y Daniel Pardo): el pelo levantado
+// también va en la versión sentada, que es la que realmente se ve en el juego.
+SPRITES.frehynnerSit = [spikyHair(SPRITES.frehynnerSit[0], NAMED_STYLES.frehynner.hair, NAMED_STYLES.frehynner.hairDark)];
+// Danilo: moreno, calvo, camiseta blanca y las nalgas como protagonistas
+// (dos cachetes redondos con la raya al medio), estilo Patricio nalgón.
+SPRITES.daniloStand = [
+  [
+    '................',
+    '.....kkkkkk.....',
+    '....kiiiiiik....',
+    '...kiiiiiiiik...',
+    '...kiiiiiiiik...',
+    '...kiiiiiiiik...',
+    '...kiikiikiik...',
+    '....kiiiiiik....',
+    '.....kiiiiik....',
+    '..kkwwwwwwwwkk..',
+    '.kiwwwwwwwwwwik.',
+    'kzZZZZZkZzZZZZZk',
+    'kZZZZZZkZZZZZZZk',
+    'kZZZZZZkZZZZZZZk',
+    '.kZZZZZkZZZZZZk.',
+    '...knnk..knnk...',
+  ],
+];
+SPRITES.daniloSit = SPRITES.daniloStand;
+
 SPRITES.aseoStand = [
   buildCapPerson({ cap: 'x', capDark: 'X', shirt: 'x', shirtDark: 'X', skin: 's' }),
 ];
@@ -512,23 +550,35 @@ SPRITES.logistica2Stand = [
   buildStand({ hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
 ];
 
-// Sergio de cupido: todo de blanco y con alas doradas grandes a los lados
-// (de la nuca a la cadera, más anchas que las alitas blancas originales).
-function buildCupid(st) {
-  const rows = buildStand(st);
-  rows[8] = 'O' + rows[8].slice(1, 15) + 'O';
-  rows[9] = 'Oo' + rows[9].slice(2, 14) + 'oO';
-  rows[10] = 'ooo' + rows[10].slice(3, 13) + 'ooo';
-  rows[11] = 'ooo' + rows[11].slice(3, 13) + 'ooo';
-  rows[12] = 'Oo' + rows[12].slice(2, 14) + 'oO';
-  rows[13] = 'O' + rows[13].slice(1, 15) + 'O';
+// Alas doradas grandes a los lados, de la nuca a la cadera. Se le pueden
+// pegar a cualquier fila de 16 columnas ya armada, empezando en row0.
+function addWings(rows, row0) {
+  const SPANS = ['O', 'Oo', 'ooo', 'ooo', 'Oo', 'O'];
+  SPANS.forEach(function (left, i) {
+    const idx = row0 + i;
+    if (idx < 0 || idx >= rows.length) return;
+    const right = left.split('').reverse().join('');
+    rows[idx] = left + rows[idx].slice(left.length, 16 - left.length) + right;
+  });
   return rows;
+}
+
+// Sergio de cupido: todo de blanco y con alas doradas.
+function buildCupid(st) {
+  return addWings(buildStand(st), 8);
 }
 
 SPRITES.sergioBossStand = [
   buildCupid({ hair: 'l', hairDark: 'L', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'W' }),
 ];
 SPRITES.sergioBossSit = SPRITES.sergioBossStand;
+
+// Yesica: siempre junto a Sergio, con las mismas alas pero su propia ropa
+// (no todo de blanco como él, solo las alas).
+SPRITES.yesicaStand = [
+  addWings(buildStandLong({ hair: 'l', hairDark: 'L', shirt: 'd', shirtDark: 'D', skin: 's', pants: 'D', long: true }), 7),
+];
+SPRITES.yesicaSit = SPRITES.yesicaStand;
 
 SPRITES.pingpongAStand = [buildStand({ hair: 'H', hairDark: 'k', shirt: 'w', shirtDark: 'W', skin: 's' })];
 SPRITES.pingpongBStand = [buildStand({ hair: 'n', hairDark: 'H', shirt: 't', shirtDark: 'T', skin: 'i' })];

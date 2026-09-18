@@ -45,6 +45,7 @@
   let elevSel = 0;
   let labelTimer = 0;
   let flashTimer = 0;
+  let playerHintTimer = 0;
   let confetti = [];
   let parade = null;
   let celebrateTimer = 0;
@@ -198,6 +199,7 @@
     state = STATE.INTRO;
     Dialogue.open(MESSAGES.intro.name, MESSAGES.intro.lines, function () {
       state = STATE.PLAYING;
+      playerHintTimer = 4.5;
     });
   }
 
@@ -277,15 +279,9 @@
     });
   }
 
-  // Zorro recorre en bucle los puntos de zorroPatrol, cambiando de dirección al
-  // llegar a cada uno; se voltea el sprite según hacia dónde camina.
-  function moveZorro(fs, dt) {
-    const cfg = fs.def.zorroPatrol;
-    if (!cfg) return;
-    const npc = fs.npcs.filter(function (n) {
-      return n.id === 'zorro';
-    })[0];
-    if (!npc) return;
+  // Un NPC recorre en bucle los puntos de su patrulla, cambiando de dirección
+  // al llegar a cada uno; se voltea el sprite según hacia dónde camina.
+  function movePatrolNpc(npc, cfg, dt) {
     if (npc.wp === undefined) npc.wp = 0;
     const target = cfg.points[(npc.wp + 1) % cfg.points.length];
     const tx = target.col * TILE;
@@ -303,6 +299,19 @@
       npc.y += (dy / dist) * step;
       if (dx !== 0) npc.flip = dx < 0;
     }
+  }
+
+  // Todas las rondas del piso actual (Zorro, Danilo, etc), definidas en su
+  // floor def como `patrols: [{ id, points, speed }]`.
+  function movePatrols(fs, dt) {
+    const list = fs.def.patrols;
+    if (!list) return;
+    list.forEach(function (cfg) {
+      const npc = fs.npcs.filter(function (n) {
+        return n.id === cfg.id;
+      })[0];
+      if (npc) movePatrolNpc(npc, cfg, dt);
+    });
   }
 
   // Después de hablar con Marce: todos van saliendo del ascensor y se reparten
@@ -601,13 +610,28 @@
     });
   }
 
+  // El grito de "300" antes de que salga la gente: bloquea la entrada mientras
+  // suena y recién ahí arranca el desfile (con respaldo por si el audio falla).
+  function callSpartans() {
+    state = STATE.FINALE_TALK;
+    hideLabel();
+    let started = false;
+    const begin = function () {
+      if (started) return;
+      started = true;
+      startParade();
+    };
+    Audio8.playSpartanCall(begin);
+    setTimeout(begin, 6500);
+  }
+
   function talkToSergio(fs) {
     const m = MESSAGES.sergio;
     Audio8.confirm();
     // En la terraza solo se entra con las cinco piezas, así que siempre es el final.
     if (floorIdx === TERRACE_IDX) {
       state = STATE.DIALOGUE;
-      Dialogue.open(m.name, m.ready, startParade);
+      Dialogue.open(m.name, m.ready, callSpartans);
       return;
     }
     const first = !missionGiven;
@@ -739,6 +763,14 @@
           },
         });
       }
+      if (n.shine) {
+        drawables.push({
+          y: n.y,
+          draw: function () {
+            drawHeadShine(ctx, n.x, n.y, time);
+          },
+        });
+      }
     });
 
     drawables.push({
@@ -829,6 +861,10 @@
         out.push({ x: n.x + 8, y: n.y + 8, color: '#e8c25a' });
       }
     });
+    // Ya no falta nadie por visitar: apunta al ascensor para subir a la terraza.
+    if (complete() && floorIdx !== TERRACE_IDX) {
+      out.push({ x: (ELEV.col + 1) * TILE, y: ELEV.row * TILE + 8, color: '#4fa06a' });
+    }
     return out;
   }
 
@@ -848,6 +884,13 @@
     });
   }
 
+  // Flecha sobre el Espartano al empezar, para que se note cuál personaje maneja.
+  // Se apaga sola apenas se mueve, o después de unos segundos.
+  function drawPlayerHint() {
+    const bounce = Math.round(Math.sin(time * 5) * 2);
+    arrowTriangle(ctx, player.x + 8, player.y - 8 + bounce, 'down', 5, '#e8c25a');
+  }
+
   function render() {
     const fs = current();
     const cam = cameraFor(player, fs.def, VIEW_W, VIEW_H);
@@ -858,6 +901,7 @@
     ctx.drawImage(backgroundFor(fs), 0, 0);
     drawPingScene(fs);
     drawEntities(fs, cam);
+    if (playerHintTimer > 0) drawPlayerHint();
     drawIndicators(fs, cam, updateBubble(fs, cam));
     drawPartyHearts(fs, cam);
     ctx.restore();
@@ -947,11 +991,15 @@
           down: Engine.isHeld('down'),
           left: Engine.isHeld('left'),
           right: Engine.isHeld('right'),
+          run: Engine.isHeld('run'),
         },
         fs.def,
         fs.npcs
       );
+      if (player.moving) playerHintTimer = 0;
     }
+
+    if (playerHintTimer > 0) playerHintTimer -= dt;
 
     if (parade) updateParade(dt);
     if (finaleLogo) updateFinaleLogo(dt);
@@ -963,7 +1011,7 @@
       }
     }
     moveRobot(current());
-    moveZorro(current(), dt);
+    movePatrols(current(), dt);
     if (partyOn) updateConfetti(dt);
     render();
   }

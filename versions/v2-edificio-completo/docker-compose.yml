@@ -1,0 +1,5 @@
+services:
+  he-game:
+    build: .
+    ports:
+      - "4001:80"

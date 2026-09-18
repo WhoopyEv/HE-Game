@@ -22,7 +22,7 @@ const Dialogue = (function () {
     textEl.textContent = line.slice(0, Math.floor(revealed));
     const done = revealed >= line.length;
     nextEl.classList.toggle('is-ready', done);
-    nextEl.textContent = index >= lines.length - 1 ? '✦' : '▼';
+    nextEl.textContent = index >= lines.length - 1 ? '✦ ENTER' : '▼ ENTER';
   }
 
   return {
