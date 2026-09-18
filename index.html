@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<!-- Esta página sirve la v2 (edificio completo); sus scripts y su audio
+     viven en versions/v2-edificio-completo/, así que las rutas relativas
+     del archivo original (src/..., assets/...) se resuelven ahí. -->
+<base href="versions/v2-edificio-completo/">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hired Experts — Modo Historia</title>
+<title>Hired Experts — Gracias, jefe</title>
 <style>
   :root {
     --ink: #f4f0e6;
@@ -12,8 +16,8 @@
     --panel-light: #3a2d46;
     --gold: #e8c25a;
     --red: #e0453e;
-    --game-w: 640px;
-    --game-h: 352px;
+    --game-w: 768px;
+    --game-h: 448px;
   }
 
   * { box-sizing: border-box; }
@@ -63,16 +67,23 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 5%;
-    gap: 12px;
-    background: rgba(21, 16, 29, 0.94);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-    z-index: 4;
+    padding: 6%;
+    gap: 14px;
   }
 
-  .layer.is-visible { opacity: 1; pointer-events: auto; }
+  #title-screen, #end-screen, #howto-screen {
+    background: rgba(21, 16, 29, 0.93);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  #title-screen.is-visible, #end-screen.is-visible, #howto-screen.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .howto-skip { margin: 0; font-size: clamp(9px, 1.6vw, 12px); color: var(--ink-dim); }
 
   .title-main {
     font-size: clamp(20px, 5.2vw, 40px);
@@ -83,43 +94,23 @@
     margin: 0;
   }
 
-  .title-sub { font-size: clamp(12px, 2.4vw, 17px); margin: 0; letter-spacing: 0.08em; }
-  .title-prompt {
-    font-size: clamp(10px, 2vw, 13px);
-    color: var(--ink-dim);
+  .title-sub {
+    font-size: clamp(12px, 2.4vw, 17px);
+    color: var(--ink);
+    letter-spacing: 0.08em;
     margin: 0;
-    animation: blink 1.3s steps(2, end) infinite;
   }
+
+  .title-prompt {
+    font-size: clamp(10px, 2vw, 14px);
+    color: var(--ink-dim);
+    animation: blink 1.3s steps(2, end) infinite;
+    margin: 0;
+  }
+
   @keyframes blink { 50% { opacity: 0.25; } }
 
-  .screen-title {
-    margin: 0;
-    color: var(--gold);
-    font-size: clamp(13px, 2.6vw, 19px);
-    letter-spacing: 0.18em;
-  }
-
-  .howto-intro {
-    margin: 0;
-    max-width: 30em;
-    font-size: clamp(11px, 2vw, 15px);
-    line-height: 1.5;
-  }
-
-  #howto-controls {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: clamp(10px, 1.8vw, 13px);
-  }
-
-  #howto-controls li { display: flex; gap: 10px; align-items: baseline; }
-  #howto-controls b { color: var(--gold); min-width: 11em; text-align: right; }
-  #howto-controls span { color: var(--ink-dim); text-align: left; }
-  .howto-skip { margin: 0; font-size: clamp(9px, 1.6vw, 12px); color: var(--ink-dim); }
+  .heart-row { font-size: clamp(14px, 3vw, 22px); letter-spacing: 0.3em; color: var(--red); }
 
   #hud {
     position: absolute;
@@ -127,53 +118,42 @@
     left: 10px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
+    gap: 9px;
+    padding: 8px 14px;
     background: rgba(36, 26, 43, 0.86);
     border: 2px solid var(--panel-light);
-    font-size: clamp(11px, 1.9vw, 15px);
+    font-size: clamp(13px, 2.2vw, 19px);
     letter-spacing: 0.06em;
     opacity: 0;
     transition: opacity 0.3s ease;
-    z-index: 3;
   }
 
   #hud.is-visible { opacity: 1; }
   #hud.is-complete { border-color: var(--gold); color: var(--gold); }
 
-  .piece-icon {
-    width: 15px;
-    height: 15px;
-    border: 2px solid #241a2b;
-    background: conic-gradient(#e0453e 0 20%, #f2c50a 0 40%, #f4f0e6 0 60%, #8f2fd4 0 80%, #0d0a12 0 100%);
-    position: relative;
+  .piece-slots { display: flex; gap: 5px; }
+
+  .piece-slot {
+    width: 17px;
+    height: 17px;
+    border: 3px solid #55456a;
+    background: transparent;
   }
 
-  .piece-icon::after {
-    content: '';
-    position: absolute;
-    right: -5px;
-    top: 4px;
-    width: 5px;
-    height: 5px;
-    border: 2px solid #241a2b;
-    border-left: 0;
-    background: #f2c50a;
-  }
+  .piece-slot.is-on { border-color: #f4f0e6; }
 
-  /* Cinta diagonal, distinta a la placa de pared del letrero de zona:
-     fondo oscuro, borde y texto del color de la pieza recogida. */
+  /* Cinta que anuncia el valor de la pieza recién recibida. */
   #value-flash {
     --flash-color: #e8c25a;
     position: absolute;
-    top: 16%;
+    top: 15%;
     left: 50%;
-    padding: 8px 26px;
+    padding: 7px 24px;
     background: #15101d;
     border-top: 3px solid var(--flash-color);
     border-bottom: 3px solid var(--flash-color);
     color: var(--flash-color);
-    font-size: clamp(15px, 3.4vw, 26px);
+    font-size: clamp(14px, 3vw, 24px);
     font-weight: 900;
     letter-spacing: 0.16em;
     white-space: nowrap;
@@ -181,11 +161,10 @@
     pointer-events: none;
     transform: translateX(-50%) skewX(-10deg) scale(0.7);
     transition: opacity 0.15s ease, transform 0.18s ease;
-    z-index: 3;
+    z-index: 4;
   }
 
   #value-flash span { display: inline-block; transform: skewX(10deg); }
-
   #value-flash.is-visible { opacity: 1; transform: translateX(-50%) skewX(-10deg) scale(1); }
 
   #dialogue {
@@ -201,10 +180,9 @@
     transform: translateY(8px);
     pointer-events: none;
     transition: opacity 0.18s ease, transform 0.18s ease;
-    z-index: 5;
   }
 
-  #dialogue.is-open { opacity: 1; transform: translateY(0); }
+  #dialogue.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
   #dialogue-name {
     color: var(--gold);
@@ -214,7 +192,12 @@
     margin-bottom: 6px;
   }
 
-  #dialogue-text { font-size: clamp(11px, 2vw, 16px); line-height: 1.55; min-height: 3.1em; margin: 0; }
+  #dialogue-text {
+    font-size: clamp(11px, 2vw, 16px);
+    line-height: 1.55;
+    min-height: 3.1em;
+    margin: 0;
+  }
 
   #dialogue-next {
     position: absolute;
@@ -229,7 +212,7 @@
 
   .end-line { margin: 0; font-size: clamp(11px, 2.1vw, 16px); }
   #end-credits { color: var(--gold); letter-spacing: 0.1em; font-size: clamp(11px, 2.2vw, 17px); }
-  #end-dedication { color: var(--ink-dim); font-size: clamp(10px, 1.8vw, 13px); }
+  #end-dedication { color: var(--ink-dim); font-size: clamp(10px, 1.8vw, 14px); }
 
   button {
     font-family: inherit;
@@ -237,22 +220,16 @@
     color: var(--ink);
     background: var(--panel-light);
     border: 2px solid var(--gold);
-    padding: 9px 20px;
+    padding: 9px 18px;
     cursor: pointer;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
   }
 
   button:hover { background: var(--gold); color: var(--panel); }
-  button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 
-  #mute {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    padding: 6px 10px;
-    font-size: 15px;
-    border-color: var(--panel-light);
-    z-index: 6;
+  button:focus-visible, #stage:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
   }
 
   #controls {
@@ -264,15 +241,18 @@
     gap: 12px;
   }
 
-  #pad { display: flex; gap: 6px; }
+  #dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 46px);
+    grid-template-rows: repeat(3, 46px);
+    gap: 3px;
+  }
 
-  #pad button, #jump {
+  #dpad button, #act {
     background: var(--panel-light);
     border: 2px solid #55456a;
     color: var(--ink);
-    font-size: 18px;
-    width: 56px;
-    height: 52px;
+    font-size: 17px;
     padding: 0;
     display: flex;
     align-items: center;
@@ -281,32 +261,290 @@
     touch-action: none;
   }
 
-  #jump { width: 74px; height: 74px; border-radius: 50%; border-color: var(--gold); font-size: 13px; font-weight: 700; }
-  #pad button.is-pressed, #jump.is-pressed { background: var(--gold); color: var(--panel); }
+  #dpad button.is-pressed, #act.is-pressed { background: var(--gold); color: var(--panel); }
 
-  .hint { font-size: 12px; color: var(--ink-dim); text-align: center; letter-spacing: 0.05em; }
+  .pad-up { grid-area: 1 / 2; }
+  .pad-left { grid-area: 2 / 1; }
+  .pad-right { grid-area: 2 / 3; }
+  .pad-down { grid-area: 3 / 2; }
+
+  #act {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    border-color: var(--gold);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .action-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #run-btn {
+    background: var(--panel-light);
+    border: 2px solid #55456a;
+    color: var(--ink);
+    font-size: 10px;
+    padding: 5px 10px;
+    user-select: none;
+    touch-action: none;
+  }
+
+  #run-btn.is-pressed { background: var(--gold); color: var(--panel); }
+
+  .hint {
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  #mute {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px 15px;
+    font-size: 22px;
+    border-color: var(--panel-light);
+    z-index: 5;
+  }
+
+  #elevator {
+    background: rgba(21, 16, 29, 0.94);
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  #elevator.is-visible { opacity: 1; pointer-events: auto; }
+
+  .elev-title {
+    margin: 0;
+    color: var(--gold);
+    font-size: clamp(11px, 2.1vw, 15px);
+    letter-spacing: 0.18em;
+  }
+
+  #elev-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: min(320px, 82%);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2px;
+  }
+
+  .elev-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(58, 45, 70, 0.66);
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-size: clamp(10px, 1.8vw, 13px);
+  }
+
+  .elev-row.is-sel { border-color: var(--gold); background: var(--panel-light); }
+  .elev-row.is-locked .elev-name, .elev-row.is-locked .elev-num { color: #6b6280; }
+  .elev-num { width: 1.3em; text-align: center; font-weight: 700; }
+  .elev-row.is-here .elev-num { color: var(--gold); }
+  .elev-name { flex: 1; text-align: left; color: var(--ink-dim); letter-spacing: 0.06em; }
+  .elev-row.is-sel .elev-name { color: var(--ink); }
+  .elev-mark { width: 1.3em; text-align: center; color: var(--red); }
+  .elev-hint { margin: 0; font-size: clamp(9px, 1.6vw, 12px); color: var(--ink-dim); }
+
+  #floor-label {
+    position: absolute;
+    bottom: 11%;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 94%;
+    padding: 9px 22px;
+    background: rgba(36, 26, 43, 0.93);
+    border: 3px solid var(--gold);
+    color: var(--gold);
+    font-size: clamp(13px, 3vw, 23px);
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  #floor-label.is-visible { opacity: 1; }
+
+  #bubble {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, calc(-100% - 12px));
+    max-width: 46%;
+    padding: 7px 10px 8px;
+    background: #f4f0e6;
+    color: #241a2b;
+    border: 2px solid #241a2b;
+    border-radius: 14px;
+    font-size: clamp(9px, 1.5vw, 12px);
+    line-height: 1.45;
+    text-align: left;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+    z-index: 3;
+  }
+
+  #bubble.is-visible { opacity: 1; }
+
+  #bubble::before, #bubble::after {
+    content: '';
+    position: absolute;
+    left: var(--tail, 50%);
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+  }
+
+  #bubble::before {
+    bottom: -10px;
+    transform: translateX(-50%);
+    border-top: 10px solid #241a2b;
+  }
+
+  #bubble::after {
+    bottom: -6px;
+    transform: translateX(-50%) scale(0.72);
+    border-top: 10px solid #f4f0e6;
+  }
+
+  #bubble-name {
+    font-weight: 700;
+    font-size: 0.86em;
+    letter-spacing: 0.08em;
+    color: #7a4f2c;
+    margin-bottom: 3px;
+  }
+
+  .cloud {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, calc(-100% - 10px));
+    padding: 5px 9px 6px;
+    background: #f4f0e6;
+    color: #241a2b;
+    border: 2px solid #241a2b;
+    border-radius: 12px;
+    font-size: clamp(9px, 1.5vw, 12px);
+    line-height: 1.3;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+    z-index: 1;
+  }
+
+  .cloud.is-visible { opacity: 1; }
+
+  .cloud::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 7px solid #241a2b;
+  }
+
+  #help-modal {
+    background: rgba(21, 16, 29, 0.95);
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 6;
+  }
+
+  #help-modal.is-visible { opacity: 1; pointer-events: auto; }
+
+  .help-title {
+    margin: 0;
+    color: var(--gold);
+    font-size: clamp(13px, 2.4vw, 18px);
+    letter-spacing: 0.16em;
+  }
+
+  .help-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: clamp(9px, 1.6vw, 13px);
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  .help-list b { color: var(--gold); }
+
+  #help {
+    position: fixed;
+    top: 10px;
+    right: 76px;
+    padding: 10px 18px;
+    font-size: 22px;
+    font-weight: 700;
+    border-color: var(--panel-light);
+    z-index: 5;
+  }
 
   @media (hover: hover) and (pointer: fine) {
-    #pad, #jump { display: none; }
+    #dpad, .action-col { display: none; }
     #controls { justify-content: center; }
   }
 
-  @media (max-width: 720px) { .hint { display: none; } }
+  @media (max-width: 720px) {
+    .hint { display: none; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
-    .layer, #dialogue, #value-flash, #hud { transition: none; }
     .title-prompt, #dialogue-next.is-ready { animation: none; }
+    #dialogue, #title-screen, #end-screen, #howto-screen, #hud, #elevator, #floor-label, #bubble, #help-modal { transition: none; }
   }
 </style>
 </head>
 <body>
 
+<button id="help" aria-label="Cómo jugar">?</button>
 <button id="mute" aria-label="Silenciar">🔊</button>
 
 <div id="stage">
-  <canvas id="game" aria-label="Hired Experts — Modo Historia"></canvas>
+  <canvas id="game" aria-label="Edificio de Hired Experts"></canvas>
 
-  <div id="hud"><span class="piece-icon"></span><span id="hud-count">0/5</span></div>
+  <div id="floor-label"></div>
+
+  <div id="bubble">
+    <div id="bubble-name"></div>
+    <div id="bubble-text"></div>
+  </div>
+
+  <div id="clouds"></div>
+
+  <div id="hud"><span id="hud-slots" class="piece-slots"></span><span id="hud-count">0/5</span></div>
   <div id="value-flash"><span></span></div>
 
   <div id="dialogue">
@@ -316,30 +554,51 @@
   </div>
 
   <div id="title-screen" class="layer is-visible">
-    <p class="title-sub">🛡 ❤ 🛡</p>
+    <p class="heart-row">🛡 ❤ 🛡</p>
     <h1 class="title-main">HIRED EXPERTS</h1>
     <p class="title-sub">Día de Amor y Amistad</p>
-    <button id="start-btn">HISTORIA</button>
-    <p class="title-prompt">Presiona ENTER para empezar</p>
+    <p class="title-prompt">Presiona ENTER para entrar al edificio</p>
   </div>
 
   <div id="howto-screen" class="layer">
-    <h2 class="screen-title">CÓMO JUGAR</h2>
-    <p class="howto-intro" id="howto-intro"></p>
-    <ul id="howto-controls"></ul>
+    <h2 class="help-title">CÓMO JUGAR</h2>
+    <ul class="help-list">
+      <li><b>Flechas</b> o <b>WASD</b> — caminar, con <b>MAYÚS</b> corres</li>
+      <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar, avanzar y usar el ascensor</li>
+      <li>En celular: <b>D-pad</b>, botón <b>CORRER</b> y botón <b>E</b></li>
+    </ul>
     <button id="howto-btn">Empezar</button>
     <p class="howto-skip">ESC para saltar</p>
   </div>
 
-  <div id="pause-screen" class="layer">
-    <h2 class="screen-title">PAUSA</h2>
-    <button id="resume-btn">Seguir</button>
-    <button id="restart-btn">Reiniciar</button>
+  <div id="help-modal" class="layer">
+    <h2 class="help-title">CÓMO JUGAR</h2>
+    <ul class="help-list">
+      <li><b>Flechas</b> o <b>WASD</b> — caminar por el piso</li>
+      <li>Mantén <b>MAYÚS</b> para correr</li>
+      <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar y avanzar el diálogo</li>
+      <li><b>E</b> frente al ascensor — abrir el panel de pisos</li>
+      <li>En el ascensor: <b>↑ ↓</b> eliges piso, <b>E</b> vas, <b>← →</b> sales</li>
+      <li>Los mensajes opcionales salen solos al acercarte a la persona</li>
+      <li>En <b>operaciones</b> están los 5 del equipo de desarrollo: háblales para que te den su pieza</li>
+      <li>Las <b>flechas doradas</b> del borde te apuntan a quién falta por visitar</li>
+      <li>La <b>flecha verde</b> te apunta al ascensor cuando ya reuniste todo</li>
+      <li>Con las <b>5 piezas</b> se abre la terraza, donde te esperan Sergio y Yesica</li>
+      <li>En celular: usa el <b>D-pad</b>, el botón <b>CORRER</b> y el botón <b>E</b> de abajo</li>
+    </ul>
+    <button id="help-close">Cerrar</button>
+  </div>
+
+  <div id="elevator" class="layer">
+    <p class="elev-title">ASCENSOR</p>
+    <ul id="elev-list"></ul>
+    <p class="elev-hint">↑ ↓ elegir piso · E ir · ← → salir</p>
   </div>
 
   <div id="end-screen" class="layer">
-    <p class="title-sub">❤ ❤ ❤ ❤ ❤</p>
+    <p class="heart-row">❤ ❤ ❤ ❤ ❤</p>
     <p class="end-line">Gracias, <strong>Hired Experts</strong>.</p>
+    <p class="end-line" style="color:var(--ink-dim);font-size:clamp(10px,1.8vw,13px)">5 piezas · 5 valores · una sola familia</p>
     <p class="end-line" id="end-credits"></p>
     <p class="end-line" id="end-dedication"></p>
     <button id="replay">Volver a jugar</button>
@@ -347,19 +606,25 @@
 </div>
 
 <div id="controls">
-  <div id="pad">
-    <button data-action="left" aria-label="Izquierda">◀</button>
-    <button data-action="right" aria-label="Derecha">▶</button>
+  <div id="dpad">
+    <button class="pad-up" data-action="up" aria-label="Arriba">▲</button>
+    <button class="pad-left" data-action="left" aria-label="Izquierda">◀</button>
+    <button class="pad-right" data-action="right" aria-label="Derecha">▶</button>
+    <button class="pad-down" data-action="down" aria-label="Abajo">▼</button>
   </div>
-  <p class="hint">← → o A D para moverte · ESPACIO para saltar · ESC para pausa</p>
-  <button id="jump" data-action="jump" aria-label="Saltar">SALTAR</button>
+  <p class="hint">Flechas o WASD para caminar · MAYÚS para correr · E o ESPACIO para hablar y usar el ascensor</p>
+  <div class="action-col">
+    <button id="run-btn" data-action="run" aria-label="Correr">CORRER</button>
+    <button id="act" data-action="action" aria-label="Hablar">E</button>
+  </div>
 </div>
 
 <script src="src/sprites.js"></script>
-<script src="src/level.js"></script>
+<script src="src/map.js"></script>
+<script src="src/building.js"></script>
 <script src="src/messages.js"></script>
 <script src="src/engine.js"></script>
-<script src="src/actors.js"></script>
+<script src="src/characters.js"></script>
 <script src="src/dialogue.js"></script>
 <script src="src/audio.js"></script>
 <script src="src/game.js"></script>
