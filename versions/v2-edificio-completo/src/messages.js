@@ -131,7 +131,7 @@ const MESSAGES = {
       lines: ['¡Ya casi pagan!!'],
     },
     jonathan: {
-      name: 'JONATHAN',
+      name: 'JHONNATAN',
       lines: ['Bro, esto está muy family friendly.'],
     },
     danilo: {
