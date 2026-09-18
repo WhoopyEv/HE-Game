@@ -624,6 +624,9 @@ function drawPlatforms(ctx, camX) {
 
 // La decoracion se dibuja atenuada a proposito: si se ve apagada, no tiene colision.
 function drawDecor(ctx, camX) {
+  // Los que sí son personajes (los celebrantes de la terraza) se dibujan a color
+  // pleno -- el atenuado es solo para decoración de fondo sin colisión.
+  const full = [];
   ctx.save();
   ctx.globalAlpha = 0.5;
   LEVEL.scenes.forEach(function (scene) {
@@ -632,10 +635,17 @@ function drawDecor(ctx, camX) {
     (scene.decor || []).forEach(function (d) {
       const art = DECOR_ART[d.art];
       if (!art) return;
+      if (d.art === 'celebrant') {
+        full.push({ art: art, x: (scene.start + d.col) * TILE, y: d.row * TILE, d: d });
+        return;
+      }
       art(ctx, (scene.start + d.col) * TILE, d.row * TILE, d);
     });
   });
   ctx.restore();
+  full.forEach(function (item) {
+    item.art(ctx, item.x, item.y, item.d);
+  });
 }
 
 // Fuente de pixeles (3x5) para los letreros -- nada de texto de sistema
