@@ -29,6 +29,9 @@ function createPlayer(x, y) {
     hurtFlash: 0,
     jumpCut: true,
     justJumped: false,
+    squash: 0,
+    stepTimer: 0,
+    footstepPing: false,
     spawnX: x,
     spawnY: y,
   };
@@ -55,6 +58,9 @@ function blockedHorizontal(box, extraSolids) {
     for (let c = c0; c <= c1; c++) {
       if (isSolidChar(tileAt(c, r))) return true;
     }
+  }
+  for (let i = 0; i < extraSolids.length; i++) {
+    if (extraSolids[i].blockH && overlaps(box, extraSolids[i])) return true;
   }
   return false;
 }
@@ -99,6 +105,8 @@ function movePlayer(p, dt, input, extraSolids) {
   // --- eje Y ---
   p.vy = Math.min(MAX_FALL, p.vy + GRAVITY * dt);
   const prevBottom = boxOf(p).y + HITBOX.h;
+  const fallSpeed = p.vy;
+  const wasGrounded = p.onGround;
   p.y += p.vy * dt;
   p.onGround = false;
 
@@ -148,21 +156,51 @@ function movePlayer(p, dt, input, extraSolids) {
     p.vy = 0;
   }
 
+  if (!wasGrounded && p.onGround && fallSpeed > 120) {
+    p.squash = Math.min(1, fallSpeed / 420);
+  }
+  p.squash = Math.max(0, p.squash - dt * 6);
+
   if (Math.abs(p.vx) > 1 && p.onGround) {
     p.animTime += dt;
     p.frame = Math.floor(p.animTime * 9) % 2;
+    p.stepTimer -= dt;
+    if (p.stepTimer <= 0) {
+      p.stepTimer = 0.26;
+      p.footstepPing = true;
+    }
   } else {
     p.animTime = 0;
     p.frame = 0;
+    p.stepTimer = 0;
   }
   if (p.hurtFlash > 0) p.hurtFlash -= dt;
 }
 
+// El Espartano se dibuja mas grande que su caja de colision (que sigue siendo 16x16),
+// estirado desde los pies -- no achata ni desplaza la fisica, solo el dibujo.
+const SPARTAN_SCALE_X = 1.0;
+const SPARTAN_SCALE_Y = 1.35;
+
 function drawPlayer(ctx, p, time) {
   if (p.hurtFlash > 0 && Math.floor(time * 20) % 2 === 0) return;
   const flip = p.dir < 0;
-  if (!p.onGround) drawSprite(ctx, 'spartanJump', 0, p.x, p.y, flip);
-  else drawSprite(ctx, 'spartanRun', p.frame, p.x, p.y, flip);
+  const cx = p.x + 8;
+  const cy = p.y + 16;
+  const sq = p.squash || 0;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(SPARTAN_SCALE_X * (1 + sq * 0.16), SPARTAN_SCALE_Y * (1 - sq * 0.22));
+  ctx.translate(-cx, -cy);
+  if (!p.onGround) {
+    drawSprite(ctx, 'spartanJump', 0, p.x, p.y, flip);
+  } else if (Math.abs(p.vx) > 1) {
+    drawSprite(ctx, 'spartanRun', p.frame, p.x, p.y, flip);
+  } else {
+    // Quieto: de frente, sin animacion de respiracion.
+    drawSprite(ctx, 'spartanFront', 0, p.x, p.y, false);
+  }
+  ctx.restore();
 }
 
 // ---------- entidades ----------
@@ -214,15 +252,36 @@ function createEntities() {
     if (def.type === 'piece') {
       return { type: 'piece', x: x, y: y, w: 16, h: 16, value: def.value, taken: false };
     }
+    if (def.type === 'dev') {
+      return { type: 'dev', name: def.name, x: x, y: y, w: 16, h: 16, value: def.value, taken: false };
+    }
+    if (def.type === 'gate') {
+      return { type: 'gate', x: x, y: y, w: TILE, h: (def.h || SCENE_H) * TILE, locked: true };
+    }
     return { type: 'goal', x: x, y: y, w: 24, h: 3 * TILE };
   });
 }
+
+// Caja de colision ajustada al dibujo real de cada disfraz (no un tile generico).
+const SHOOTER_BODY = {
+  coffee: { ox: 2, oy: -4, w: 12, h: 20 },
+  printer: { ox: 0, oy: 0, w: 16, h: 16 },
+  pingball: { ox: 2, oy: 1, w: 12, h: 15 },
+};
 
 function activeSolids(entities) {
   const out = [];
   entities.forEach(function (e) {
     if (e.type === 'crumble' && e.state !== 'gone') {
       out.push({ x: e.x, y: e.y, w: e.w, h: e.h });
+    }
+    if (e.type === 'shooter') {
+      // El cuerpo del objeto (cafetera, impresora...) bloquea, pero no hace perder.
+      const b = SHOOTER_BODY[e.skin] || { ox: 0, oy: 0, w: 16, h: 16 };
+      out.push({ x: e.x + b.ox, y: e.y + b.oy, w: b.w, h: b.h, blockH: true });
+    }
+    if (e.type === 'gate' && e.locked) {
+      out.push({ x: e.x, y: e.y, w: e.w, h: e.h, blockH: true });
     }
   });
   return out;
@@ -297,7 +356,18 @@ function updateEntities(entities, dt, player, hooks) {
     }
 
     if (e.type === 'piece' && !e.taken) {
-      if (overlaps(pbox, { x: e.x + 2, y: e.y + 2, w: 12, h: 12 })) {
+      // Zona generosa: el Espartano se dibuja mas alto que su caja de colision real
+      // (estirado desde los pies), asi que tocarlo "por abajo" con la cresta necesita
+      // margen extra para que la pieza sí se registre.
+      if (overlaps(pbox, { x: e.x - 3, y: e.y - 6, w: 22, h: 26 })) {
+        e.taken = true;
+        hooks.onPiece(e.value);
+      }
+      return;
+    }
+
+    if (e.type === 'dev' && !e.taken) {
+      if (overlaps(pbox, { x: e.x - 3, y: e.y - 6, w: 22, h: 26 })) {
         e.taken = true;
         hooks.onPiece(e.value);
       }
@@ -333,16 +403,16 @@ function drawLauncher(ctx, x, y) {
 
 function drawVacuum(ctx, x, y, t) {
   const wob = Math.floor(t * 9) % 2;
-  px(ctx, x + 1, y + 7, 14, 7, '#2f3a4a');
-  px(ctx, x + 2, y + 6, 12, 2, '#55627a');
-  px(ctx, x + 3, y + 8, 10, 3, '#3f4a5c');
-  px(ctx, x + 5, y + 9, 3, 1, '#7ad87a');
-  px(ctx, x + 10, y + 4, 3, 4, '#6f757f');
-  px(ctx, x + 11, y + 1, 2, 4, '#8a8f98');
-  px(ctx, x + 1, y + 14, 4, 2, '#241a2b');
-  px(ctx, x + 11, y + 14, 4, 2, '#241a2b');
-  px(ctx, x + 2 + wob, y + 12, 2, 2, '#55555f');
-  px(ctx, x + 11 + wob, y + 12, 2, 2, '#55555f');
+  px(ctx, x + 1, y + 7, 14, 7, '#f4f0e6');
+  px(ctx, x + 2, y + 6, 12, 2, '#ffffff');
+  px(ctx, x + 3, y + 8, 10, 3, '#d8d2c4');
+  px(ctx, x + 5, y + 9, 3, 1, '#8fd4e8');
+  px(ctx, x + 10, y + 4, 3, 4, '#c9c4b6');
+  px(ctx, x + 11, y + 1, 2, 4, '#e4e0d6');
+  px(ctx, x + 1, y + 14, 4, 2, '#a39c92');
+  px(ctx, x + 11, y + 14, 4, 2, '#a39c92');
+  px(ctx, x + 2 + wob, y + 12, 2, 2, '#6f757f');
+  px(ctx, x + 11 + wob, y + 12, 2, 2, '#6f757f');
 }
 
 const HAZARD_ART = {
@@ -414,6 +484,25 @@ function drawEntities(ctx, entities, time) {
     if (e.type === 'piece' && !e.taken) {
       const value = VALUE_BY_ID[e.value];
       drawPieceIcon(ctx, e.x, e.y, value ? value.color : '#f4f0e6', Math.round(Math.sin(time * 3) * 2));
+      return;
+    }
+    if (e.type === 'dev') {
+      drawSprite(ctx, e.name, 0, e.x, e.y, false);
+      if (!e.taken) {
+        const value = VALUE_BY_ID[e.value];
+        drawPieceIcon(ctx, e.x, e.y - 20, value ? value.color : '#f4f0e6', Math.round(Math.sin(time * 3) * 2));
+      }
+      return;
+    }
+    if (e.type === 'gate') {
+      if (!e.locked) return;
+      px(ctx, e.x, e.y, e.w, e.h, '#8a5f1e');
+      for (let i = 0; i < e.h; i += 10) px(ctx, e.x + 2, e.y + i, e.w - 4, 4, '#e8c25a');
+      const text = 'CERRADO';
+      const tw = pixelTextWidth(text);
+      const by = Math.round(e.h / 2 - 12);
+      px(ctx, e.x - Math.round(tw / 2) + Math.round(e.w / 2) - 3, by - 3, tw + 6, 11, '#241a2b');
+      drawPixelText(ctx, text, e.x + Math.round(e.w / 2) - Math.round(tw / 2), by, '#e8c25a');
       return;
     }
     if (e.type === 'goal') {

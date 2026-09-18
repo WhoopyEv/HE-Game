@@ -155,45 +155,32 @@
     background: #f2c50a;
   }
 
-  #zone-label {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 7px 22px;
-    background: rgba(36, 26, 43, 0.93);
-    border: 3px solid var(--gold);
-    color: var(--gold);
-    font-size: clamp(14px, 3.2vw, 24px);
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    z-index: 3;
-  }
-
+  /* Cinta diagonal, distinta a la placa de pared del letrero de zona:
+     fondo oscuro, borde y texto del color de la pieza recogida. */
   #value-flash {
+    --flash-color: #e8c25a;
     position: absolute;
-    top: 18%;
+    top: 16%;
     left: 50%;
-    transform: translateX(-50%);
-    padding: 6px 16px;
-    background: rgba(36, 26, 43, 0.9);
-    border: 2px solid var(--ink);
-    color: var(--ink);
-    font-size: clamp(12px, 2.6vw, 20px);
-    font-weight: 700;
+    padding: 8px 26px;
+    background: #15101d;
+    border-top: 3px solid var(--flash-color);
+    border-bottom: 3px solid var(--flash-color);
+    color: var(--flash-color);
+    font-size: clamp(15px, 3.4vw, 26px);
+    font-weight: 900;
     letter-spacing: 0.16em;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transform: translateX(-50%) skewX(-10deg) scale(0.7);
+    transition: opacity 0.15s ease, transform 0.18s ease;
     z-index: 3;
   }
 
-  #zone-label.is-visible, #value-flash.is-visible { opacity: 1; }
+  #value-flash span { display: inline-block; transform: skewX(10deg); }
+
+  #value-flash.is-visible { opacity: 1; transform: translateX(-50%) skewX(-10deg) scale(1); }
 
   #dialogue {
     position: absolute;
@@ -301,7 +288,7 @@
   @media (max-width: 720px) { .hint { display: none; } }
 
   @media (prefers-reduced-motion: reduce) {
-    .layer, #dialogue, #zone-label, #value-flash, #hud { transition: none; }
+    .layer, #dialogue, #value-flash, #hud { transition: none; }
     .title-prompt, #dialogue-next.is-ready { animation: none; }
   }
 </style>
@@ -311,8 +298,7 @@
   <canvas id="game" aria-label="Hired Experts — Modo Historia"></canvas>
 
   <div id="hud"><span class="piece-icon"></span><span id="hud-count">0/5</span></div>
-  <div id="zone-label"></div>
-  <div id="value-flash"></div>
+  <div id="value-flash"><span></span></div>
 
   <div id="dialogue">
     <div id="dialogue-name"></div>

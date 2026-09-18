@@ -49,10 +49,8 @@ const MESSAGES = {
   finale: {
     name: 'EL EQUIPO DE DESARROLLO',
     lines: [
-      'No es un logo.',
-      'Es confianza, equipo, aprendizaje, respaldo y oportunidad — armados entre todos.',
-      'Eso es Hired Experts.',
-      'Gracias por dejarnos ser parte de esto.',
+      'HE nos da oportunidades, confianza, aprendizaje, equipo y respaldo.',
+      'Eso es lo que significa para nosotros ser parte de esta familia.',
     ],
   },
 

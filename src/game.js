@@ -10,8 +10,8 @@
 
   const IDS = [
     'title-screen', 'howto-screen', 'howto-intro', 'howto-controls', 'pause-screen',
-    'end-screen', 'end-credits', 'end-dedication', 'hud', 'hud-count', 'zone-label',
-    'value-flash', 'mute', 'replay', 'start-btn', 'howto-btn', 'resume-btn', 'restart-btn',
+    'end-screen', 'end-credits', 'end-dedication', 'hud', 'hud-count', 'value-flash',
+    'mute', 'replay', 'start-btn', 'howto-btn', 'resume-btn', 'restart-btn',
   ];
 
   // Dónde vive cada color dentro del logo (coordenadas del logo nativo de 32x22).
@@ -30,11 +30,10 @@
   let state = STATE.TITLE;
   let player = null;
   let entities = [];
+  let sparkles = [];
   let time = 0;
   let camX = 0;
   let collected = [];
-  let sceneId = null;
-  let labelTimer = 0;
   let flashTimer = 0;
   let finale = null;
   let logoCanvas = null;
@@ -59,14 +58,15 @@
     el.hud.classList.toggle('is-complete', collected.length >= VALUES.length);
   }
 
-  function showZoneLabel(text) {
-    el['zone-label'].textContent = text;
-    el['zone-label'].classList.add('is-visible');
-    labelTimer = 2;
+  // El fondo de la cinta es casi negro -- si el color de la pieza tambien lo es
+  // (Respaldo), el texto se vuelve invisible. Para ese caso se usa un tono claro.
+  function flashColorFor(color) {
+    return color === '#0d0a12' ? '#c9c4b6' : color;
   }
 
-  function showValueFlash(label) {
-    el['value-flash'].textContent = '¡' + label + '!';
+  function showValueFlash(label, color) {
+    el['value-flash'].style.setProperty('--flash-color', color || '#e8c25a');
+    el['value-flash'].querySelector('span').textContent = '¡' + label + '!';
     el['value-flash'].classList.add('is-visible');
     flashTimer = 1.3;
   }
@@ -91,8 +91,8 @@
     player = createPlayer((first.start + 2) * TILE, (GROUND_ROW - 2) * TILE);
     entities = createEntities();
     collected = [];
-    sceneId = null;
     finale = null;
+    confetti = [];
     camX = 0;
     updateHud();
   }
@@ -116,20 +116,138 @@
     Audio8.hurt();
   }
 
+  function spawnSparkles(x, y, color) {
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + Math.random() * 0.4;
+      const speed = 40 + Math.random() * 50;
+      sparkles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(a) * speed,
+        vy: Math.sin(a) * speed - 20,
+        life: 0.45,
+        color: color,
+      });
+    }
+  }
+
+  function updateSparkles(dt) {
+    sparkles.forEach(function (p) {
+      p.life -= dt;
+      p.vy += 140 * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    });
+    sparkles = sparkles.filter(function (p) {
+      return p.life > 0;
+    });
+  }
+
+  function drawSparkles() {
+    sparkles.forEach(function (p) {
+      const s = p.life > 0.15 ? 2 : 1;
+      px(ctx, p.x - s / 2, p.y - s / 2, s, s, p.color);
+    });
+  }
+
+  // Confeti de la celebración en la terraza: cae mientras estemos parados ahí.
+  let confetti = [];
+  function updateConfetti(dt, active) {
+    if (active && confetti.length < 50) {
+      for (let i = 0; i < 3; i++) {
+        confetti.push({
+          x: camX + Math.random() * VIEW_W,
+          y: -8,
+          vx: (Math.random() - 0.5) * 30,
+          vy: 46 + Math.random() * 44,
+          color: VALUES[Math.floor(Math.random() * VALUES.length)].color,
+          life: 3.5,
+        });
+      }
+    }
+    confetti.forEach(function (p) {
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    });
+    confetti = confetti.filter(function (p) {
+      return p.life > 0 && p.y < VIEW_H + 10;
+    });
+  }
+
+  function drawConfetti() {
+    confetti.forEach(function (p) {
+      px(ctx, p.x, p.y, 3, 3, flashColorFor(p.color));
+    });
+  }
+
+  // Flecha en el borde de la pantalla que apunta hacia el compañero más cercano
+  // que aún no ha entregado su pieza, para guiar al jugador dentro de operaciones.
+  function drawDevGuide() {
+    const targets = entities.filter(function (e) {
+      return e.type === 'dev' && !e.taken;
+    });
+    if (!targets.length) return;
+    let nearest = null;
+    let bestDist = Infinity;
+    targets.forEach(function (t) {
+      const d = Math.abs(t.x - player.x);
+      if (d < bestDist) {
+        bestDist = d;
+        nearest = t;
+      }
+    });
+    const screenX = nearest.x - camX;
+    if (screenX >= -8 && screenX <= VIEW_W + 8) return;
+    const dir = screenX < 0 ? -1 : 1;
+    const x = dir < 0 ? 10 : VIEW_W - 10;
+    const y = VIEW_H / 2;
+    const blink = Math.sin(time * 6) > -0.2;
+    ctx.save();
+    ctx.globalAlpha = blink ? 1 : 0.35;
+    ctx.fillStyle = '#e8c25a';
+    ctx.beginPath();
+    if (dir < 0) {
+      ctx.moveTo(x + 7, y - 7);
+      ctx.lineTo(x - 1, y);
+      ctx.lineTo(x + 7, y + 7);
+    } else {
+      ctx.moveTo(x - 7, y - 7);
+      ctx.lineTo(x + 1, y);
+      ctx.lineTo(x - 7, y + 7);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
   function onPiece(valueId) {
     if (collected.indexOf(valueId) !== -1) return;
     collected.push(valueId);
     updateHud();
     const value = VALUE_BY_ID[valueId];
-    if (value) showValueFlash(value.label);
+    if (value) {
+      showValueFlash(value.label, flashColorFor(value.color));
+      spawnSparkles(player.x + 8, player.y + 8, flashColorFor(value.color));
+    }
     Audio8.pickup();
+    if (collected.length >= VALUES.length) unlockGate();
+  }
+
+  // La reja de la terraza se abre en cuanto están las 5 piezas.
+  function unlockGate() {
+    entities.forEach(function (e) {
+      if (e.type === 'gate' && e.locked) {
+        e.locked = false;
+        Audio8.unlocked();
+      }
+    });
   }
 
   function startFinale() {
     if (finale) return;
     state = STATE.FINALE;
     hide('hud');
-    el['zone-label'].classList.remove('is-visible');
     Audio8.fanfare();
 
     const order = ['respaldo'].concat(
@@ -285,7 +403,21 @@
         if (appear <= 0) return;
         const x = VIEW_W / 2 - names.length * 11 + i * 22;
         const y = baseY - Math.round((1 - appear) * 8);
-        drawSprite(ctx, name, 0, x, y, false);
+        const st = DEV_STYLES[name] || {};
+        const scaleX = st.wide ? 1.22 : 1;
+        const scaleY = st.tall ? 1.18 : 1;
+        if (scaleX !== 1 || scaleY !== 1) {
+          const cx = x + 8;
+          const cy = y + 16;
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.scale(scaleX, scaleY);
+          ctx.translate(-cx, -cy);
+          drawSprite(ctx, name, 0, x, y, false);
+          ctx.restore();
+        } else {
+          drawSprite(ctx, name, 0, x, y, false);
+        }
       });
     }
   }
@@ -294,13 +426,17 @@
     ctx.fillStyle = '#15101d';
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
 
+    setLevelTime(time);
     ctx.save();
     ctx.translate(-Math.round(camX), 0);
     drawLevel(ctx, camX);
     drawEntities(ctx, entities, time);
     drawPlayer(ctx, player, time);
+    drawSparkles();
+    drawConfetti();
     ctx.restore();
 
+    if (state === STATE.PLAY) drawDevGuide();
     if (state === STATE.FINALE || state === STATE.END) drawFinale();
   }
 
@@ -358,10 +494,6 @@
     handleInput();
     Dialogue.update(dt);
 
-    if (labelTimer > 0) {
-      labelTimer -= dt;
-      if (labelTimer <= 0) el['zone-label'].classList.remove('is-visible');
-    }
     if (flashTimer > 0) {
       flashTimer -= dt;
       if (flashTimer <= 0) el['value-flash'].classList.remove('is-visible');
@@ -385,6 +517,10 @@
         player.justJumped = false;
         Audio8.jump();
       }
+      if (player.footstepPing) {
+        player.footstepPing = false;
+        Audio8.footstep();
+      }
 
       updateEntities(entities, dt, player, {
         onHit: respawn,
@@ -392,16 +528,13 @@
         onGoal: startFinale,
       });
 
-      const scene = sceneAtCol(Math.floor((player.x + 8) / TILE));
-      if (scene.id !== sceneId) {
-        sceneId = scene.id;
-        showZoneLabel(scene.label);
-      }
-
       camX = Math.max(0, Math.min(LEVEL_W - VIEW_W, player.x + 8 - VIEW_W / 2));
     }
 
     if (state === STATE.FINALE) updateFinale(dt);
+    updateSparkles(dt);
+    const inTerraza = state === STATE.PLAY && sceneAtCol(Math.floor(player.x / TILE)).id === 'terraza';
+    updateConfetti(dt, inTerraza);
 
     render();
   }

@@ -140,6 +140,10 @@ const Audio8 = (function () {
       });
     },
 
+    footstep: function () {
+      tone(130 + Math.random() * 20, 0, 0.035, 'square', 0.045);
+    },
+
     jump: function () {
       tone(520, 0, 0.09, 'square', 0.24);
       tone(760, 0.05, 0.09, 'square', 0.18);

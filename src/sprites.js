@@ -33,6 +33,8 @@ const PALETTE = {
   E: '#a04f22',
   z: '#3b4a63',
   Z: '#222b3b',
+  x: '#2e2e34',
+  X: '#1a1a1e',
 };
 
 const SPARTAN_RUN_0 = [
@@ -41,9 +43,9 @@ const SPARTAN_RUN_0 = [
   '..RrrrrrrrrRmMm.',
   '..kRrrrrrrrRk.M.',
   '...kbbbbbbbbk.n.',
-  '...kbbbbbkksk.n.',
-  '...kbbbbbkksk.n.',
-  '...kbbbbbbbsk.n.',
+  '...kbbbbbbbbk.n.',
+  '...kbbbbbkkkk.n.',
+  '...kbbbbbbbbk.n.',
   '....kbbbbbbk..n.',
   '...kkkTTTTkk..n.',
   '..kOkTTTTTTTk.n.',
@@ -60,9 +62,9 @@ const SPARTAN_RUN_1 = [
   '..RrrrrrrrrRmMm.',
   '..kRrrrrrrrRk.M.',
   '...kbbbbbbbbk.n.',
-  '...kbbbbbkksk.n.',
-  '...kbbbbbkksk.n.',
-  '...kbbbbbbbsk.n.',
+  '...kbbbbbbbbk.n.',
+  '...kbbbbbkkkk.n.',
+  '...kbbbbbbbbk.n.',
   '....kbbbbbbk..n.',
   '...kkkTTTTkk..n.',
   '..kOkTTTTTTTk.n.',
@@ -73,15 +75,36 @@ const SPARTAN_RUN_1 = [
   '...kkk.....kk...',
 ];
 
+// De frente (quieto): la cresta se ve de canto (una linea vertical, no la silueta
+// de perfil) y se ve la ranura en T del casco corintio (ojos + nariz).
+const SPARTAN_FRONT = [
+  '.......RR.....m.',
+  '.......rr....mMm',
+  '......Rrrr..mMm.',
+  '......rrrr....M.',
+  '.....kbbbbk...n.',
+  '....kbbbbbbk..n.',
+  '....kkkkkkkk..n.',
+  '....bbbkkbbb..n.',
+  '....bbbkkbbb..n.',
+  '...kkBBBBBBkk.n.',
+  '.mkBBBBBBBBBBkn.',
+  '.skTtytTtttk.sn.',
+  '.skTtttTtttk..n.',
+  '..kOOOOOOOOk.sn.',
+  '..ksssssssssk.n.',
+  '..knnnk..knnnk..',
+];
+
 const SPARTAN_JUMP = [
   '....RrrrrrR.....',
   '...RrrrrrrrR.m..',
   '..RrrrrrrrrRmMm.',
   '..kRrrrrrrrRkMm.',
   '...kbbbbbbbbkM..',
-  '...kbbbbbkkskn..',
-  '...kbbbbbkkskn..',
-  '...kbbbbbbbskn..',
+  '...kbbbbbbbbkn..',
+  '...kbbbbbkkkkn..',
+  '...kbbbbbbbbkn..',
   '....kbbbbbbk.n..',
   '...kkkTTTTkkn...',
   '..kOkTTTTTTTk...',
@@ -139,7 +162,7 @@ function buildStandLong(st) {
     '...k' + hair + rep(s, 6) + hair + 'k...',
     '...k' + hair + s + 'k' + rep(s, 2) + 'k' + s + hair + 'k...',
     '...k' + hair + rep(s, 6) + hair + 'k...',
-    '....k' + hair + rep(s, 3) + hair + 'k....',
+    '....k' + hair + rep(s, 3) + hair + 'k.....',
     '..k' + hair + rep(sh, 8) + hair + 'k..',
     '.k' + hair + rep(sh, 10) + hair + 'k.',
     '.k' + s + rep(sh, 10) + s + 'k.',
@@ -150,24 +173,58 @@ function buildStandLong(st) {
   ];
 }
 
+// Retoques para personalizar a cada dev: parado (Felipe), crespo (Nicolas),
+// lentes (Felipe), audifonos (Daniel). Se aplican sobre las filas ya armadas.
+function spikyHair(rows, hair, hD) {
+  rows[0] = '..' + hD + '.' + hair + '.' + hD + '.' + hair + '.' + hD + '.....';
+  return rows;
+}
+
+function curlyHair(rows, hair, hD) {
+  rows[0] = '..' + hair + hD + '.' + hD + hair + '.' + hair + hD + '......';
+  rows[2] = '...' + hD + hair + hair + hD + hair + hair + hD + hair + 'k....';
+  return rows;
+}
+
+function addGlasses(rows) {
+  rows[6] = '...ksMMMsMMMk...';
+  return rows;
+}
+
+function addHeadset(rows) {
+  rows[0] = '....WWWWWWWW....';
+  rows[3] = 'W..' + rows[3].slice(3, 13) + '..W';
+  rows[4] = 'W..' + rows[4].slice(3, 13) + '..W';
+  return rows;
+}
+
 // Los 5 del equipo de desarrollo, para la escena final.
 // Rasgos genéricos por ahora; Diana es la del pelo largo.
 const DEV_STYLES = {
-  daniel: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
-  diana: { hair: 'e', hairDark: 'E', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'Z', long: true },
-  nicolas: { hair: 'j', hairDark: 'J', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z' },
-  guillermo: { hair: 'n', hairDark: 'H', shirt: 'y', shirtDark: 'Y', skin: 'i', pants: 'Z' },
-  felipe: { hair: 'H', hairDark: 'k', shirt: 't', shirtDark: 'T', skin: 'u', pants: 'Z' },
+  // Todos castaños (h/H). Daniel: mas ancho, headset, piel blanca.
+  // Diana: mas alta, morena. Felipe: lentes, pelo parado. Guillermo: saco negro.
+  // Nicolas: crespo. El ancho/alto de Daniel y Diana se aplica al dibujar en el final.
+  daniel: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z', headset: true, wide: true },
+  diana: { hair: 'h', hairDark: 'H', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'Z', long: true, tall: true },
+  nicolas: { hair: 'h', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z', curly: true },
+  guillermo: { hair: 'h', hairDark: 'H', shirt: 'x', shirtDark: 'X', skin: 'i', pants: 'X' },
+  felipe: { hair: 'h', hairDark: 'H', shirt: 't', shirtDark: 'T', skin: 'u', pants: 'Z', glasses: true, spiky: true },
 };
 
 const SPRITES = {
   spartanRun: [SPARTAN_RUN_0, SPARTAN_RUN_1],
+  spartanFront: [SPARTAN_FRONT],
   spartanJump: [SPARTAN_JUMP],
 };
 
 Object.keys(DEV_STYLES).forEach(function (key) {
   const st = DEV_STYLES[key];
-  SPRITES[key] = [st.long ? buildStandLong(st) : buildStand(st)];
+  let rows = st.long ? buildStandLong(st) : buildStand(st);
+  if (st.spiky) rows = spikyHair(rows, st.hair, st.hairDark);
+  if (st.curly) rows = curlyHair(rows, st.hair, st.hairDark);
+  if (st.glasses) rows = addGlasses(rows);
+  if (st.headset) rows = addHeadset(rows);
+  SPRITES[key] = [rows];
 });
 
 const spriteCache = {};

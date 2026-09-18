@@ -1,4 +1,6 @@
 const TILE = 16;
+let LEVEL_TIME = 0;
+function setLevelTime(t) { LEVEL_TIME = t; }
 const VIEW_W = 320;
 const VIEW_H = 176;
 const SCENE_H = 11;
@@ -12,7 +14,7 @@ const SCENES = [
   {
     id: 'recepcion',
     label: 'RECEPCIÓN',
-    width: 42,
+    width: 28,
     theme: {
       back: '#d8cdbb',
       backFar: '#c6bba8',
@@ -21,52 +23,19 @@ const SCENES = [
       floorLine: '#b28e5e',
     },
     platforms: [
-      { col: 9, row: 7, w: 6, type: 'solid', art: 'counter' },
-      { col: 24, row: 7, w: 3, type: 'solid', art: 'bench' },
-      { col: 34, row: 7, w: 2, type: 'solid', art: 'bench' },
+      { col: 9, row: 8, w: 6, type: 'solid', art: 'counter' },
     ],
     decor: [
-      { art: 'logoWall', col: 10, row: 2 },
       { art: 'plant', col: 6, row: 8 },
-      { art: 'plant', col: 16, row: 8 },
-      { art: 'plant', col: 31, row: 8 },
-      { art: 'plant', col: 40, row: 8 },
-      { art: 'deskChair', col: 22, row: 8 },
-      { art: 'printer', col: 32, row: 8 },
-      { art: 'boxes', col: 38, row: 8 },
-      { art: 'cooler', col: 7, row: 9 },
+      { art: 'plant', col: 22, row: 8 },
+      { art: 'boxes', col: 24, row: 8 },
+      { art: 'cooler', col: 4, row: 9 },
       // { art: 'thermos', col: 23, row: 6 }, -- objeto que nos representa, desactivado por ahora
     ],
+    logo: { col: 10, row: 4, scale: 1.4 },
     entities: [
-      { type: 'shooter', col: 19, row: 8, skin: 'coffee', interval: 3.4, dir: -1, power: 48, lift: -235 },
-      { type: 'patrol', col: 27, row: 8, range: 6, speed: 36, skin: 'vacuum' },
-    ],
-  },
-  {
-    id: 'parqueadero',
-    label: 'PARQUEADERO',
-    width: 34,
-    theme: {
-      back: '#2b3140',
-      backFar: '#232936',
-      floorTop: '#4d525c',
-      floorBody: '#383d47',
-      floorLine: '#2c313a',
-      outdoor: true,
-    },
-    platforms: [
-      { col: 12, row: 7, w: 3, type: 'solid', art: 'pallet' },
-      { col: 19, row: 6, w: 3, type: 'solid', art: 'pallet' },
-      { col: 26, row: 7, w: 2, type: 'solid', art: 'pallet' },
-    ],
-    decor: [
-      { art: 'car', col: 3, row: 8, tint: '#c9454a' },
-      { art: 'car', col: 29, row: 8, tint: '#4a86c4' },
-      { art: 'parkSign', col: 8, row: 7 },
-      // { art: 'duck', col: 20, row: 5 }, -- objeto que nos representa, desactivado por ahora
-    ],
-    entities: [
-      { type: 'piece', col: 20, row: 4, value: 'oportunidad' },
+      { type: 'shooter', col: 17, row: 8, skin: 'coffee', interval: 3.4, dir: -1, power: 48, lift: -235 },
+      { type: 'patrol', col: 20, row: 8, range: 4, speed: 36, skin: 'vacuum' },
     ],
   },
   {
@@ -94,13 +63,14 @@ const SCENES = [
     ],
     entities: [
       { type: 'shooter', col: 21, row: 8, skin: 'pingball', interval: 2.1, dir: -1, power: 62, lift: -215 },
-      { type: 'piece', col: 17, row: 5, value: 'equipo' },
     ],
   },
   {
+    // Una sola oficina grande, sin dividir en dos: cada uno de nosotros
+    // (los 5 del equipo) está en un puesto distinto y entrega su pieza al tocarlo.
     id: 'operaciones',
     label: 'OPERACIONES',
-    width: 46,
+    width: 70,
     theme: {
       back: '#ccd3dc',
       backFar: '#b9c1cc',
@@ -108,70 +78,48 @@ const SCENES = [
       floorBody: '#9e7a52',
       floorLine: '#b28e5e',
     },
-    // Sin plataformas: el piso es plano y el reto es esquivar las sillas que ruedan.
-    platforms: [],
-    decor: [
-      { art: 'plant', col: 5, row: 8 },
-      { art: 'desk', col: 9, row: 8 },
-      { art: 'desk', col: 17, row: 8 },
-      { art: 'desk', col: 25, row: 8 },
-      { art: 'desk', col: 33, row: 8 },
-      { art: 'desk', col: 41, row: 8 },
-      { art: 'deskChair', col: 12, row: 8 },
-      { art: 'deskChair', col: 36, row: 8 },
-      { art: 'printer', col: 20, row: 8 },
-      { art: 'printer', col: 30, row: 8 },
-      { art: 'boxes', col: 44, row: 8 },
-      // { art: 'headphones', col: 15, row: 5 }, -- objeto que nos representa, desactivado por ahora
-    ],
-    entities: [
-      { type: 'patrol', col: 11, row: 8, range: 4, speed: 38, skin: 'chair' },
-      { type: 'patrol', col: 21, row: 8, range: 5, speed: 44, skin: 'chair' },
-      { type: 'patrol', col: 34, row: 8, range: 4, speed: 40, skin: 'chair' },
-      { type: 'piece', col: 28, row: 6, value: 'confianza' },
-    ],
-  },
-  {
-    id: 'ti',
-    label: 'TI',
-    width: 48,
-    theme: {
-      back: '#2f3a4a',
-      backFar: '#26303d',
-      floorTop: '#4a5260',
-      floorBody: '#39404c',
-      floorLine: '#313843',
-      dark: true,
-    },
+    // Mesa, silla, mesa, silla... todo tiene colision, pero la silla mata si la tocas.
     platforms: [
-      // Torre de racks apoyada en el piso todo el camino -- se sube, no flota nada.
-      // Un tile por escalon, mismo patron que la escalera de la terraza (ya probado).
-      { col: 8, row: 8, w: 2, type: 'solid', art: 'rack' },
-      { col: 13, row: 7, w: 2, type: 'solid', art: 'rack' },
-      { col: 18, row: 6, w: 2, type: 'solid', art: 'rack' },
-      // Todos los servidores tienen colision, no solo los tres de la subida.
-      { col: 24, row: 7, w: 3, type: 'solid', art: 'rack' },
-      { col: 34, row: 7, w: 3, type: 'solid', art: 'rack' },
+      { col: 4, row: 7, w: 2, type: 'solid', art: 'desk' },
+      { col: 12, row: 7, w: 2, type: 'solid', art: 'desk' },
+      { col: 23, row: 7, w: 2, type: 'solid', art: 'desk' },
+      { col: 34, row: 7, w: 2, type: 'solid', art: 'desk' },
+      { col: 45, row: 7, w: 2, type: 'solid', art: 'desk' },
+      { col: 56, row: 7, w: 2, type: 'solid', art: 'desk' },
+      { col: 67, row: 7, w: 2, type: 'solid', art: 'desk' },
     ],
     decor: [
-      { art: 'cables', col: 4, row: 8 },
-      { art: 'cables', col: 44, row: 8 },
-      { art: 'printer', col: 29, row: 8 },
-      { art: 'printer', col: 39, row: 8 },
-      { art: 'deskChair', col: 40, row: 8 },
-      // { art: 'pineapple', col: 22, row: 2 }, -- objeto que nos representa, desactivado por ahora
+      { art: 'plant', col: 1, row: 8 },
+      { art: 'coffee', col: 8, row: 8 },
+      { art: 'printer', col: 21, row: 8 },
+      { art: 'boxes', col: 32, row: 8 },
+      { art: 'cables', col: 43, row: 8 },
+      { art: 'cooler', col: 54, row: 9 },
+      { art: 'deskChair', col: 65, row: 8 },
+      { art: 'plant', col: 68, row: 8 },
     ],
     entities: [
-      { type: 'patrol', col: 30, row: 8, range: 5, speed: 46, skin: 'chair' },
-      { type: 'shooter', col: 42, row: 8, skin: 'printer', interval: 2.3, dir: -1, power: 70, lift: -235 },
-      { type: 'crumble', col: 21, row: 6, w: 2 },
-      { type: 'piece', col: 24, row: 5, value: 'aprendizaje' },
+      // Sillas fijas (no ruedan): tienen colision solida y hacen perder al tocarlas.
+      { type: 'patrol', col: 8, row: 8, range: 0, speed: 0, skin: 'chair' },
+      { type: 'patrol', col: 19, row: 8, range: 0, speed: 0, skin: 'chair' },
+      { type: 'patrol', col: 30, row: 8, range: 0, speed: 0, skin: 'chair' },
+      { type: 'patrol', col: 41, row: 8, range: 0, speed: 0, skin: 'chair' },
+      { type: 'patrol', col: 52, row: 8, range: 0, speed: 0, skin: 'chair' },
+      { type: 'patrol', col: 63, row: 8, range: 0, speed: 0, skin: 'chair' },
+      // Cada uno del equipo entrega su pieza al tocarlo.
+      { type: 'dev', name: 'diana', col: 16, row: 8, value: 'oportunidad' },
+      { type: 'dev', name: 'daniel', col: 27, row: 8, value: 'confianza' },
+      { type: 'dev', name: 'nicolas', col: 38, row: 8, value: 'aprendizaje' },
+      { type: 'dev', name: 'guillermo', col: 49, row: 8, value: 'equipo' },
+      { type: 'dev', name: 'felipe', col: 60, row: 8, value: 'respaldo' },
     ],
   },
   {
+    // La terraza está cerrada hasta juntar las 5 piezas -- una reja bloquea la
+    // entrada. Al desbloquearse, adentro nos encontramos celebrando con confeti.
     id: 'terraza',
     label: 'TERRAZA',
-    width: 44,
+    width: 40,
     theme: {
       back: '#7fb2e8',
       backFar: '#6a9fd8',
@@ -180,24 +128,21 @@ const SCENES = [
       floorLine: '#458040',
       outdoor: true,
     },
-    platforms: [
-      { col: 6, row: 8, w: 3, type: 'solid', art: 'step' },
-      { col: 11, row: 7, w: 3, type: 'solid', art: 'step' },
-      { col: 16, row: 6, w: 3, type: 'solid', art: 'step' },
-      { col: 21, row: 5, w: 3, type: 'solid', art: 'step' },
-      { col: 27, row: 4, w: 12, type: 'solid', art: 'terrace' },
-    ],
+    platforms: [],
     decor: [
-      { art: 'arch', col: 31, row: -1 },
-      { art: 'terraceTable', col: 35, row: 3 },
-      { art: 'plant', col: 29, row: 3 },
-      { art: 'plant', col: 41, row: 3 },
+      { art: 'arch', col: 3, row: -1 },
+      { art: 'terraceTable', col: 10, row: 8 },
+      { art: 'plant', col: 6, row: 8 },
+      { art: 'plant', col: 36, row: 8 },
+      { art: 'celebrant', col: 14, row: 8, name: 'diana', msg: 'UNIDOS' },
+      { art: 'celebrant', col: 19, row: 8, name: 'daniel', msg: 'TODO BIEN' },
+      { art: 'celebrant', col: 24, row: 8, name: 'nicolas', msg: 'UN EQUIPO' },
+      { art: 'celebrant', col: 28, row: 8, name: 'guillermo', msg: 'ERES PARTE' },
+      { art: 'celebrant', col: 32, row: 8, name: 'felipe', msg: 'SI SE PUDO' },
     ],
     entities: [
-      // A la misma altura que la terraza: si se falla, se cae sobre ella, no al vacio.
-      { type: 'crumble', col: 25, row: 4, w: 3 },
-      { type: 'piece', col: 29, row: 2, value: 'respaldo' },
-      { type: 'goal', col: 33, row: 2 },
+      { type: 'gate', col: 0, row: 0, h: SCENE_H },
+      { type: 'goal', col: 34, row: 6 },
     ],
   },
 ];
@@ -342,8 +287,10 @@ function artRack(ctx, x, y, d, w, h) {
   px(ctx, x + 1, y + 1, width - 2, height - 2, '#2a3038');
   for (let r = 0; r < Math.floor(height / 6); r++) {
     px(ctx, x + 3, y + 3 + r * 6, width - 6, 2, '#1c2128');
-    px(ctx, x + 4, y + 3 + r * 6, 1, 1, r % 2 ? '#7ad87a' : '#e8c25a');
-    px(ctx, x + 7, y + 3 + r * 6, 1, 1, '#7ad87a');
+    const blink1 = Math.sin(LEVEL_TIME * 5 + r * 1.7 + x * 0.05) > -0.2;
+    const blink2 = Math.sin(LEVEL_TIME * 6.3 + r * 2.1 + x * 0.05 + 1) > 0.1;
+    px(ctx, x + 4, y + 3 + r * 6, 1, 1, blink1 ? (r % 2 ? '#7ad87a' : '#e8c25a') : '#2f3a38');
+    px(ctx, x + 7, y + 3 + r * 6, 1, 1, blink2 ? '#7ad87a' : '#2f3a38');
   }
 }
 
@@ -545,6 +492,18 @@ function artDeskChair(ctx, x, y) {
   px(ctx, x + 11, y + 13, 2, 2, '#55555f');
 }
 
+// Celebrante de la terraza: el sprite de un dev con un globo de mensaje corto encima.
+function artCelebrant(ctx, x, y, d) {
+  drawSprite(ctx, d.name, 0, x, y, false);
+  const text = d.msg || '';
+  const w = pixelTextWidth(text) + 6;
+  const bx = Math.round(x + 8 - w / 2);
+  const by = y - 15;
+  px(ctx, bx, by, w, 11, '#f4f0e6');
+  px(ctx, bx + 2, by + 11, 3, 3, '#f4f0e6');
+  drawPixelText(ctx, text, bx + 3, by + 3, '#241a2b');
+}
+
 const DECOR_ART = {
   car: artCar,
   parkSign: artParkSign,
@@ -565,6 +524,8 @@ const DECOR_ART = {
   rack: artRack,
   printer: artPrinter,
   desk: artDesk,
+  coffee: artCoffee,
+  celebrant: artCelebrant,
 };
 
 const PLATFORM_ART = {
@@ -587,10 +548,19 @@ function drawSceneBackground(ctx, scene, camX) {
   const w = scene.width * TILE;
   px(ctx, x0, 0, w, VIEW_H, scene.theme.back);
 
+  // El parallax se recorta a los limites del escenario, si no las nubes/ventanas
+  // de un escenario se meten en el de al lado cuando la camara se mueve.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x0, 0, w, VIEW_H);
+  ctx.clip();
+
   if (scene.theme.outdoor) {
-    for (let i = 0; i < w; i += 64) {
-      px(ctx, x0 + i + 8, 30, 38, 14, scene.theme.backFar);
-      px(ctx, x0 + i + 20, 18, 18, 14, scene.theme.backFar);
+    // Parallax: las nubes se desplazan mas lento que la camara.
+    const shift1 = ((camX * 0.15) % 64 + 64) % 64;
+    for (let i = -64; i < w + 64; i += 64) {
+      px(ctx, x0 + i + 8 - shift1, 30, 38, 14, scene.theme.backFar);
+      px(ctx, x0 + i + 20 - shift1, 18, 18, 14, scene.theme.backFar);
     }
   } else {
     // techo con lámparas, para que el aire de arriba no quede vacío
@@ -601,12 +571,15 @@ function drawSceneBackground(ctx, scene, camX) {
       px(ctx, x0 + i + 16, 17, 16, 5, scene.theme.dark ? '#2b3644' : '#cfc6b4');
       px(ctx, x0 + i + 18, 19, 12, 3, scene.theme.dark ? '#5f7d8f' : '#fff6d8');
     }
-    for (let i = 0; i < w; i += 48) {
-      px(ctx, x0 + i + 10, 34, 26, 22, scene.theme.backFar);
-      px(ctx, x0 + i + 12, 36, 22, 18, scene.theme.dark ? '#1f2833' : '#e8e3d8');
-      px(ctx, x0 + i + 22, 36, 2, 18, scene.theme.backFar);
+    // Parallax: los edificios/ventanas de fondo se desplazan mas lento.
+    const shift2 = ((camX * 0.15) % 48 + 48) % 48;
+    for (let i = -48; i < w + 48; i += 48) {
+      px(ctx, x0 + i + 10 - shift2, 34, 26, 22, scene.theme.backFar);
+      px(ctx, x0 + i + 12 - shift2, 36, 22, 18, scene.theme.dark ? '#1f2833' : '#e8e3d8');
+      px(ctx, x0 + i + 22 - shift2, 36, 2, 18, scene.theme.backFar);
     }
   }
+  ctx.restore();
   px(ctx, x0, GROUND_ROW * TILE - 2, w, 2, scene.theme.backFar);
 }
 
@@ -665,13 +638,91 @@ function drawDecor(ctx, camX) {
   ctx.restore();
 }
 
+// Fuente de pixeles (3x5) para los letreros -- nada de texto de sistema
+// antialiado, que se ve borroso al escalar el canvas.
+const PIXEL_FONT = {
+  A: ['.##.', '#..#', '####', '#..#', '#..#'],
+  B: ['###.', '#..#', '###.', '#..#', '###.'],
+  C: ['.###', '#...', '#...', '#...', '.###'],
+  D: ['###.', '#..#', '#..#', '#..#', '###.'],
+  E: ['####', '#...', '###.', '#...', '####'],
+  I: ['.##.', '..#.', '..#.', '..#.', '.##.'],
+  N: ['#..#', '##.#', '#.##', '#..#', '#..#'],
+  O: ['.##.', '#..#', '#..#', '#..#', '.##.'],
+  P: ['###.', '#..#', '###.', '#...', '#...'],
+  Q: ['.##.', '#..#', '#..#', '#.#.', '.###'],
+  R: ['###.', '#..#', '###.', '#.#.', '#..#'],
+  S: ['.###', '#...', '.##.', '...#', '###.'],
+  T: ['####', '.##.', '.##.', '.##.', '.##.'],
+  U: ['#..#', '#..#', '#..#', '#..#', '.##.'],
+  Z: ['####', '...#', '..#.', '.#..', '####'],
+};
+
+function pixelTextWidth(text) {
+  return text.length * 5 - 1;
+}
+
+function drawPixelText(ctx, text, x, y, color) {
+  let cx = x;
+  for (let i = 0; i < text.length; i++) {
+    const glyph = PIXEL_FONT[text[i]];
+    if (glyph) {
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 4; col++) {
+          if (glyph[row][col] === '#') px(ctx, cx + col, y + row, 1, 1, color);
+        }
+      }
+    }
+    cx += 5;
+  }
+}
+
+function drawZoneSign(ctx, scene) {
+  const x0 = scene.start * TILE;
+  const text = scene.label.replace(/Ó/g, 'O');
+  const y = 26;
+  const textW = pixelTextWidth(text);
+  const boxW = textW + 8;
+  const boxH = 13;
+  // pegado al inicio del escenario, no al centro -- se ve apenas se entra.
+  const bx = x0 + 6;
+  const by = Math.round(y - boxH / 2);
+  // placa montada en la pared: fondo oscuro, marco dorado, remaches en las esquinas.
+  px(ctx, bx, by, boxW, boxH, '#241a2b');
+  px(ctx, bx, by, boxW, 1, '#e8c25a');
+  px(ctx, bx, by + boxH - 1, boxW, 1, '#e8c25a');
+  px(ctx, bx, by, 1, boxH, '#e8c25a');
+  px(ctx, bx + boxW - 1, by, 1, boxH, '#e8c25a');
+  px(ctx, bx + 1, by + 1, 2, 2, '#6f757f');
+  px(ctx, bx + boxW - 3, by + 1, 2, 2, '#6f757f');
+  px(ctx, bx + 1, by + boxH - 3, 2, 2, '#6f757f');
+  px(ctx, bx + boxW - 3, by + boxH - 3, 2, 2, '#6f757f');
+  drawPixelText(ctx, text, bx + 4, by + 4, '#e8c25a');
+}
+
+function drawLogos(ctx, camX) {
+  LEVEL.scenes.forEach(function (scene) {
+    if (!scene.logo) return;
+    const x = (scene.start + scene.logo.col) * TILE;
+    const y = scene.logo.row * TILE;
+    const scale = scene.logo.scale || 1;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    artLogoWall(ctx, 0, 0);
+    ctx.restore();
+  });
+}
+
 function drawLevel(ctx, camX) {
   LEVEL.scenes.forEach(function (scene) {
     const sx = scene.start * TILE;
     if (sx + scene.width * TILE < camX - 32 || sx > camX + VIEW_W + 32) return;
     drawSceneBackground(ctx, scene, camX);
+    drawZoneSign(ctx, scene);
   });
   drawDecor(ctx, camX);
+  drawLogos(ctx, camX);
   drawTiles(ctx, camX);
   drawPlatforms(ctx, camX);
 }
