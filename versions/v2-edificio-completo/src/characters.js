@@ -195,9 +195,10 @@ function drawNpc(ctx, npc, time) {
   // Contoneo de cadera (Danilo): un vaivén horizontal al caminar.
   const sway = npc.hipSway ? Math.sin(time * 6 + npc.col) * 1.6 : 0;
   const px = npc.x + sway;
+  const frame = npc.frame || 0;
   const st = DEV_STYLES[npc.style];
   if (!st || (!st.wide && !st.tallBody)) {
-    drawSprite(ctx, spriteOf(npc), 0, px, npc.y + bob, npc.flip);
+    drawSprite(ctx, spriteOf(npc), frame, px, npc.y + bob, npc.flip);
     return;
   }
   // Diana (tallBody) se estira desde los pies hacia arriba: queda más alta y
@@ -208,7 +209,7 @@ function drawNpc(ctx, npc, time) {
   ctx.translate(cx, cy);
   ctx.scale(st.wide ? 1.18 : st.tallBody ? 0.94 : 1, st.tallBody ? 1.3 : 1);
   ctx.translate(-cx, -cy);
-  drawSprite(ctx, spriteOf(npc), 0, px, npc.y + bob, npc.flip);
+  drawSprite(ctx, spriteOf(npc), frame, px, npc.y + bob, npc.flip);
   ctx.restore();
 }
 

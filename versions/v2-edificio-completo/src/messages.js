@@ -111,7 +111,7 @@ const MESSAGES = {
       lines: ['Zorro, no te lo lleves.'],
     },
     zorro: {
-      name: 'ZORRO',
+      name: 'DANIEL ZORRO',
       lines: ['Si se hace algo, se hace bien.'],
     },
     marce: {
@@ -128,7 +128,7 @@ const MESSAGES = {
     },
     frehynner: {
       name: 'FREHYNNER',
-      lines: ['¡Hoy pagan!!!'],
+      lines: ['¡Ya casi pagan!!'],
     },
     jonathan: {
       name: 'JONATHAN',

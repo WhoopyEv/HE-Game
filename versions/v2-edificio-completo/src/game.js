@@ -294,10 +294,14 @@
       npc.x = tx;
       npc.y = ty;
       npc.wp = (npc.wp + 1) % cfg.points.length;
+      npc.frame = 0;
     } else {
       npc.x += (dx / dist) * step;
       npc.y += (dy / dist) * step;
       if (dx !== 0) npc.flip = dx < 0;
+      // Cuadros de piernas alternos mientras camina (si el estilo los tiene).
+      npc.animTime = (npc.animTime || 0) + dt;
+      npc.frame = Math.floor(npc.animTime * 6) % 2;
     }
   }
 

@@ -422,9 +422,11 @@ function addGlasses(rows) {
   return rows;
 }
 
-// Bigote de Felipe: una barra oscura justo debajo de la nariz.
+// Bigote negro de Felipe: una barra ancha bajo la nariz, con una puntita
+// que baja al centro para que se note bien (antes era muy delgadito).
 function addMustache(rows) {
-  rows[7] = rows[7].slice(0, 6) + 'kkkk' + rows[7].slice(10);
+  rows[7] = rows[7].slice(0, 5) + 'kkkkkk' + rows[7].slice(11);
+  rows[8] = rows[8].slice(0, 7) + 'kk' + rows[8].slice(9);
   return rows;
 }
 
@@ -506,25 +508,28 @@ SPRITES.frehynnerStand = [spikyHair(SPRITES.frehynnerStand[0], NAMED_STYLES.freh
 SPRITES.frehynnerSit = [spikyHair(SPRITES.frehynnerSit[0], NAMED_STYLES.frehynner.hair, NAMED_STYLES.frehynner.hairDark)];
 // Danilo: moreno, calvo, camiseta blanca y las nalgas como protagonistas
 // (dos cachetes redondos con la raya al medio), estilo Patricio nalgón.
+// Segundo cuadro para el caminado: solo se mueven los pies (última fila),
+// el resto del diseño (cabeza, camiseta, nalgas) queda intacto.
+const DANILO_BODY = [
+  '................',
+  '.....kkkkkk.....',
+  '....kiiiiiik....',
+  '...kiiiiiiiik...',
+  '...kiiiiiiiik...',
+  '...kiiiiiiiik...',
+  '...kiikiikiik...',
+  '....kiiiiiik....',
+  '.....kiiiiik....',
+  '..kkwwwwwwwwkk..',
+  '.kiwwwwwwwwwwik.',
+  'kzZZZZZkZzZZZZZk',
+  'kZZZZZZkZZZZZZZk',
+  'kZZZZZZkZZZZZZZk',
+  '.kZZZZZkZZZZZZk.',
+];
 SPRITES.daniloStand = [
-  [
-    '................',
-    '.....kkkkkk.....',
-    '....kiiiiiik....',
-    '...kiiiiiiiik...',
-    '...kiiiiiiiik...',
-    '...kiiiiiiiik...',
-    '...kiikiikiik...',
-    '....kiiiiiik....',
-    '.....kiiiiik....',
-    '..kkwwwwwwwwkk..',
-    '.kiwwwwwwwwwwik.',
-    'kzZZZZZkZzZZZZZk',
-    'kZZZZZZkZZZZZZZk',
-    'kZZZZZZkZZZZZZZk',
-    '.kZZZZZkZZZZZZk.',
-    '...knnk..knnk...',
-  ],
+  DANILO_BODY.concat(['...knnk..knnk...']),
+  DANILO_BODY.concat(['....knnkknnk....']),
 ];
 SPRITES.daniloSit = SPRITES.daniloStand;
 
@@ -576,7 +581,7 @@ SPRITES.sergioBossSit = SPRITES.sergioBossStand;
 // Yesica: siempre junto a Sergio, con las mismas alas pero su propia ropa
 // (no todo de blanco como él, solo las alas).
 SPRITES.yesicaStand = [
-  addWings(buildStandLong({ hair: 'l', hairDark: 'L', shirt: 'd', shirtDark: 'D', skin: 's', pants: 'D', long: true }), 7),
+  addWings(buildStandLong({ hair: 'l', hairDark: 'L', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'R', long: true }), 7),
 ];
 SPRITES.yesicaSit = SPRITES.yesicaStand;
 
@@ -597,9 +602,16 @@ function buildFox(st) {
   return rows;
 }
 
-SPRITES.zorroStand = [
-  buildFox({ hair: 'e', hairDark: 'E', shirt: 'r', shirtDark: 'R', skin: 'e', pants: 'Z' }),
-];
+// Segundo cuadro para animar el caminado: las piernas se juntan al centro,
+// alternando con el cuadro quieto (piernas separadas) mientras camina.
+function foxWalkLegs(rows) {
+  rows[14] = '....knnkknnk....';
+  rows[15] = '....kkkkkk......';
+  return rows;
+}
+
+const ZORRO_STYLE = { hair: 'e', hairDark: 'E', shirt: 'r', shirtDark: 'R', skin: 'e', pants: 'Z' };
+SPRITES.zorroStand = [buildFox(ZORRO_STYLE), foxWalkLegs(buildFox(ZORRO_STYLE))];
 
 const spriteCache = {};
 
@@ -627,7 +639,9 @@ function getSprite(name, frame) {
 
 function drawSprite(ctx, name, frame, x, y, flip) {
   if (!SPRITES[name]) return;
-  const img = getSprite(name, frame);
+  // Por si a un NPC quieto se le pide un cuadro de caminado que no tiene:
+  // vuelve al único cuadro que sí existe, en vez de romper.
+  const img = getSprite(name, frame % SPRITES[name].length);
   if (!flip) {
     ctx.drawImage(img, Math.round(x), Math.round(y));
     return;

@@ -148,6 +148,7 @@ const Audio8 = (function () {
       if (!spartanCall) {
         spartanCall = new Audio('assets/300-espartanos.mp3');
         spartanCall.preload = 'auto';
+        spartanCall.volume = 0.6;
       }
       spartanCall.muted = muted;
       spartanCall.currentTime = 0;

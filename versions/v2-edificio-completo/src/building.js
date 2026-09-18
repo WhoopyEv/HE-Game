@@ -125,8 +125,6 @@ function floor1() {
   npcs.push({ id: 'brandon', kind: 'manager', style: 'brandon', col: 8, row: 4, role: 'optional', stand: true });
   // el de la entrada tambien es de logistica
   npcs.push({ id: 'porteria', kind: 'logistica', style: 'logistica2', col: 2, row: 7, role: 'optional', stand: true });
-  // Danilo, de perfil, caminando por recepción con su propio contoneo.
-  npcs.push({ id: 'danilo', kind: 'guest', style: 'danilo', col: 2, row: 9, role: 'optional', stand: true, hipSway: true, shine: true });
 
   // servicios generales, en la esquina de abajo a la derecha del lobby
   [[10, 10, 'aseo'], [11, 10, 'aseo2'], [10, 11, 'aseo3'], [11, 11, 'aseo4']].forEach(function (a) {
@@ -172,16 +170,22 @@ function floor1() {
   npcs.push({ id: 'wel1', kind: 'bienestar', style: 'agent3', col: 20, row: 8, role: 'none', notes: true });
   npcs.push({ id: 'wel2', kind: 'bienestar', style: 'agent5', col: 24, row: 8, role: 'none', side: 'pineapple' });
   npcs.push({ id: 'wel3', kind: 'bienestar', style: 'agent7', col: 28, row: 11, role: 'none', side: 'mug' });
-  npcs.push({ id: 'wel4', kind: 'bienestar', style: 'staff2', col: 33, row: 11, role: 'none', stand: true });
+  npcs.push({ id: 'wel4', kind: 'bienestar', style: 'staff2', col: 28, row: 8, role: 'none', stand: true });
   npcs.push({ id: 'wel5', kind: 'bienestar', style: 'sup1', col: 37, row: 8, role: 'none' });
   npcs.push({ id: 'wel6', kind: 'bienestar', style: 'agent9', col: 35, row: 12, role: 'none', stand: true });
   npcs.push({ id: 'wel7', kind: 'bienestar', style: 'agent0', col: 33, row: 3, role: 'none', notes: true });
   npcs.push({ id: 'wel8', kind: 'bienestar', style: 'staff0', col: 37, row: 6, role: 'none', side: 'mug' });
+  npcs.push({ id: 'wel9', kind: 'bienestar', style: 'agent2', col: 20, row: 11, role: 'none', side: 'mug' });
+  npcs.push({ id: 'wel10', kind: 'bienestar', style: 'agent6', col: 24, row: 11, role: 'none', notes: true });
+  npcs.push({ id: 'wel11', kind: 'bienestar', style: 'agent10', col: 37, row: 11, role: 'none', side: 'pineapple' });
+  npcs.push({ id: 'wel12', kind: 'bienestar', style: 'staff1', col: 37, row: 3, role: 'none' });
+  npcs.push({ id: 'wel13', kind: 'bienestar', style: 'sup2', col: 33, row: 6, role: 'none', stand: true });
 
-  // Personas comiendo dorilocos, mismo mensaje para las tres (como aseo).
-  npcs.push({ id: 'dorilocos', kind: 'bienestar', style: 'agent1', col: 28, row: 8, role: 'optional', side: 'chips' });
-  npcs.push({ id: 'dorilocos', kind: 'bienestar', style: 'agent4', col: 20, row: 11, role: 'optional', side: 'chips' });
-  npcs.push({ id: 'dorilocos', kind: 'bienestar', style: 'agent8', col: 37, row: 11, role: 'optional', side: 'chips' });
+  // Los tres de los dorilocos, ahora todos en la mesa de la columna 33
+  // (mismo mensaje para los tres, como servicios generales).
+  npcs.push({ id: 'dorilocos', kind: 'bienestar', style: 'agent1', col: 33, row: 8, role: 'optional', side: 'chips' });
+  npcs.push({ id: 'dorilocos', kind: 'bienestar', style: 'agent4', col: 33, row: 11, role: 'optional', side: 'chips' });
+  npcs.push({ id: 'dorilocos', kind: 'bienestar', style: 'agent8', col: 35, row: 9, role: 'optional', stand: true, side: 'chips' });
 
   npcs.push(corridorStaff(1));
 
@@ -195,16 +199,6 @@ function floor1() {
     npcs: npcs,
     ping: { aCol: 20, bCol: 26, row: 5 },
     robot: { col0: 2, col1: 7, row: 12, speed: 11 },
-    patrols: [
-      {
-        id: 'danilo',
-        points: [
-          { col: 2, row: 9 },
-          { col: 11, row: 9 },
-        ],
-        speed: 24,
-      },
-    ],
     decor: [
       { art: 'chairWu', col: 20, row: 8 },
       { art: 'chairYu', col: 24, row: 8 },
@@ -271,7 +265,6 @@ const OPS_EXTRAS = [
   ['frehynner', 30, 8, 'frehynner'],
   ['ops3', 29, 8],
   ['ops4', 5, 13],
-  ['jonathan', 8, 13, 'jonathan'],
   ['ops5', 26, 13],
 ];
 
@@ -331,8 +324,12 @@ function operaciones() {
 
   // el de logística saluda al lado del ascensor
   npcs.push({ id: 'logisticaOps', kind: 'logistica', style: 'logistica', col: 17, row: 1, role: 'optional', stand: true });
-  // el de la cara de zorro anda de ronda por todo el piso, arrancando abajo (ver zorroPatrol más abajo)
+  // el de la cara de zorro anda de ronda por todo el piso, arrancando abajo (ver patrols más abajo)
   npcs.push({ id: 'zorro', kind: 'logistica', style: 'zorro', col: 14, row: 11, role: 'optional', stand: true });
+  // Danilo, caminando por la parte baja del piso con su contoneo.
+  npcs.push({ id: 'danilo', kind: 'guest', style: 'danilo', col: 12, row: 18, role: 'optional', stand: true, hipSway: true, shine: true });
+  // Jonathan, sentado en la sala de juntas (parte baja derecha).
+  npcs.push({ id: 'jonathan', kind: 'staff', style: 'jonathan', col: 33, row: 19, role: 'optional' });
 
   // rincón del café, arriba a la izquierda
   fill(g, 1, 1, 4, 1, 'c');
@@ -391,6 +388,15 @@ function operaciones() {
           { col: 37, row: 11 },
         ],
         speed: 42,
+      },
+      // Danilo también se mueve, por la franja baja del piso.
+      {
+        id: 'danilo',
+        points: [
+          { col: 12, row: 18 },
+          { col: 28, row: 18 },
+        ],
+        speed: 26,
       },
     ],
     decorTop: [
