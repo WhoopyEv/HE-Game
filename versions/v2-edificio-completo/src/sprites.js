@@ -422,11 +422,9 @@ function addGlasses(rows) {
   return rows;
 }
 
-// Bigote negro de Felipe: una barra ancha bajo la nariz, con una puntita
-// que baja al centro para que se note bien (antes era muy delgadito).
+// Bigote de Felipe: una barra oscura justo debajo de la nariz.
 function addMustache(rows) {
-  rows[7] = rows[7].slice(0, 5) + 'kkkkkk' + rows[7].slice(11);
-  rows[8] = rows[8].slice(0, 7) + 'kk' + rows[8].slice(9);
+  rows[7] = rows[7].slice(0, 6) + 'kkkk' + rows[7].slice(10);
   return rows;
 }
 
