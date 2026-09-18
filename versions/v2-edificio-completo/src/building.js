@@ -1,12 +1,14 @@
-const FLOOR_W = 32;
+const FLOOR_W = 40;
 const FLOOR_H = 19;
 const TERRACE_H = 15;
 
 const ELEV = { col: 15, row: 1 };
 const ELEV_SPAWN = { col: 15, row: 2 };
 const OFFICE_DOOR_ROWS = [6, 7];
-const REQUIRED_TOTAL = 6;
 const MONITOR_KINDS = ['crt', 'flat', 'laptop'];
+
+// El piso de la terraza dentro de BUILDING (se desbloquea con las cinco piezas).
+const TERRACE_IDX = 2;
 
 function grid(w, h, ch) {
   const rows = [];
@@ -28,19 +30,14 @@ function fill(g, x0, y0, x1, y1, ch) {
   }
 }
 
-function shell() {
+// Baño + ascensor + muros exteriores: lo que comparten todos los pisos.
+function baseShell() {
   const g = grid(FLOOR_W, FLOOR_H, ' ');
-  fill(g, 0, 0, 31, 14, '.');
-  fill(g, 0, 0, 31, 0, '#');
-  fill(g, 0, 14, 31, 14, '#');
+  fill(g, 0, 0, FLOOR_W - 1, 14, '.');
+  fill(g, 0, 0, FLOOR_W - 1, 0, '#');
+  fill(g, 0, 14, FLOOR_W - 1, 14, '#');
   fill(g, 0, 0, 0, 14, '#');
-  fill(g, 31, 0, 31, 14, '#');
-  fill(g, 13, 0, 13, 14, '#');
-  fill(g, 18, 0, 18, 14, '#');
-  OFFICE_DOOR_ROWS.forEach(function (r) {
-    put(g, 13, r, 'T');
-    put(g, 18, r, 'T');
-  });
+  fill(g, FLOOR_W - 1, 0, FLOOR_W - 1, 14, '#');
   put(g, ELEV.col, ELEV.row, 'L');
   put(g, ELEV.col + 1, ELEV.row, 'L');
   fill(g, 13, 15, 18, 18, '#');
@@ -52,21 +49,23 @@ function shell() {
   return g;
 }
 
+// Recepción: mantiene los dos muros que separan recepción, pasillo y bienestar.
+function shell() {
+  const g = baseShell();
+  fill(g, 13, 0, 13, 14, '#');
+  fill(g, 18, 0, 18, 14, '#');
+  OFFICE_DOOR_ROWS.forEach(function (r) {
+    put(g, 13, r, 'T');
+    put(g, 18, r, 'T');
+  });
+  return g;
+}
+
 function baseZones() {
   return [
     [14, 1, 17, 13, ','],
     [14, 14, 17, 17, ';'],
   ];
-}
-
-function room(g, x0, x1, doorCol, y0, y1) {
-  for (let c = x0; c <= x1; c++) if (g[y0 - 1][c] !== '#') put(g, c, y0 - 1, '|');
-  for (let r = y0; r <= y1; r++) {
-    if (g[r][x0] !== '#') put(g, x0, r, '|');
-    if (g[r][x1] !== '#') put(g, x1, r, '|');
-  }
-  fill(g, x0 + 1, y0, x1 - 1, y1, '.');
-  put(g, doorCol, y0 - 1, 'T');
 }
 
 function agentAt(floorN, col, row) {
@@ -83,123 +82,27 @@ function agentAt(floorN, col, row) {
   return npc;
 }
 
-function supervisorAt(floorN, col, row, i) {
-  return {
-    kind: 'supervisor',
-    style: 'sup' + ((i + floorN) % 4),
-    col: col,
-    row: row,
-    role: 'none',
-    monitor: 'flat',
-  };
+// Cuarto cerrado (la sala de juntas). Deja la pared de vidrio y una puerta.
+function room(g, x0, x1, doorCol, y0, y1) {
+  for (let c = x0; c <= x1; c++) if (g[y0 - 1][c] !== '#') put(g, c, y0 - 1, '|');
+  for (let r = y0; r <= y1; r++) {
+    if (g[r][x0] !== '#') put(g, x0, r, '|');
+    if (g[r][x1] !== '#') put(g, x1, r, '|');
+  }
+  fill(g, x0 + 1, y0, x1 - 1, y1, '.');
+  put(g, doorCol, y0 - 1, 'T');
 }
 
-// Una persona de logistica en el pasillo, cerca de la puerta de la oficina.
-function corridorStaff(g, floorN) {
+// Logística en el pasillo, pegado a la pared.
+function corridorStaff(floorN) {
   return {
     id: 'logistica',
     kind: 'logistica',
     style: floorN % 2 === 0 ? 'logistica' : 'logistica2',
-    col: 16,
+    col: 14,
     row: 8,
     role: 'none',
     stand: true,
-  };
-}
-
-const OFFICE_VARIANTS = [
-  [[1, 13, 'X'], [19, 1, 'B'], [30, 1, 'W'], [30, 13, 'P']],
-  [[1, 1, 'P'], [12, 13, 'X'], [19, 1, 'P'], [30, 1, 'B']],
-  [[1, 13, 'B'], [19, 1, 'W'], [30, 1, 'P'], [30, 13, 'X']],
-  [[1, 1, 'X'], [12, 13, 'P'], [19, 1, 'B'], [30, 1, 'W']],
-  [[1, 13, 'P'], [19, 1, 'X'], [30, 1, 'W'], [30, 13, 'W']],
-];
-
-// Personalizacion de cubiculos. Todos tienen el mismo espacio de mesa; solo
-// algunas personas tienen objeto o mensaje propio.
-//   item: pineapple | headphones | duck | ball | mug | plant
-//   id:   si se pone, la persona habla; el texto va en MESSAGES.extras[id]
-const PERSONAL = {
-  3: [
-    { col: 20, row: 1, item: 'pineapple' },
-    { col: 21, row: 1, item: 'headphones' },
-    { col: 22, row: 1, item: 'duck' },
-    { col: 23, row: 1, item: 'ball' },
-  ],
-};
-
-function officeFloor(n) {
-  const g = shell();
-  const npcs = [];
-
-  [2, 5, 8, 11].forEach(function (agentRow, i) {
-    const deskRow = agentRow + 1;
-    fill(g, 2, deskRow, 8, deskRow, 'D');
-    fill(g, 10, deskRow, 11, deskRow, 'D');
-    for (let c = 2; c <= 8; c++) npcs.push(agentAt(n, c, agentRow));
-    npcs.push(supervisorAt(n, 10, agentRow, i));
-  });
-
-  [1, 4, 7].forEach(function (agentRow, i) {
-    const deskRow = agentRow + 1;
-    fill(g, 20, deskRow, 26, deskRow, 'D');
-    fill(g, 28, deskRow, 29, deskRow, 'D');
-    for (let c = 20; c <= 26; c++) npcs.push(agentAt(n, c, agentRow));
-    npcs.push(supervisorAt(n, 28, agentRow, i + 1));
-  });
-
-  room(g, 19, 24, 21, 11, 13);
-  room(g, 25, 30, 27, 11, 13);
-  fill(g, 21, 13, 22, 13, 'd');
-  fill(g, 27, 13, 28, 13, 'd');
-
-  npcs.push({
-    id: 'mgr' + n,
-    kind: 'manager',
-    style: 'mgr' + n,
-    col: 21,
-    row: 12,
-    role: 'required',
-  });
-
-  npcs.push(corridorStaff(g, n));
-
-  OFFICE_VARIANTS[(n - 3) % OFFICE_VARIANTS.length].forEach(function (v) {
-    put(g, v[0], v[1], v[2]);
-  });
-  put(g, 12, 1, 'V');
-
-  (PERSONAL[n] || []).forEach(function (o) {
-    npcs.forEach(function (np) {
-      if (np.col !== o.col || np.row !== o.row) return;
-      if (o.item) np.item = o.item;
-      if (o.style) np.style = o.style;
-      if (o.id) {
-        np.id = o.id;
-        np.role = 'optional';
-      }
-    });
-  });
-
-  return {
-    n: n,
-    w: FLOOR_W,
-    h: FLOOR_H,
-    rows: g,
-    base: '.',
-    zones: baseZones().concat([
-      [20, 11, 23, 13, '"'],
-      [26, 11, 29, 13, '"'],
-    ]),
-    npcs: npcs,
-    decor: [{ art: 'chairDown', col: 27, row: 12 }],
-    decorTop: [
-      { art: 'mug', col: 22, row: 13 },
-      { art: 'tableItems', col: 27, row: 13 },
-    ],
-    label: 'PISO ' + n,
-    elevLabel: '',
-    spawn: ELEV_SPAWN,
   };
 }
 
@@ -215,13 +118,14 @@ function floor1() {
   put(g, 12, 1, 'P');
   put(g, 12, 13, 'P');
 
-  npcs.push({ id: 'recep', kind: 'staff', style: 'staff2', col: 4, row: 2, role: 'none', monitor: 'flat' });
-  npcs.push({ id: 'marce', kind: 'marce', style: 'marce', col: 7, row: 7, role: 'mission', stand: true });
-  npcs.push({ id: 'brandon', kind: 'manager', style: 'brandon', col: 10, row: 5, role: 'optional', stand: true });
-  npcs.push({ id: 'porteria', kind: 'portero', style: 'portero', col: 2, row: 7, role: 'optional', stand: true });
+  npcs.push({ id: 'recep', kind: 'staff', style: 'recep', col: 4, row: 2, role: 'none', monitor: 'flat' });
+  npcs.push({ id: 'marce', kind: 'boss', style: 'sergioBoss', col: 7, row: 7, role: 'mission', stand: true });
+  npcs.push({ id: 'brandon', kind: 'manager', style: 'brandon', col: 8, row: 4, role: 'optional', stand: true });
+  // el de la entrada tambien es de logistica
+  npcs.push({ id: 'porteria', kind: 'logistica', style: 'logistica2', col: 2, row: 7, role: 'optional', stand: true });
 
-  // servicios generales, reunidos junto a la entrada
-  [[3, 10, 'aseo'], [4, 10, 'aseo2'], [3, 11, 'aseo3'], [4, 11, 'aseo4']].forEach(function (a) {
+  // servicios generales, en la esquina de abajo a la derecha del lobby
+  [[10, 10, 'aseo'], [11, 10, 'aseo2'], [10, 11, 'aseo3'], [11, 11, 'aseo4']].forEach(function (a) {
     npcs.push({
       id: 'aseo',
       kind: 'aseo',
@@ -233,21 +137,33 @@ function floor1() {
     });
   });
 
-  fill(g, 20, 1, 27, 1, 'K');
-  put(g, 28, 1, 'W');
-  put(g, 29, 1, 'V');
-  put(g, 30, 1, 'F');
-  put(g, 19, 1, 'P');
-  put(g, 30, 13, 'P');
+  // bienestar: casilleros arriba y abajo, y mesas para más gente
+  fill(g, 20, 1, 32, 1, 'K');
+  fill(g, 21, 13, 32, 13, 'K');
+  // casilleros también contra la pared del pasillo (dejando libres las puertas)
+  fill(g, 19, 2, 19, 5, 'K');
+  fill(g, 19, 9, 19, 12, 'K');
+  put(g, 33, 1, 'W');
+  put(g, 35, 1, 'V');
+  put(g, 37, 1, 'F');
+  put(g, 38, 13, 'P');
+  put(g, 31, 7, 'P');
   fill(g, 21, 5, 25, 6, 'Z');
-  fill(g, 20, 9, 21, 10, 'M');
-  fill(g, 24, 9, 25, 10, 'M');
-  fill(g, 28, 9, 29, 10, 'M');
+  // mesas blancas de bienestar
+  fill(g, 20, 9, 21, 10, 'm');
+  fill(g, 24, 9, 25, 10, 'm');
+  fill(g, 28, 9, 29, 10, 'm');
+  fill(g, 33, 9, 34, 10, 'm');
+  fill(g, 37, 9, 38, 10, 'm');
+  fill(g, 33, 4, 34, 5, 'm');
+  fill(g, 37, 4, 38, 5, 'm');
 
   npcs.push({ id: 'ping1', kind: 'ping', style: 'pingpongA', col: 20, row: 5, dy: 8, role: 'none', stand: true });
-  npcs.push({ id: 'ping2', kind: 'ping', style: 'pingpongB', col: 26, row: 5, dy: 8, role: 'none', stand: true, flip: true });
+  npcs.push({ id: 'josue', kind: 'logistica', style: 'josue', col: 26, row: 5, dy: 8, role: 'optional', stand: true, flip: true });
 
-  npcs.push(corridorStaff(g, 1));
+  npcs.push({ id: 'robot', kind: 'robot', style: 'robot', col: 2, row: 12, role: 'optional', stand: true, ghost: true });
+
+  npcs.push(corridorStaff(1));
 
   return {
     n: 1,
@@ -255,26 +171,35 @@ function floor1() {
     h: FLOOR_H,
     rows: g,
     base: '.',
-    zones: baseZones().concat([[19, 1, 30, 13, '~']]),
+    zones: baseZones().concat([[19, 1, 38, 13, '~']]),
     npcs: npcs,
     ping: { aCol: 20, bCol: 26, row: 5 },
+    robot: { col0: 2, col1: 7, row: 12, speed: 11 },
     decor: [
-      { art: 'chairDown', col: 8, row: 9 },
-      { art: 'chairDown', col: 9, row: 9 },
-      { art: 'chairUp', col: 20, row: 8 },
-      { art: 'chairUp', col: 24, row: 8 },
-      { art: 'chairUp', col: 28, row: 8 },
-      { art: 'chairDown', col: 20, row: 11 },
-      { art: 'chairDown', col: 24, row: 11 },
-      { art: 'chairDown', col: 28, row: 11 },
+      { art: 'chairWu', col: 20, row: 8 },
+      { art: 'chairYu', col: 24, row: 8 },
+      { art: 'chairBu', col: 28, row: 8 },
+      { art: 'chairWu', col: 33, row: 8 },
+      { art: 'chairYu', col: 37, row: 8 },
+      { art: 'chairBd', col: 20, row: 11 },
+      { art: 'chairWd', col: 24, row: 11 },
+      { art: 'chairYd', col: 28, row: 11 },
+      { art: 'chairBd', col: 33, row: 11 },
+      { art: 'chairWd', col: 37, row: 11 },
+      { art: 'chairYu', col: 33, row: 3 },
+      { art: 'chairBu', col: 37, row: 3 },
+      { art: 'chairWd', col: 33, row: 6 },
+      { art: 'chairYd', col: 37, row: 6 },
     ],
     decorTop: [
       { art: 'logo', col: 3, row: 1 },
       { art: 'clock', col: 10, row: 0 },
-      { art: 'mop', col: 5, row: 11 },
+      { art: 'mop', col: 9, row: 10 },
       { art: 'pingNet', col: 23, row: 5 },
       { art: 'mug', col: 21, row: 9 },
       { art: 'tableItems', col: 25, row: 9 },
+      { art: 'cups', col: 33, row: 9 },
+      { art: 'mug', col: 37, row: 4 },
     ],
     label: 'PISO 1 · RECEPCIÓN Y BIENESTAR',
     elevLabel: 'RECEPCIÓN · BIENESTAR',
@@ -282,102 +207,199 @@ function floor1() {
   };
 }
 
-function floor2() {
-  const g = shell();
+// Operaciones es más grande que los otros pisos, sobre todo a lo alto.
+const OPS_W = 40;
+const OPS_BOTTOM = 20;
+const OPS_H = OPS_BOTTOM + 5;
+
+// Mesones largos: todos en la misma fila, sin puestos aparte para nadie.
+const OPS_BANKS = [
+  { col0: 2, col1: 12, row: 3 },
+  { col0: 19, col1: 30, row: 3 },
+  { col0: 2, col1: 12, row: 8 },
+  { col0: 19, col1: 30, row: 8 },
+  { col0: 2, col1: 10, row: 13 },
+  { col0: 19, col1: 27, row: 13 },
+];
+
+// Los cinco del equipo, repartidos por todo el piso: solo Diana queda cerca del
+// ascensor y Felipe está dentro de la sala de juntas.
+const OPS_DEVS = [
+  { id: 'diana', col: 13, row: 2, piece: 'oportunidad', side: 'pineapple' },
+  { id: 'nicolas', col: 36, row: 7, piece: 'aprendizaje', side: 'duck' },
+  { id: 'daniel', col: 18, row: 11, piece: 'confianza', notes: true },
+  { id: 'guillermo', col: 6, row: 17, piece: 'equipo', side: 'ball' },
+  { id: 'felipe', col: 36, row: 17, piece: 'respaldo', side: 'phone' },
+];
+
+// Compañeros con mensaje opcional: [id, col, fila, estilo opcional]
+const OPS_EXTRAS = [
+  ['ops1', 4, 3],
+  ['danielPardo', 12, 3],
+  ['ops2', 25, 3],
+  ['sebastian', 12, 8, 'sebastian'],
+  ['ops3', 29, 8],
+  ['ops4', 5, 13],
+  ['ops5', 26, 13],
+];
+
+function opsShell() {
+  const g = grid(OPS_W, OPS_H, ' ');
+  fill(g, 0, 0, OPS_W - 1, OPS_BOTTOM, '.');
+  fill(g, 0, 0, OPS_W - 1, 0, '#');
+  fill(g, 0, OPS_BOTTOM, OPS_W - 1, OPS_BOTTOM, '#');
+  fill(g, 0, 0, 0, OPS_BOTTOM, '#');
+  fill(g, OPS_W - 1, 0, OPS_W - 1, OPS_BOTTOM, '#');
+  put(g, ELEV.col, ELEV.row, 'L');
+  put(g, ELEV.col + 1, ELEV.row, 'L');
+  fill(g, 13, OPS_BOTTOM + 1, 18, OPS_BOTTOM + 4, '#');
+  fill(g, 14, OPS_BOTTOM + 1, 17, OPS_BOTTOM + 3, '.');
+  put(g, 15, OPS_BOTTOM, 'T');
+  put(g, 16, OPS_BOTTOM, 'T');
+  put(g, 14, OPS_BOTTOM + 1, 'N');
+  put(g, 17, OPS_BOTTOM + 1, 'A');
+  return g;
+}
+
+// Operaciones: una sola oficina grande y abierta, con la sala de juntas en la esquina.
+function operaciones() {
+  const g = opsShell();
   const npcs = [];
+  const decor = [];
 
-  fill(g, 1, 2, 1, 6, 'S');
-  fill(g, 4, 3, 7, 3, 'D');
-  fill(g, 4, 6, 7, 6, 'D');
-  put(g, 12, 1, 'V');
-  put(g, 1, 8, 'P');
-  put(g, 2, 8, 'X');
+  OPS_BANKS.forEach(function (bank) {
+    fill(g, bank.col0, bank.row + 1, bank.col1, bank.row + 1, 'D');
+    for (let c = bank.col0; c <= bank.col1; c++) npcs.push(agentAt(2, c, bank.row));
+  });
 
-  npcs.push({ id: 'ti1', kind: 'staff', style: 'staff2', col: 4, row: 2, role: 'none', monitor: 'crt' });
-  npcs.push({ id: 'ti2', kind: 'staff', style: 'staff3', col: 6, row: 2, role: 'none', monitor: 'flat', item: 'plant' });
-  npcs.push({ id: 'ti3', kind: 'staff', style: 'staff1', col: 5, row: 5, role: 'none', monitor: 'laptop' });
-  npcs.push({ id: 'ti4', kind: 'staff', style: 'staff0', col: 7, row: 5, role: 'none', monitor: 'flat', item: 'mug' });
+  OPS_DEVS.forEach(function (d) {
+    npcs.push({
+      id: d.id,
+      kind: 'dev',
+      style: d.id,
+      col: d.col,
+      row: d.row,
+      role: 'required',
+      piece: d.piece,
+      side: d.side || null,
+      notes: !!d.notes,
+      stand: true,
+    });
+  });
 
-  room(g, 0, 5, 2, 11, 13);
-  room(g, 5, 9, 7, 11, 13);
-  room(g, 9, 13, 11, 11, 13);
-  fill(g, 2, 13, 3, 13, 'd');
-  fill(g, 6, 13, 8, 13, 'R');
-  fill(g, 6, 12, 7, 12, 'M');
-  fill(g, 10, 13, 12, 13, 'R');
-  fill(g, 10, 12, 11, 12, 'M');
+  OPS_EXTRAS.forEach(function (o) {
+    npcs.forEach(function (n) {
+      if (n.col === o[1] && n.row === o[2]) {
+        n.id = o[0];
+        n.role = 'optional';
+        if (o[3]) n.style = o[3];
+      }
+    });
+  });
 
-  npcs.push({ id: 'mgrTi', kind: 'manager', style: 'mgrTi', col: 2, row: 12, role: 'optional' });
+  // el de logística saluda al lado del ascensor
+  npcs.push({ id: 'logisticaOps', kind: 'logistica', style: 'logistica', col: 17, row: 1, role: 'optional', stand: true });
+  // el de la cara de zorro, junto a la punta del mesón
+  npcs.push({ id: 'zorro', kind: 'logistica', style: 'zorro', col: 13, row: 8, role: 'optional', stand: true });
 
-  fill(g, 25, 1, 25, 5, '|');
-  fill(g, 25, 5, 30, 5, '|');
-  put(g, 27, 5, 'T');
-  fill(g, 26, 1, 30, 4, '.');
-  fill(g, 26, 2, 29, 2, 'd');
-  put(g, 30, 4, 'P');
+  // rincón del café, arriba a la izquierda
+  fill(g, 1, 1, 4, 1, 'c');
+  // zona de máquinas, arriba a la derecha
+  put(g, 35, 1, 'V');
+  put(g, 36, 1, 'F');
+  put(g, 38, 1, 'P');
+  // dispensadores de agua repartidos por el piso
+  [[6, 1], [14, 1], [21, 1], [28, 1], [1, 6], [38, 11], [1, 16]].forEach(function (w) {
+    put(g, w[0], w[1], 'W');
+  });
 
-  npcs.push({ id: 'sergio', kind: 'manager', style: 'sergio', col: 27, row: 3, role: 'required' });
+  // sala de juntas en la esquina de abajo a la derecha
+  room(g, 30, 38, 34, 16, 19);
+  fill(g, 32, 18, 35, 18, 'M');
+  [32, 33, 34, 35].forEach(function (c) {
+    decor.push({ art: 'chairUp', col: c, row: 17 });
+    decor.push({ art: 'chairDown', col: c, row: 19 });
+  });
 
-  fill(g, 20, 3, 22, 3, 'D');
-  fill(g, 20, 7, 22, 7, 'D');
-  put(g, 24, 1, 'B');
-  put(g, 30, 7, 'P');
-
-  npcs.push({ id: 'rh1', kind: 'staff', style: 'staff1', col: 20, row: 2, role: 'none', monitor: 'flat' });
-  npcs.push({ id: 'rh2', kind: 'staff', style: 'staff0', col: 22, row: 2, role: 'none', monitor: 'laptop', item: 'mug' });
-  npcs.push({ id: 'rh3', kind: 'staff', style: 'staff3', col: 21, row: 6, role: 'none', monitor: 'flat' });
-
-  room(g, 18, 23, 20, 11, 13);
-  room(g, 23, 27, 25, 11, 13);
-  room(g, 27, 31, 29, 11, 13);
-  fill(g, 20, 13, 21, 13, 'd');
-  fill(g, 25, 13, 26, 13, 'd');
-  fill(g, 29, 13, 30, 13, 'd');
-
-  npcs.push({ id: 'mgrRh1', kind: 'manager', style: 'mgrRh1', col: 20, row: 12, role: 'optional' });
-  npcs.push({ id: 'mgrRh2', kind: 'manager', style: 'mgrRh2', col: 25, row: 12, role: 'optional' });
-  npcs.push({ id: 'mgrRh3', kind: 'manager', style: 'mgrRh3', col: 29, row: 12, role: 'optional' });
-
-  npcs.push(corridorStaff(g, 2));
+  // detalles sueltos por el piso
+  fill(g, 2, 19, 4, 19, 'R');
+  fill(g, 21, 19, 23, 19, 'R');
+  put(g, 1, 11, 'B');
+  put(g, 12, 19, 'P');
+  put(g, 8, 19, 'X');
+  put(g, 22, 16, 'P');
+  put(g, 22, 12, 'X');
+  put(g, 19, 1, 'P');
+  put(g, 28, 19, 'P');
+  put(g, 38, 6, 'B');
 
   return {
     n: 2,
-    w: FLOOR_W,
-    h: FLOOR_H,
+    w: OPS_W,
+    h: OPS_H,
     rows: g,
     base: '.',
-    zones: baseZones().concat([
-      [1, 11, 4, 13, '"'],
-      [6, 11, 8, 13, ':'],
-      [10, 11, 12, 13, ':'],
-      [26, 1, 30, 4, '"'],
-      [19, 11, 22, 13, '"'],
-      [24, 11, 26, 13, '"'],
-      [28, 11, 30, 13, '"'],
-    ]),
+    zones: [
+      [14, 1, 17, 19, ','],
+      [14, OPS_BOTTOM, 17, OPS_H - 1, ';'],
+      [1, 1, 5, 2, '%'],
+      [31, 16, 37, 19, '"'],
+    ],
     npcs: npcs,
-    decor: [
-      { art: 'chairUp', col: 6, row: 11 },
-      { art: 'chairUp', col: 10, row: 11 },
-      { art: 'chairDown', col: 27, row: 7 },
-      { art: 'chairDown', col: 28, row: 7 },
-      { art: 'chairUp', col: 27, row: 8 },
-      { art: 'chairUp', col: 28, row: 8 },
-    ],
+    decor: decor,
     decorTop: [
-      { art: 'painting', col: 29, row: 0 },
-      { art: 'nameplate', col: 26, row: 5 },
-      { art: 'mug', col: 26, row: 2 },
-      { art: 'tableItems', col: 7, row: 12 },
-      { art: 'clock', col: 19, row: 0 },
+      { art: 'menu', col: 2, row: 0 },
+      { art: 'coffee', col: 1, row: 1 },
+      { art: 'pastry', col: 3, row: 1 },
+      { art: 'cups', col: 4, row: 1 },
+      { art: 'logo', col: 24, row: 1 },
+      { art: 'clock', col: 10, row: 0 },
+      { art: 'banner', col: 8, row: 0 },
+      { art: 'banner', col: 30, row: 0 },
+      { art: 'heart', col: 5, row: 0 },
+      { art: 'heart', col: 33, row: 0 },
+      { art: 'tableItems', col: 33, row: 18 },
+      { art: 'mug', col: 34, row: 18 },
+      { art: 'nameplate', col: 34, row: 15 },
     ],
-    label: 'PISO 2 · TI Y RECURSOS HUMANOS',
-    elevLabel: 'TI · RECURSOS HUMANOS',
+    label: 'PISO 2 · OPERACIONES',
+    elevLabel: 'OPERACIONES',
     spawn: ELEV_SPAWN,
   };
 }
 
-function floor8() {
+// Toda la empresa arriba celebrando.
+const TERRACE_PARTY = [
+  { id: 'dianaT', style: 'diana', col: 8, row: 6, cloud: 'diana' },
+  { id: 'danielT', style: 'daniel', col: 12, row: 6, cloud: 'daniel' },
+  { id: 'nicolasT', style: 'nicolas', col: 16, row: 6, cloud: 'nicolas' },
+  { id: 'guillermoT', style: 'guillermo', col: 20, row: 6, cloud: 'guillermo' },
+  { id: 'felipeT', style: 'felipe', col: 24, row: 6, cloud: 'felipe' },
+  { id: 'pt06', style: 'agent1', col: 28, row: 6 },
+  { id: 'brandonT', style: 'brandon', col: 10, row: 9, cloud: 'brandon' },
+  { id: 'aseoT', style: 'aseo', col: 14, row: 9, cloud: 'aseoT' },
+  { id: 'porteroT', style: 'logistica2', col: 18, row: 9, cloud: 'porteroT' },
+  { id: 'logisticaT', style: 'logistica', col: 22, row: 9, cloud: 'logisticaT' },
+  { id: 'pt09a', style: 'agent4', col: 26, row: 9 },
+  { id: 'pt09b', style: 'agent6', col: 30, row: 9 },
+  { id: 'josueT', style: 'josue', col: 8, row: 11, cloud: 'josueT' },
+  { id: 'pt11a', style: 'agent0', col: 12, row: 11 },
+  { id: 'pt11b', style: 'agent3', col: 16, row: 11, cloud: 'agenteT' },
+  { id: 'pt11c', style: 'staff1', col: 20, row: 11 },
+  { id: 'pt11d', style: 'agent7', col: 24, row: 11 },
+  { id: 'pt11e', style: 'aseo2', col: 28, row: 11 },
+  { id: 'zorroT', style: 'zorro', col: 20, row: 3, cloud: 'zorroT' },
+  { id: 'sebastianT', style: 'sebastian', col: 23, row: 3, cloud: 'sebastianT' },
+  { id: 'pt03a', style: 'staff3', col: 26, row: 3 },
+  { id: 'pt03b', style: 'agent11', col: 11, row: 3 },
+  { id: 'pt03c', style: 'agent5', col: 8, row: 3 },
+  { id: 'recepT', style: 'recep', col: 17, row: 3, cloud: 'recepT' },
+  { id: 'pt13a', style: 'agent2', col: 11, row: 13 },
+  { id: 'pt13b', style: 'agent8', col: 17, row: 13 },
+  { id: 'pt13c', style: 'agent10', col: 23, row: 13 },
+];
+
+function terraza() {
   const g = grid(FLOOR_W, TERRACE_H, 'g');
   fill(g, 0, 0, 31, 0, 'Y');
   fill(g, 0, 14, 31, 14, 'Y');
@@ -397,28 +419,41 @@ function floor8() {
   put(g, 1, 1, 'F');
   put(g, 6, 1, 'B');
 
-  // mesas verticales a la derecha
-  const RIGHT_TABLES = [[21, 3], [24, 3], [27, 3], [21, 7], [24, 7], [27, 7], [27, 11]];
+  // mesas a la derecha, lejos de donde se arma la celebración
+  const RIGHT_TABLES = [[28, 3], [28, 8]];
   RIGHT_TABLES.forEach(function (t) {
     fill(g, t[0], t[1], t[0], t[1] + 1, 'm');
   });
-  // mesitas debajo de la tienda
-  const SMALL_TABLES = [[2, 7], [6, 9]];
+  const SMALL_TABLES = [[2, 7], [4, 11]];
   SMALL_TABLES.forEach(function (t) {
     put(g, t[0], t[1], 'm');
   });
 
   [
     [9, 1], [12, 1], [19, 1], [30, 1],
-    [1, 6], [1, 10], [30, 7], [30, 10],
-    [9, 13], [13, 13], [19, 13], [24, 13], [30, 13],
+    [1, 5], [1, 12], [30, 7], [30, 13],
+    [8, 13], [14, 13], [21, 13], [26, 13],
   ].forEach(function (pos) {
     put(g, pos[0], pos[1], 'P');
   });
 
   const npcs = [
-    { id: 'marce', kind: 'marce', style: 'marce', col: 4, row: 3, role: 'mission', stand: true },
+    { id: 'marce', kind: 'boss', style: 'sergioBoss', col: 5, row: 4, role: 'mission', stand: true },
   ];
+
+  TERRACE_PARTY.forEach(function (p) {
+    npcs.push({
+      id: p.id,
+      kind: 'party',
+      style: p.style,
+      col: p.col,
+      row: p.row,
+      role: 'none',
+      stand: true,
+      party: true,
+      cloud: p.cloud || null,
+    });
+  });
 
   // sillas a los lados de cada mesa
   const CHAIR_COLORS = ['Y', 'W', 'B'];
@@ -449,11 +484,12 @@ function floor8() {
   });
 
   return {
-    n: 8,
+    n: 3,
     w: FLOOR_W,
     h: TERRACE_H,
     rows: g,
     base: 'g',
+    arch: { x: 16, y: 4, scale: 1.9 },
     zones: [
       [1, 1, 7, 4, '%'],
       [14, 1, 17, 4, '%'],
@@ -466,40 +502,17 @@ function floor8() {
       { art: 'pastry', col: 5, row: 1 },
       { art: 'cups', col: 3, row: 2 },
       { art: 'mug', col: 5, row: 2 },
-      { art: 'mug', col: 27, row: 3 },
-      { art: 'cups', col: 21, row: 7 },
+      { art: 'mug', col: 28, row: 3 },
+      { art: 'cups', col: 28, row: 8 },
     ]),
-    label: 'PISO 8 · TERRAZA',
+    label: 'PISO 3 · TERRAZA',
     elevLabel: 'TERRAZA',
     spawn: ELEV_SPAWN,
   };
 }
 
-const FINALE_CROWD = [
-  { style: 'sergioStand', col: 16, row: 10 },
-  { style: 'mgr7Stand', col: 11, row: 11 },
-  { style: 'mgr3Stand', col: 13, row: 11 },
-  { style: 'mgr4Stand', col: 15, row: 11 },
-  { style: 'mgr5Stand', col: 17, row: 11 },
-  { style: 'mgr6Stand', col: 19, row: 11 },
-  { style: 'agent0Stand', col: 9, row: 11 },
-  { style: 'agent3Stand', col: 21, row: 11 },
-  { style: 'mgrRh1Stand', col: 10, row: 12 },
-  { style: 'aseoStand', col: 12, row: 12 },
-  { style: 'brandonStand', col: 14, row: 12 },
-  { style: 'mgrTiStand', col: 18, row: 12 },
-  { style: 'aseo2Stand', col: 20, row: 12 },
-  { style: 'mgrRh2Stand', col: 22, row: 12 },
-  { style: 'agent5Stand', col: 8, row: 12 },
-  { style: 'logisticaStand', col: 24, row: 12 },
-];
-
-const MARCE_FINALE_SPOT = { col: 16, row: 12 };
-
-const BUILDING = [floor1(), floor2()];
-for (let n = 3; n <= 7; n++) BUILDING.push(officeFloor(n));
-BUILDING.push(floor8());
+const BUILDING = [floor1(), operaciones(), terraza()];
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { BUILDING, ELEV, ELEV_SPAWN, REQUIRED_TOTAL, FINALE_CROWD, MARCE_FINALE_SPOT };
+  module.exports = { BUILDING, ELEV, ELEV_SPAWN, TERRACE_IDX };
 }

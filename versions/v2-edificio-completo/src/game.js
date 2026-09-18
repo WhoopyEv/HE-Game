@@ -14,28 +14,36 @@
   };
 
   const IDS = [
-    'title-screen', 'end-screen', 'hud', 'hud-count', 'mute', 'end-credits',
-    'end-dedication', 'elevator', 'elev-list', 'floor-label',
-    'bubble', 'bubble-name', 'bubble-text', 'help', 'help-modal', 'help-close', 'stage',
+    'title-screen', 'end-screen', 'hud', 'hud-count', 'hud-slots', 'mute', 'end-credits',
+    'end-dedication', 'elevator', 'elev-list', 'floor-label', 'value-flash',
+    'bubble', 'bubble-name', 'bubble-text', 'clouds', 'help', 'help-modal', 'help-close', 'stage',
   ];
 
   let ctx = null;
   let state = STATE.TITLE;
   let player = null;
   let time = 0;
-  let hearts = 0;
+  let collected = [];
   let missionGiven = false;
   let finaleTriggered = false;
+  let partyOn = false;
   let floorIdx = 0;
   let elevSel = 0;
   let labelTimer = 0;
+  let flashTimer = 0;
   let confetti = [];
-  let crowd = [];
+  let parade = null;
+  let celebrateTimer = 0;
   let bubbleFor = null;
   let bubbleW = 0;
   let bubbleH = 0;
   const floors = [];
+  const cloudEls = [];
   const el = {};
+
+  function complete() {
+    return collected.length >= VALUES.length;
+  }
 
   function cacheElements() {
     IDS.forEach(function (id) {
@@ -67,22 +75,43 @@
     return floorState(floorIdx);
   }
 
-  function requiredOf(i) {
-    const list = floorState(i).npcs.filter(function (n) {
-      return n.role === 'required';
+  function buildHudSlots() {
+    el['hud-slots'].innerHTML = '';
+    VALUES.forEach(function () {
+      el['hud-slots'].appendChild(document.createElement('span'));
     });
-    return list.length ? list[0] : null;
   }
 
   function updateHud() {
-    el['hud-count'].textContent = hearts + '/' + REQUIRED_TOTAL;
-    el.hud.classList.toggle('is-complete', hearts >= REQUIRED_TOTAL);
+    el['hud-count'].textContent = collected.length + '/' + VALUES.length;
+    el.hud.classList.toggle('is-complete', complete());
+    const slots = el['hud-slots'].children;
+    VALUES.forEach(function (v, i) {
+      const slot = slots[i];
+      if (!slot) return;
+      const has = collected.indexOf(v.id) !== -1;
+      slot.className = has ? 'piece-slot is-on' : 'piece-slot';
+      slot.style.background = has ? v.color : '';
+    });
+  }
+
+  // El negro de "Respaldo" desaparece sobre fondo oscuro: para textos y marcas
+  // se reemplaza por un gris claro.
+  function flashColorFor(color) {
+    return color === '#0d0a12' ? '#c9c4b6' : color;
+  }
+
+  function showValueFlash(label, color) {
+    el['value-flash'].style.setProperty('--flash-color', color);
+    el['value-flash'].querySelector('span').textContent = '¡' + label + '!';
+    el['value-flash'].classList.add('is-visible');
+    flashTimer = 1.6;
   }
 
   function showLabel(text) {
     el['floor-label'].textContent = text;
     el['floor-label'].classList.add('is-visible');
-    labelTimer = 2.2;
+    labelTimer = 3.8;
   }
 
   function hideLabel() {
@@ -168,9 +197,14 @@
 
       const mark = document.createElement('span');
       mark.className = 'elev-mark';
-      const req = requiredOf(i);
-      if (req) mark.textContent = req.talked ? '❤' : '·';
-      else mark.textContent = i === BUILDING.length - 1 ? '★' : '';
+      if (i === TERRACE_IDX) {
+        mark.textContent = complete() ? '★' : '🔒';
+        if (!complete()) row.classList.add('is-locked');
+      } else if (i === 1) {
+        mark.textContent = complete() ? '✓' : collected.length + '/' + VALUES.length;
+      } else {
+        mark.textContent = '';
+      }
 
       row.appendChild(num);
       row.appendChild(name);
@@ -208,9 +242,69 @@
     showLabel(fs.def.label);
   }
 
+  // La aspiradora va y vuelve por su tramo, sin pasar por encima de nadie.
+  function moveRobot(fs) {
+    const cfg = fs.def.robot;
+    if (!cfg) return;
+    const span = (cfg.col1 - cfg.col0) * TILE;
+    const t = (time * cfg.speed) % (span * 2);
+    const rx = cfg.col0 * TILE + (t <= span ? t : span * 2 - t);
+    fs.npcs.forEach(function (n) {
+      if (n.kind === 'robot') n.x = rx;
+    });
+  }
+
+  // Después de hablar con Marce: todos van saliendo del ascensor y se reparten
+  // por la terraza. Cuando el último llega, viene el mensaje del equipo.
+  function startParade() {
+    const fs = current();
+    const fromX = ELEV.col * TILE + 8;
+    const fromY = (ELEV.row + 1) * TILE;
+    let i = 0;
+    fs.npcs.forEach(function (n) {
+      if (!n.party) return;
+      n.fromX = fromX;
+      n.fromY = fromY;
+      n.toX = n.col * TILE;
+      n.toY = n.row * TILE + (n.dy || 0);
+      n.x = fromX;
+      n.y = fromY;
+      n.delay = i * 0.1;
+      n.hidden = true;
+      i += 1;
+    });
+    parade = { t: 0, total: i * 0.1 + 1.3 };
+    partyOn = true;
+    state = STATE.FINALE_TALK;
+    spawnConfetti();
+    Audio8.fanfare();
+  }
+
+  function updateParade(dt) {
+    const fs = current();
+    parade.t += dt;
+    fs.npcs.forEach(function (n) {
+      if (!n.party) return;
+      const p = Math.max(0, Math.min(1, (parade.t - n.delay) / 1.1));
+      if (p <= 0) return;
+      n.hidden = false;
+      const e = 1 - Math.pow(1 - p, 3);
+      n.x = n.fromX + (n.toX - n.fromX) * e;
+      n.y = n.fromY + (n.toY - n.fromY) * e;
+    });
+    if (parade.t < parade.total) return;
+    parade = null;
+    triggerFinale();
+  }
+
   function confirmElevator() {
     const target = elevSel;
     closeElevator();
+    if (target === TERRACE_IDX && !complete()) {
+      Audio8.confirm();
+      openDialogue(MESSAGES.terraceLocked.name, MESSAGES.terraceLocked.lines);
+      return;
+    }
     if (target !== floorIdx) goToFloor(target);
   }
 
@@ -265,42 +359,20 @@
   function triggerFinale() {
     finaleTriggered = true;
     state = STATE.FINALE_TALK;
-    crowd = FINALE_CROWD.map(function (c) {
-      return { style: c.style, x: c.col * TILE, y: c.row * TILE };
-    });
-    const fs = current();
-    fs.npcs.forEach(function (n) {
-      if (n.id !== 'marce') return;
-      n.x = MARCE_FINALE_SPOT.col * TILE;
-      n.y = MARCE_FINALE_SPOT.row * TILE;
-      n.role = 'none';
-    });
-    player.x = 16 * TILE;
-    player.y = 13 * TILE;
-    player.dir = 'up';
-    player.moving = false;
     hideLabel();
-    spawnConfetti();
-    Audio8.fanfare();
     Dialogue.open(MESSAGES.finale.name, MESSAGES.finale.lines, function () {
-      state = STATE.FINALE_END;
-      showEndScreen();
+      // un momento de pura celebración antes de los créditos
+      celebrateTimer = 4;
     });
   }
 
   function talkToMarce(fs) {
     const m = MESSAGES.marce;
     Audio8.confirm();
-    if (fs.def.n === 8) {
-      if (hearts >= REQUIRED_TOTAL) {
-        state = STATE.DIALOGUE;
-        Dialogue.open(m.name, m.ready, triggerFinale);
-        return;
-      }
-      const lines = m.waiting.concat([
-        'Le faltan ' + (REQUIRED_TOTAL - hearts) + ' de ' + REQUIRED_TOTAL + '. Súbase otra vez y no me deje ningún piso por fuera.',
-      ]);
-      openDialogue(m.name, lines);
+    // En la terraza solo se entra con las cinco piezas, así que siempre es el final.
+    if (floorIdx === TERRACE_IDX) {
+      state = STATE.DIALOGUE;
+      Dialogue.open(m.name, m.ready, startParade);
       return;
     }
     const first = !missionGiven;
@@ -310,20 +382,28 @@
     });
   }
 
+  function givePiece(id) {
+    if (collected.indexOf(id) !== -1) return;
+    collected.push(id);
+    updateHud();
+    const value = VALUE_BY_ID[id];
+    if (value) showValueFlash(value.label, flashColorFor(value.color));
+    Audio8.unlocked();
+    if (complete()) showLabel('LA TERRAZA SE ABRIÓ');
+  }
+
   function talkTo(npc, fs) {
     if (npc.role === 'mission') {
       talkToMarce(fs);
       return;
     }
-    const msg = npc.role === 'required' ? MESSAGES.floors[fs.def.n] : MESSAGES.extras[npc.id];
+    const msg = npc.piece ? MESSAGES.devs[npc.id] : MESSAGES.extras[npc.id];
     if (!msg) return;
     Audio8.confirm();
     openDialogue(msg.name, msg.lines, function () {
-      if (npc.role === 'required' && !npc.talked) {
+      if (npc.piece && !npc.talked) {
         npc.talked = true;
-        hearts += 1;
-        updateHud();
-        Audio8.unlocked();
+        givePiece(npc.piece);
       }
       state = STATE.PLAYING;
     });
@@ -384,11 +464,12 @@
     const drawables = [];
 
     fs.npcs.forEach(function (n) {
-      if (!visible(n.x, n.y, cam)) return;
+      if (n.hidden || !visible(n.x, n.y, cam)) return;
       drawables.push({
         y: n.y,
         draw: function () {
-          drawNpc(ctx, n, time);
+          if (n.kind === 'robot') drawRobotVac(ctx, n.x, n.y);
+          else drawNpc(ctx, n, time);
         },
       });
       if (n.monitor) {
@@ -407,16 +488,22 @@
           },
         });
       }
-    });
-
-    crowd.forEach(function (c) {
-      if (!visible(c.x, c.y, cam)) return;
-      drawables.push({
-        y: c.y,
-        draw: function () {
-          drawSprite(ctx, c.style, 0, c.x, c.y, false);
-        },
-      });
+      if (n.side) {
+        drawables.push({
+          y: n.y + 1,
+          draw: function () {
+            drawDeskItem(ctx, n.x + 12, n.y - 2, n.side);
+          },
+        });
+      }
+      if (n.notes) {
+        drawables.push({
+          y: n.y + 2,
+          draw: function () {
+            drawMusicNotes(ctx, n.x + 14, n.y + 2, time);
+          },
+        });
+      }
     });
 
     drawables.push({
@@ -443,12 +530,87 @@
       if (!visible(n.x, n.y, cam)) return;
       if (bubbleNpc && n.id === bubbleNpc.id) return;
       if (n === near) drawPrompt(ctx, n.x, n.y, time);
-      else if (n.role === 'required') drawHeart(ctx, n.x, n.y, time);
+      else if (n.piece) drawPieceMark(ctx, n.x, n.y, time, pieceColor(n.piece));
       else if (n.role === 'mission') drawQuestMark(ctx, n.x, n.y, time);
       else drawTalkDots(ctx, n.x, n.y, time);
     });
     if (near || !nearElevator(player)) return;
     drawPrompt(ctx, ELEV.col * TILE + 8, (ELEV.row + 1) * TILE, time);
+  }
+
+  function pieceColor(id) {
+    const value = VALUE_BY_ID[id];
+    return value ? flashColorFor(value.color) : '#e8c25a';
+  }
+
+  // Corazones que suben desde cada persona que está celebrando.
+  function drawPartyHearts(fs, cam) {
+    if (!partyOn) return;
+    fs.npcs.forEach(function (n) {
+      if (!n.party || n.hidden || parade || !visible(n.x, n.y, cam)) return;
+      for (let i = 0; i < 2; i++) {
+        const t = ((time * 0.55 + n.col * 0.17 + i * 0.5) % 1);
+        const hx = n.x + (i === 0 ? 12 : 0) + Math.round(Math.sin((t + i) * 5) * 2);
+        const hy = n.y + 2 - Math.round(t * 24);
+        drawTinyHeart(ctx, hx, hy, t < 0.4);
+      }
+    });
+  }
+
+  // Globos cortos de la celebración: mismo globo (y misma letra) que los
+  // mensajes opcionales del resto del edificio, repartidos por turnos.
+  function updateClouds(fs, cam) {
+    const active = [];
+    if (partyOn && !helpOpen() && state !== STATE.FINALE_END) {
+      fs.npcs.forEach(function (n) {
+        if (!n.cloud || n.hidden || parade || !visible(n.x, n.y, cam)) return;
+        if ((time + n.cloudPhase) % 12 > 4.2) return;
+        if (active.length < cloudEls.length) active.push(n);
+      });
+    }
+    const scale = Engine.getScale();
+    cloudEls.forEach(function (node, i) {
+      const n = active[i];
+      if (!n) {
+        node.classList.remove('is-visible');
+        return;
+      }
+      node.textContent = MESSAGES.clouds[n.cloud] || '';
+      node.style.left = Math.round((n.x + 8 - cam.x) * scale) + 'px';
+      node.style.top = Math.round((n.y - cam.y) * scale) + 'px';
+      node.classList.add('is-visible');
+    });
+  }
+
+  // Flecha en el borde que apunta a quien falta por visitar (o a Marce al final).
+  function guideTargets(fs) {
+    const out = [];
+    fs.npcs.forEach(function (n) {
+      if (n.piece && !n.talked) {
+        out.push({ x: n.x + 8, y: n.y + 8, color: pieceColor(n.piece) });
+        return;
+      }
+      if (n.role === 'mission' && (!missionGiven || floorIdx === TERRACE_IDX)) {
+        out.push({ x: n.x + 8, y: n.y + 8, color: '#e8c25a' });
+      }
+    });
+    return out;
+  }
+
+  function drawGuides(fs, cam) {
+    if (state !== STATE.PLAYING) return;
+    const margin = 14;
+    guideTargets(fs).forEach(function (t) {
+      const sx = t.x - cam.x;
+      const sy = t.y - cam.y;
+      if (sx > margin && sx < VIEW_W - margin && sy > margin && sy < VIEW_H - margin) return;
+      const cx = Math.max(margin, Math.min(VIEW_W - margin, sx));
+      const cy = Math.max(margin, Math.min(VIEW_H - margin, sy));
+      const dx = sx - cx;
+      const dy = sy - cy;
+      const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
+      drawEdgeArrow(ctx, cx, cy, dir, t.color, time);
+    });
   }
 
   function render() {
@@ -462,8 +624,11 @@
     drawPingScene(fs);
     drawEntities(fs, cam);
     drawIndicators(fs, cam, updateBubble(fs, cam));
+    drawPartyHearts(fs, cam);
     ctx.restore();
-    if (finaleTriggered) drawConfetti();
+    updateClouds(fs, cam);
+    drawGuides(fs, cam);
+    if (partyOn) drawConfetti();
   }
 
   function handleInput() {
@@ -522,6 +687,11 @@
       if (labelTimer <= 0) hideLabel();
     }
 
+    if (flashTimer > 0) {
+      flashTimer -= dt;
+      if (flashTimer <= 0) el['value-flash'].classList.remove('is-visible');
+    }
+
     if (state === STATE.PLAYING && !helpOpen()) {
       const fs = current();
       movePlayer(
@@ -538,7 +708,16 @@
       );
     }
 
-    if (finaleTriggered) updateConfetti(dt);
+    if (parade) updateParade(dt);
+    if (celebrateTimer > 0) {
+      celebrateTimer -= dt;
+      if (celebrateTimer <= 0) {
+        state = STATE.FINALE_END;
+        showEndScreen();
+      }
+    }
+    moveRobot(current());
+    if (partyOn) updateConfetti(dt);
     render();
   }
 
@@ -552,6 +731,13 @@
     });
     player = createPlayer(BUILDING[0].spawn);
     backgroundFor(current());
+    buildHudSlots();
+    for (let i = 0; i < 8; i++) {
+      const node = document.createElement('div');
+      node.className = 'cloud';
+      el.clouds.appendChild(node);
+      cloudEls.push(node);
+    }
     updateHud();
 
     el.help.addEventListener('click', function () {

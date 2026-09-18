@@ -17,8 +17,9 @@ function createPlayer(spawn) {
 }
 
 function createNpcs(def) {
+  let cloudIndex = 0;
   return def.npcs.map(function (n) {
-    return {
+    const npc = {
       id: n.id,
       kind: n.kind,
       style: n.style,
@@ -27,13 +28,27 @@ function createNpcs(def) {
       x: n.col * TILE,
       y: n.row * TILE + (n.dy || 0),
       role: n.role,
+      piece: n.piece || null,
       monitor: n.monitor || null,
       item: n.item || null,
+      side: n.side || null,
+      ghost: !!n.ghost,
+      notes: !!n.notes,
+      cloud: n.cloud || null,
+      party: !!n.party,
+      hidden: !!n.party,
+      cloudPhase: 0,
       stand: !!n.stand,
       still: !!n.still,
       flip: !!n.flip,
       talked: false,
     };
+    // Los globos se reparten salteados en el ciclo para que no salgan dos vecinos a la vez.
+    if (n.cloud) {
+      npc.cloudPhase = ((cloudIndex * 7) % 15) * 0.8;
+      cloudIndex += 1;
+    }
+    return npc;
   });
 }
 
@@ -64,6 +79,7 @@ function npcBlocked(npcs, x, y) {
   const right = left + HITBOX.w;
   const bottom = top + HITBOX.h;
   return npcs.some(function (n) {
+    if (n.ghost || n.hidden) return false;
     return left < n.x + 13 && right > n.x + 3 && top < n.y + 15 && bottom > n.y + 4;
   });
 }
@@ -169,26 +185,95 @@ function drawPlayer(ctx, player) {
   else drawSprite(ctx, 'spartanSide', frame, player.x, player.y, player.dir === 'left');
 }
 
+// Diana es más alta y Daniel más ancho: se estira el dibujo desde los pies,
+// sin tocar la casilla que ocupan.
 function drawNpc(ctx, npc, time) {
-  const bob = npc.stand || npc.still ? 0 : Math.floor(time * 4 + npc.col) % 2 === 0 ? 0 : 1;
+  let bob = npc.stand || npc.still ? 0 : Math.floor(time * 4 + npc.col) % 2 === 0 ? 0 : 1;
+  if (npc.party) bob = -Math.round(Math.abs(Math.sin(time * 3.4 + npc.col * 0.7)) * 3);
+  const st = DEV_STYLES[npc.style];
+  if (!st || !st.wide) {
+    drawSprite(ctx, spriteOf(npc), 0, npc.x, npc.y + bob, npc.flip);
+    return;
+  }
+  const cx = npc.x + 8;
+  const cy = npc.y + 16;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(st.wide ? 1.18 : 1, 1);
+  ctx.translate(-cx, -cy);
   drawSprite(ctx, spriteOf(npc), 0, npc.x, npc.y + bob, npc.flip);
+  ctx.restore();
 }
 
-function drawHeart(ctx, x, y, t) {
+// Ficha flotando sobre quien todavía no la ha entregado.
+function drawPieceMark(ctx, x, y, t, color) {
   const bounce = Math.round(Math.sin(t * 4) * 1.5);
-  const cy = y - 8 + bounce;
-  ctx.fillStyle = '#e0453e';
-  ctx.fillRect(x + 4, cy + 1, 2, 1);
-  ctx.fillRect(x + 8, cy + 1, 2, 1);
-  ctx.fillRect(x + 3, cy + 2, 4, 2);
-  ctx.fillRect(x + 7, cy + 2, 4, 2);
-  ctx.fillRect(x + 4, cy + 4, 6, 1);
-  ctx.fillRect(x + 5, cy + 5, 4, 1);
-  ctx.fillRect(x + 6, cy + 6, 2, 1);
-  ctx.fillStyle = '#f2837e';
-  ctx.fillRect(x + 4, cy + 2, 1, 1);
+  const py = y - 18 + bounce;
+  ctx.fillStyle = '#f4f0e6';
+  ctx.fillRect(x - 1, py - 1, 18, 16);
+  ctx.fillStyle = '#241a2b';
+  ctx.fillRect(x, py, 16, 14);
+  ctx.fillStyle = color;
+  ctx.fillRect(x + 2, py + 2, 12, 10);
+  ctx.fillStyle = '#241a2b';
+  ctx.fillRect(x + 15, py + 4, 4, 6);
+  ctx.fillStyle = color;
+  ctx.fillRect(x + 15, py + 5, 3, 4);
+  ctx.fillStyle = '#f4f0e6';
+  ctx.fillRect(x + 3, py + 3, 4, 2);
 }
 
+// Corazoncito que sube desde la gente en la celebración.
+function drawTinyHeart(ctx, x, y, bright) {
+  ctx.fillStyle = bright ? '#f2837e' : '#e0453e';
+  ctx.fillRect(x + 1, y, 1, 1);
+  ctx.fillRect(x + 3, y, 1, 1);
+  ctx.fillRect(x, y + 1, 5, 2);
+  ctx.fillRect(x + 1, y + 3, 3, 1);
+  ctx.fillRect(x + 2, y + 4, 1, 1);
+}
+
+// Notas de música: se le salen a quien está con audífonos.
+function drawMusicNotes(ctx, x, y, t) {
+  for (let i = 0; i < 2; i++) {
+    const p = (t * 0.7 + i * 0.5) % 1;
+    const nx = Math.round(x + i * 6 + Math.sin((p + i) * 6) * 2);
+    const ny = Math.round(y - p * 14);
+    ctx.fillStyle = i === 0 ? '#4a8fd4' : '#8fd4e8';
+    ctx.fillRect(nx + 2, ny, 3, 1);
+    ctx.fillRect(nx + 4, ny + 1, 1, 4);
+    ctx.fillRect(nx + 2, ny + 4, 3, 2);
+  }
+}
+
+function arrowTriangle(ctx, x, y, dir, size, color) {
+  ctx.fillStyle = color;
+  for (let i = 0; i < size; i++) {
+    if (dir === 'right') ctx.fillRect(x - i, y - i, 1, i * 2 + 1);
+    else if (dir === 'left') ctx.fillRect(x + i, y - i, 1, i * 2 + 1);
+    else if (dir === 'down') ctx.fillRect(x - i, y - i, i * 2 + 1, 1);
+    else ctx.fillRect(x - i, y + i, i * 2 + 1, 1);
+  }
+}
+
+// Flecha en el borde de la pantalla: apunta hacia quien falta por visitar.
+// Late y se empuja hacia donde apunta para que se note entre tanta gente.
+function drawEdgeArrow(ctx, x, y, dir, color, t) {
+  const pulse = (Math.sin(t * 5) + 1) / 2;
+  const size = 6 + Math.round(pulse * 3);
+  const push = Math.round(pulse * 4);
+  const ax = Math.round(x) + (dir === 'right' ? push : dir === 'left' ? -push : 0);
+  const ay = Math.round(y) + (dir === 'down' ? push : dir === 'up' ? -push : 0);
+  const off = dir === 'right' ? 1 : dir === 'left' ? -1 : 0;
+  const offY = dir === 'down' ? 1 : dir === 'up' ? -1 : 0;
+  ctx.save();
+  ctx.globalAlpha = 0.65 + pulse * 0.35;
+  arrowTriangle(ctx, ax + off, ay + offY, dir, size + 1, '#241a2b');
+  arrowTriangle(ctx, ax, ay, dir, size, color);
+  ctx.restore();
+}
+
+// Globito de "tengo algo que decirte" sobre los mensajes opcionales.
 function drawTalkDots(ctx, x, y, t) {
   const bounce = Math.round(Math.sin(t * 3) * 1);
   const py = y - 7 + bounce;
@@ -204,12 +289,12 @@ function drawTalkDots(ctx, x, y, t) {
 
 function drawQuestMark(ctx, x, y, t) {
   const bounce = Math.round(Math.sin(t * 5) * 1.5);
-  const py = y - 12 + bounce;
+  const py = y - 16 + bounce;
   ctx.fillStyle = '#241a2b';
-  ctx.fillRect(x + 6, py, 4, 11);
+  ctx.fillRect(x + 4, py, 8, 15);
   ctx.fillStyle = '#e8c25a';
-  ctx.fillRect(x + 7, py + 1, 2, 6);
-  ctx.fillRect(x + 7, py + 8, 2, 2);
+  ctx.fillRect(x + 6, py + 2, 4, 8);
+  ctx.fillRect(x + 6, py + 11, 4, 3);
 }
 
 function drawPrompt(ctx, x, y, t) {

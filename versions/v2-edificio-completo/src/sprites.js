@@ -42,6 +42,12 @@ const PALETTE = {
   A: '#a9a293',
   x: '#2c3e6b',
   X: '#1b2847',
+  f: '#2e2e34',
+  F: '#1a1a1e',
+  l: '#1c1a24',
+  L: '#0f0e14',
+  d: '#8fd4e8',
+  D: '#5aa6c0',
 };
 
 const SPARTAN_DOWN_0 = [
@@ -224,19 +230,19 @@ function buildSitLong(st) {
   const shD = st.shirtDark;
   return [
     '................',
-    '.....kkkkkk.....',
-    '....k' + hD + rep(hair, 4) + hD + 'k....',
-    '...k' + hD + rep(hair, 6) + hD + 'k...',
-    '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
-    '...k' + hair + rep(s, 6) + hair + 'k...',
-    '...k' + hair + s + 'k' + rep(s, 2) + 'k' + s + hair + 'k...',
-    '...k' + hair + rep(s, 6) + hair + 'k...',
-    '....k' + hair + rep(s, 4) + hair + 'k....',
-    '..k' + hair + rep(sh, 8) + hair + 'k..',
-    '.k' + hair + rep(sh, 10) + hair + 'k.',
-    '.k' + s + rep(sh, 10) + s + 'k.',
-    '.k' + shD + rep(sh, 10) + shD + 'k.',
-    '.kk' + rep(shD, 10) + 'kk.',
+    '..' + rep(hD, 12) + '..',
+    '..' + hD + rep(hair, 10) + hD + '..',
+    '..' + hD + rep(hair, 10) + hD + '..',
+    '..' + hair + 'k' + rep(s, 2) + rep(hair, 4) + rep(s, 2) + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '..' + hair + 'k' + s + 'k' + rep(s, 4) + 'k' + s + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '...' + hair + 'k' + rep(s, 6) + 'k' + hair + '...',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '..k' + rep(sh, 10) + 'k..',
+    '..k' + rep(shD, 10) + 'k..',
     '..kk' + rep(shD, 8) + 'kk..',
     '....' + rep('k', 8) + '....',
   ];
@@ -244,28 +250,57 @@ function buildSitLong(st) {
 
 function buildStandLong(st) {
   const s = st.skin || 's';
-  const pants = st.pants || 'C';
+  const skirt = st.pants || 'C';
   const hair = st.hair;
   const hD = st.hairDark;
   const sh = st.shirt;
   const shD = st.shirtDark;
   return [
     '................',
-    '.....kkkkkk.....',
-    '....k' + hD + rep(hair, 4) + hD + 'k....',
-    '...k' + hD + rep(hair, 6) + hD + 'k...',
-    '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
-    '...k' + hair + rep(s, 6) + hair + 'k...',
-    '...k' + hair + s + 'k' + rep(s, 2) + 'k' + s + hair + 'k...',
-    '...k' + hair + rep(s, 6) + hair + 'k...',
-    '....k' + hair + rep(s, 3) + hair + 'k....',
-    '..k' + hair + rep(sh, 8) + hair + 'k..',
-    '.k' + hair + rep(sh, 10) + hair + 'k.',
-    '.k' + s + rep(sh, 10) + s + 'k.',
-    '.kk' + rep(shD, 10) + 'kk.',
-    '...k' + rep(pants, 8) + 'k...',
+    '..' + rep(hD, 12) + '..',
+    '..' + hD + rep(hair, 10) + hD + '..',
+    '..' + hair + 'k' + rep(s, 2) + rep(hair, 4) + rep(s, 2) + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '..' + hair + 'k' + s + 'k' + rep(s, 4) + 'k' + s + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '...' + hair + 'k' + rep(s, 6) + 'k' + hair + '...',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '..k' + rep(shD, 10) + 'k..',
+    '.k' + rep(skirt, 12) + 'k.',
+    'k' + rep(skirt, 14) + 'k',
+    '...k' + rep(s, 3) + 'kk' + rep(s, 3) + 'k...',
     '...knnk..knnk...',
-    '...kkk...kkk....',
+  ];
+}
+
+// Igual que la anterior pero con el torso más largo y la cabeza más arriba:
+// se ve más alta sin agrandarle la cabeza.
+function buildStandTall(st) {
+  const s = st.skin || 's';
+  const skirt = st.pants || 'C';
+  const hair = st.hair;
+  const hD = st.hairDark;
+  const sh = st.shirt;
+  const shD = st.shirtDark;
+  return [
+    '..' + rep(hD, 12) + '..',
+    '..' + hD + rep(hair, 10) + hD + '..',
+    '..' + hair + 'k' + rep(s, 2) + rep(hair, 4) + rep(s, 2) + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '..' + hair + 'k' + s + 'k' + rep(s, 4) + 'k' + s + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '...' + hair + 'k' + rep(s, 6) + 'k' + hair + '...',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
+    '..k' + rep(shD, 10) + 'k..',
+    '.k' + rep(skirt, 12) + 'k.',
+    'k' + rep(skirt, 14) + 'k',
+    '...k' + rep(s, 3) + 'kk' + rep(s, 3) + 'k...',
+    '...knnk..knnk...',
   ];
 }
 
@@ -274,6 +309,7 @@ function personSit(st) {
 }
 
 function personStand(st) {
+  if (st.tallBody) return buildStandTall(st);
   return st.long ? buildStandLong(st) : buildStand(st);
 }
 
@@ -317,27 +353,6 @@ function buildCapPerson(st) {
   ];
 }
 
-function buildMarce() {
-  return [
-    '................',
-    '......kHHk......',
-    '.....kHHHHk.....',
-    '....kHhhhhHk....',
-    '...kHhhhhhhHk...',
-    '...kHssssssHk...',
-    '...kHskssksHk...',
-    '....kssssssk....',
-    '.....kssssk.....',
-    '..kk' + rep('x', 8) + 'kk..',
-    '.ksxwwwwwwwwxsk.',
-    '.ksxwwwwwwwwxsk.',
-    '.kkXwwwwwwwwXkk.',
-    '...kXXXXXXXXk...',
-    '...knnk..knnk...',
-    '...kkk...kkk....',
-  ];
-}
-
 const AGENT_STYLES = [
   { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's' },
   { hair: 'H', hairDark: 'k', shirt: 't', shirtDark: 'T', skin: 'u', long: true },
@@ -368,6 +383,10 @@ const SUP_STYLES = [
 ];
 
 const NAMED_STYLES = {
+  marce: { hair: 'b', hairDark: 'B', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'X', long: true },
+  recep: { hair: 'c', hairDark: 'C', shirt: 'c', shirtDark: 'C', skin: 's', long: true },
+  josue: { hair: 'h', hairDark: 'H', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' },
+  sebastian: { hair: 'b', hairDark: 'B', shirt: 'y', shirtDark: 'Y', skin: 's' },
   sergio: { hair: 'H', hairDark: 'k', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z' },
   mgr3: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
   mgr4: { hair: 'e', hairDark: 'E', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'Z', long: true },
@@ -381,11 +400,65 @@ const NAMED_STYLES = {
   brandon: { hair: 'H', hairDark: 'k', shirt: 'o', shirtDark: 'O', skin: 'u', pants: 'Z' },
 };
 
+// --- el equipo de desarrollo ---
+// Retoques sobre las filas ya armadas para que cada uno se reconozca:
+// pelo parado (Felipe), crespo (Nicolás), lentes (Felipe), diadema (Daniel).
+function spikyHair(rows, hair, hD) {
+  rows[0] = '..' + hD + '.' + hair + '.' + hD + '.' + hair + '.' + hD + '.....';
+  return rows;
+}
+
+function curlyHair(rows, hair, hD) {
+  rows[0] = '..' + hair + hD + '.' + hD + hair + '.' + hair + hD + '......';
+  rows[2] = '...' + hD + hair + hair + hD + hair + hair + hD + hair + 'k....';
+  return rows;
+}
+
+function addGlasses(rows) {
+  rows[6] = '...ksMMMsMMMk...';
+  return rows;
+}
+
+function addHeadset(rows, band, shade) {
+  const b = band || 'c';
+  const d = shade || 'C';
+  rows[1] = '...' + rep(b, 10) + '...';
+  rows[2] = '..' + b + d + rows[2].slice(4, 12) + d + b + '..';
+  rows[4] = '.' + b + d + rows[4].slice(3, 13) + d + b + '.';
+  rows[5] = '.' + b + d + rows[5].slice(3, 13) + d + b + '.';
+  rows[6] = '.' + b + d + rows[6].slice(3, 13) + d + b + '.';
+  return rows;
+}
+
+// Diana es más alta y Daniel más ancho: eso se aplica al dibujar (characters.js),
+// no en el sprite, para no deformar la cuadrícula de 16x16.
+const DEV_STYLES = {
+  daniel: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z', headset: 'd', headsetShade: 'D', wide: true },
+  diana: { hair: 'l', hairDark: 'L', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', long: true, tallBody: true },
+  nicolas: { hair: 'h', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z', curly: true },
+  guillermo: { hair: 'l', hairDark: 'L', shirt: 'f', shirtDark: 'F', skin: 'u', pants: 'F' },
+  felipe: { hair: 'l', hairDark: 'L', shirt: 't', shirtDark: 'T', skin: 's', pants: 'Z', glasses: true, spiky: true },
+};
+
+function devFrame(st, sitting) {
+  let rows = sitting ? personSit(st) : personStand(st);
+  if (st.spiky) rows = spikyHair(rows, st.hair, st.hairDark);
+  if (st.curly) rows = curlyHair(rows, st.hair, st.hairDark);
+  if (st.glasses) rows = addGlasses(rows);
+  if (st.headset) rows = addHeadset(rows, st.headset, st.headsetShade);
+  return rows;
+}
+
 const SPRITES = {
   spartanDown: [SPARTAN_DOWN_0, SPARTAN_DOWN_1],
   spartanUp: [SPARTAN_UP_0, SPARTAN_UP_1],
   spartanSide: [SPARTAN_SIDE_0, SPARTAN_SIDE_1],
 };
+
+Object.keys(DEV_STYLES).forEach(function (key) {
+  SPRITES[key + 'Sit'] = [devFrame(DEV_STYLES[key], true)];
+  SPRITES[key + 'Stand'] = [devFrame(DEV_STYLES[key], false)];
+});
 
 AGENT_STYLES.forEach(function (st, i) {
   SPRITES['agent' + i + 'Sit'] = [buildAgentSit(st)];
@@ -407,9 +480,6 @@ Object.keys(NAMED_STYLES).forEach(function (key) {
   SPRITES[key + 'Stand'] = [personStand(NAMED_STYLES[key])];
 });
 
-SPRITES.marceStand = [buildMarce()];
-SPRITES.marceSit = [buildMarce()];
-
 SPRITES.aseoStand = [
   buildCapPerson({ cap: 'x', capDark: 'X', shirt: 'x', shirtDark: 'X', skin: 's' }),
 ];
@@ -426,14 +496,47 @@ SPRITES.porteroStand = [
   buildCapPerson({ cap: 'v', capDark: 'V', shirt: 'v', shirtDark: 'V', skin: 'u' }),
 ];
 SPRITES.logisticaStand = [
-  buildStand({ hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 'u', pants: 'Z' }),
+  buildStandLong({ hair: 'e', hairDark: 'E', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
 ];
 SPRITES.logistica2Stand = [
-  buildStandLong({ hair: 'h', hairDark: 'H', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' }),
+  buildStand({ hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
 ];
+
+// Sergio de cupido: todo de blanco y con alitas a los lados.
+function buildCupid(st) {
+  const rows = buildStand(st);
+  rows[8] = '.m' + rows[8].slice(2, 14) + 'm.';
+  rows[9] = 'mm' + rows[9].slice(2, 14) + 'mm';
+  rows[10] = 'mM' + rows[10].slice(2, 14) + 'Mm';
+  rows[11] = '.M' + rows[11].slice(2, 14) + 'M.';
+  return rows;
+}
+
+SPRITES.sergioBossStand = [
+  buildCupid({ hair: 'l', hairDark: 'L', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'W' }),
+];
+SPRITES.sergioBossSit = SPRITES.sergioBossStand;
 
 SPRITES.pingpongAStand = [buildStand({ hair: 'H', hairDark: 'k', shirt: 'w', shirtDark: 'W', skin: 's' })];
 SPRITES.pingpongBStand = [buildStand({ hair: 'n', hairDark: 'H', shirt: 't', shirtDark: 'T', skin: 'i' })];
+
+// El de logística con cara de zorro: mismo cuerpo, cabeza de zorro.
+function buildFox(st) {
+  const rows = buildStand(st);
+  rows[1] = '..kek......kek..';
+  rows[2] = '..keek....keek..';
+  rows[3] = '...keeeeeeeek...';
+  rows[4] = '...eeeeeeeeee...';
+  rows[5] = '...ekkeeeekke...';
+  rows[6] = '...eewwwwwwee...';
+  rows[7] = '....ewwkkwwe....';
+  rows[8] = '.....wwwwww.....';
+  return rows;
+}
+
+SPRITES.zorroStand = [
+  buildFox({ hair: 'e', hairDark: 'E', shirt: 'r', shirtDark: 'R', skin: 'e', pants: 'Z' }),
+];
 
 const spriteCache = {};
 

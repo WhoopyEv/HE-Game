@@ -20,9 +20,9 @@ const COLORS = {
   trainA: '#8a7f6b',
   trainB: '#807664',
   trainLine: '#6e6455',
-  grassA: '#4f8f4a',
-  grassB: '#478542',
-  grassLine: '#3c7038',
+  grassA: '#44803f',
+  grassB: '#3d7638',
+  grassLine: '#33632f',
   deskTop: '#e6e2d9',
   deskEdge: '#b2aca1',
   deskShade: '#d3cec4',
@@ -580,6 +580,16 @@ function drawPingNet(ctx, x, y) {
   px(ctx, x - 2, y - 2, 4, 2, COLORS.pingNetPost);
 }
 
+function drawRobotVac(ctx, x, y) {
+  px(ctx, x + 2, y + 6, 12, 8, '#b9b3a6');
+  px(ctx, x + 3, y + 5, 10, 8, '#f4f0e6');
+  px(ctx, x + 4, y + 7, 8, 4, '#d8d2c4');
+  px(ctx, x + 6, y + 8, 4, 2, '#8fd4e8');
+  px(ctx, x + 11, y + 6, 2, 2, '#7ad87a');
+  px(ctx, x + 3, y + 13, 3, 1, '#6f757f');
+  px(ctx, x + 10, y + 13, 3, 1, '#6f757f');
+}
+
 function drawNameplate(ctx, x, y) {
   px(ctx, x + 3, y + 6, 10, 5, COLORS.metalDark);
   px(ctx, x + 4, y + 7, 8, 3, COLORS.metal);
@@ -667,8 +677,16 @@ function itemPlant(ctx, x, y) {
   px(ctx, x + 6, y + 2, 2, 1, '#3f8a52');
 }
 
+function itemPhone(ctx, x, y) {
+  px(ctx, x + 2, y, 5, 9, '#241a2b');
+  px(ctx, x + 3, y + 1, 3, 6, '#8fd4e8');
+  px(ctx, x + 4, y + 2, 1, 3, '#d8f2fa');
+  px(ctx, x + 3, y + 7, 3, 1, '#6f757f');
+}
+
 const DESK_ITEMS = {
   pineapple: itemPineapple,
+  phone: itemPhone,
   headphones: itemHeadphones,
   duck: itemDuck,
   ball: itemBall,
@@ -681,20 +699,26 @@ function drawDeskItem(ctx, x, y, kind) {
   if (fn) fn(ctx, x + 3, y + 8);
 }
 
+// Logo de Hired Experts: la "H" abierta, el cuadro rojo abajo a la izquierda,
+// la barra morada arriba a la derecha, la "E" y la barra amarilla de base.
 function drawLogo(ctx, x, y) {
   const by = y - 8;
+  const w = '#f4f0e6';
   px(ctx, x, by, 32, 22, '#0d0a12');
-  px(ctx, x, by, 32, 1, '#3a3244');
-  px(ctx, x, by + 21, 32, 1, '#3a3244');
-  px(ctx, x + 22, by + 2, 8, 3, '#8f2fd4');
-  px(ctx, x + 4, by + 6, 3, 9, '#f4f0e6');
-  px(ctx, x + 11, by + 3, 3, 12, '#f4f0e6');
-  px(ctx, x + 7, by + 9, 4, 3, '#f4f0e6');
-  px(ctx, x + 17, by + 6, 3, 9, '#f4f0e6');
-  px(ctx, x + 20, by + 6, 7, 3, '#f4f0e6');
-  px(ctx, x + 20, by + 12, 7, 3, '#f4f0e6');
-  px(ctx, x + 2, by + 11, 4, 4, '#e0453e');
-  px(ctx, x + 3, by + 17, 26, 3, '#f2c50a');
+  // H
+  px(ctx, x + 2, by + 3, 4, 8, w);
+  px(ctx, x + 2, by + 8, 13, 3, w);
+  px(ctx, x + 11, by + 3, 4, 14, w);
+  // cuadro rojo
+  px(ctx, x + 2, by + 12, 4, 5, '#e0453e');
+  // barra morada
+  px(ctx, x + 18, by + 3, 12, 3, '#8f2fd4');
+  // E
+  px(ctx, x + 18, by + 8, 12, 3, w);
+  px(ctx, x + 18, by + 8, 4, 9, w);
+  px(ctx, x + 18, by + 14, 12, 3, w);
+  // barra amarilla
+  px(ctx, x + 2, by + 18, 28, 3, '#f2c50a');
 }
 
 const monitorCache = {};
@@ -749,6 +773,7 @@ const DECOR_DRAW = {
   logo: drawLogo,
   heart: drawHeartDecor,
   coffee: drawCoffeeMachine,
+  robot: drawRobotVac,
   pastry: drawPastryCase,
   menu: drawMenuBoard,
   cups: drawCups,

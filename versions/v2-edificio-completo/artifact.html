@@ -98,19 +98,19 @@
 
   @keyframes blink { 50% { opacity: 0.25; } }
 
-  .heart-row { font-size: clamp(14px, 3vw, 22px); letter-spacing: 0.3em; }
+  .heart-row { font-size: clamp(14px, 3vw, 22px); letter-spacing: 0.3em; color: var(--red); }
 
   #hud {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 10px;
+    left: 10px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
+    gap: 9px;
+    padding: 8px 14px;
     background: rgba(36, 26, 43, 0.86);
     border: 2px solid var(--panel-light);
-    font-size: clamp(10px, 1.7vw, 14px);
+    font-size: clamp(13px, 2.2vw, 19px);
     letter-spacing: 0.06em;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -118,6 +118,42 @@
 
   #hud.is-visible { opacity: 1; }
   #hud.is-complete { border-color: var(--gold); color: var(--gold); }
+
+  .piece-slots { display: flex; gap: 5px; }
+
+  .piece-slot {
+    width: 17px;
+    height: 17px;
+    border: 3px solid #55456a;
+    background: transparent;
+  }
+
+  .piece-slot.is-on { border-color: #f4f0e6; }
+
+  /* Cinta que anuncia el valor de la pieza recién recibida. */
+  #value-flash {
+    --flash-color: #e8c25a;
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    padding: 7px 24px;
+    background: #15101d;
+    border-top: 3px solid var(--flash-color);
+    border-bottom: 3px solid var(--flash-color);
+    color: var(--flash-color);
+    font-size: clamp(14px, 3vw, 24px);
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) skewX(-10deg) scale(0.7);
+    transition: opacity 0.15s ease, transform 0.18s ease;
+    z-index: 4;
+  }
+
+  #value-flash span { display: inline-block; transform: skewX(10deg); }
+  #value-flash.is-visible { opacity: 1; transform: translateX(-50%) skewX(-10deg) scale(1); }
 
   #dialogue {
     position: absolute;
@@ -240,8 +276,8 @@
     position: fixed;
     top: 10px;
     right: 10px;
-    padding: 6px 10px;
-    font-size: 15px;
+    padding: 10px 15px;
+    font-size: 22px;
     border-color: var(--panel-light);
     z-index: 5;
   }
@@ -285,6 +321,7 @@
   }
 
   .elev-row.is-sel { border-color: var(--gold); background: var(--panel-light); }
+  .elev-row.is-locked .elev-name, .elev-row.is-locked .elev-num { color: #6b6280; }
   .elev-num { width: 1.3em; text-align: center; font-weight: 700; }
   .elev-row.is-here .elev-num { color: var(--gold); }
   .elev-name { flex: 1; text-align: left; color: var(--ink-dim); letter-spacing: 0.06em; }
@@ -366,6 +403,40 @@
     margin-bottom: 3px;
   }
 
+  .cloud {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, calc(-100% - 10px));
+    padding: 5px 9px 6px;
+    background: #f4f0e6;
+    color: #241a2b;
+    border: 2px solid #241a2b;
+    border-radius: 12px;
+    font-size: clamp(9px, 1.5vw, 12px);
+    line-height: 1.3;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+    z-index: 1;
+  }
+
+  .cloud.is-visible { opacity: 1; }
+
+  .cloud::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 7px solid #241a2b;
+  }
+
   #help-modal {
     background: rgba(21, 16, 29, 0.95);
     gap: 10px;
@@ -402,9 +473,9 @@
   #help {
     position: fixed;
     top: 10px;
-    right: 58px;
-    padding: 6px 12px;
-    font-size: 15px;
+    right: 76px;
+    padding: 10px 18px;
+    font-size: 22px;
     font-weight: 700;
     border-color: var(--panel-light);
     z-index: 5;
@@ -437,7 +508,10 @@
     <div id="bubble-text"></div>
   </div>
 
-  <div id="hud"><span>❤</span><span id="hud-count">0/6</span></div>
+  <div id="clouds"></div>
+
+  <div id="hud"><span id="hud-slots" class="piece-slots"></span><span id="hud-count">0/5</span></div>
+  <div id="value-flash"><span></span></div>
 
   <div id="dialogue">
     <div id="dialogue-name"></div>
@@ -460,7 +534,9 @@
       <li><b>E</b> frente al ascensor — abrir el panel de pisos</li>
       <li>En el ascensor: <b>↑ ↓</b> eliges piso, <b>E</b> vas, <b>← →</b> sales</li>
       <li>Los mensajes opcionales salen solos al acercarte a la persona</li>
-      <li>Reúne los <b>6 ❤</b> y súbete a la terraza, donde te espera Marce</li>
+      <li>En <b>operaciones</b> están los 5 del equipo de desarrollo: háblales para que te den su pieza</li>
+      <li>Las <b>flechas doradas</b> del borde te apuntan a quién falta por visitar</li>
+      <li>Con las <b>5 piezas</b> se abre la terraza, donde te espera Marce</li>
       <li>En celular: usa el <b>D-pad</b> y el botón <b>E</b> de abajo</li>
     </ul>
     <button id="help-close">Cerrar</button>
@@ -475,7 +551,7 @@
   <div id="end-screen" class="layer">
     <p class="heart-row">❤ ❤ ❤ ❤ ❤</p>
     <p class="end-line">Gracias, <strong>Hired Experts</strong>.</p>
-    <p class="end-line" style="color:var(--ink-dim);font-size:clamp(10px,1.8vw,13px)">8 pisos · 6 mensajes · un solo equipo</p>
+    <p class="end-line" style="color:var(--ink-dim);font-size:clamp(10px,1.8vw,13px)">5 piezas · 5 valores · una sola familia</p>
     <p class="end-line" id="end-credits"></p>
     <p class="end-line" id="end-dedication"></p>
     <button id="replay">Volver a jugar</button>

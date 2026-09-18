@@ -1,5 +1,21 @@
 // Todo el texto del juego vive acá. Cambiar un mensaje no requiere tocar el motor.
-// Los mensajes obligatorios (los que dan ❤) son de UNA sola frase a propósito.
+// Los mensajes de los cinco del equipo son de UNA sola frase a propósito.
+
+// Las cinco piezas que reparte el equipo de desarrollo.
+// Los colores son los del logo real de Hired Experts.
+const VALUES = [
+  { id: 'oportunidad', color: '#8f2fd4', label: 'OPORTUNIDAD' },
+  { id: 'confianza', color: '#e0453e', label: 'CONFIANZA' },
+  { id: 'aprendizaje', color: '#f4f0e6', label: 'APRENDIZAJE' },
+  { id: 'equipo', color: '#f2c50a', label: 'EQUIPO' },
+  { id: 'respaldo', color: '#0d0a12', label: 'RESPALDO' },
+];
+
+const VALUE_BY_ID = {};
+VALUES.forEach(function (v) {
+  VALUE_BY_ID[v.id] = v;
+});
+
 const MESSAGES = {
   title: {
     heading: 'HIRED EXPERTS',
@@ -10,26 +26,24 @@ const MESSAGES = {
   intro: {
     name: '',
     lines: [
-      'Viernes, ocho pisos, y todo el edificio con algo preparado.',
+      'Viernes en la mañana y el edificio tiene algo preparado.',
       'Tú eres el Espartano. Marce te está esperando en recepción.',
     ],
   },
 
   marce: {
-    name: 'MARCE',
+    name: 'SERGIO (CUPIDO BOSS)',
     mission: [
-      'Espartano, justo a usted lo estaba esperando.',
-      'Hoy es el Día de Amor y Amistad y le tengo una misión: súbase por todo el edificio y recójame un mensaje de agradecimiento en cada piso.',
-      'Yo lo espero arriba en la terraza, con todo listo. No me llegue sin los seis.',
+      'Espartano, qué bueno verte por acá. Quiero pedirte una misión.',
+      'Hoy es Día de Amor y Amistad y los cinco del equipo de desarrollo tienen algo preparado para la empresa: una pieza cada uno.',
+      'Súbete a operaciones y recógelas. Con las cinco abrimos la terraza y celebramos allá arriba.',
     ],
     again: [
-      'Suba, suba. El ascensor está en el pasillo y yo lo espero en la terraza.',
-    ],
-    waiting: [
-      'Todavía no, Espartano. Le falta gente por escuchar.',
+      'Suba a operaciones y hable con los cinco del equipo. El ascensor está en el pasillo.',
     ],
     ready: [
-      'Los seis mensajes completos. Entonces sí: venga, que el edificio entero lo está esperando.',
+      'Misión cumplida, Espartano.',
+      'Ahora te confieso una cosa: esto nunca fue una misión, era una excusa para decirte algo.',
     ],
   },
 
@@ -38,53 +52,43 @@ const MESSAGES = {
     lines: ['Mejor primero hablo con Marce, allá en recepción.'],
   },
 
-  // Un mensaje obligatorio por piso. Reemplazar nombre y frase cuando estén definidos.
-  floors: {
-    2: {
-      name: 'SERGIO',
-      lines: [
-        'Yo les digo "mis espartanos" porque es lo que veo cuando camino por este edificio: gente que da la cara.',
-      ],
+  // Sale cuando se intenta subir a la terraza sin las cinco piezas.
+  terraceLocked: {
+    name: '',
+    lines: ['La terraza está cerrada hasta que estén las cinco piezas. Todavía falta gente por escuchar en operaciones.'],
+  },
+
+  // Los cinco del equipo de desarrollo. Cada uno entrega una pieza al hablarle.
+  devs: {
+    diana: {
+      name: 'DIANA',
+      lines: ['Acá me dieron la oportunidad cuando yo misma todavía no sabía si podía: esa pieza es suya.'],
     },
-    3: {
-      name: 'GERENTE PISO 3',
-      lines: [
-        'Gracias, Hired Experts, por dejarnos equivocarnos sin miedo: así se aprende de verdad.',
-      ],
+    daniel: {
+      name: 'DANIEL',
+      lines: ['A mí me soltaron el proyecto sin preguntarme cuántos años llevaba, y eso tiene un nombre: confianza.'],
     },
-    4: {
-      name: 'GERENTE PISO 4',
-      lines: [
-        'Lo mejor de esta empresa es que uno llega sabiendo poco y nadie lo hace sentir mal por preguntar.',
-      ],
+    nicolas: {
+      name: 'NICOLÁS',
+      lines: ['Todo lo que sé hacer hoy lo aprendí acá, rompiendo cosas y arreglándolas sin que nadie me hiciera sentir mal.'],
     },
-    5: {
-      name: 'GERENTE PISO 5',
-      lines: [
-        'Aquí aprendí que un equipo no se sostiene con procesos, sino con gente que responde cuando uno la necesita.',
-      ],
+    guillermo: {
+      name: 'GUILLERMO',
+      lines: ['Cuando algo se cae en este equipo, no se cae uno solo: por eso la mía es la del equipo.'],
     },
-    6: {
-      name: 'GERENTE PISO 6',
-      lines: [
-        'En Hired Experts nadie se queda solo con un problema, y eso no se paga con sueldo.',
-      ],
-    },
-    7: {
-      name: 'GERENTE PISO 7',
-      lines: [
-        'Gracias por una empresa donde crecer no es un premio, es parte del trabajo.',
-      ],
+    felipe: {
+      name: 'FELIPE',
+      lines: ['Nunca me ha tocado resolver nada solo, siempre hay alguien detrás, y eso se llama respaldo.'],
     },
   },
 
-  // Mensajes opcionales: no cuentan para el ❤ y se pueden repetir.
+  // Mensajes opcionales: salen en globo al acercarse, no dan pieza.
   extras: {
     aseo: {
       name: 'SERVICIOS GENERALES',
       lines: [
         'Nosotros vemos este edificio cuando ya no hay nadie: vacío, en silencio y listo para mañana.',
-        'Gracias a todos los que dejan su puesto y el baño como les gustaría encontrarlos. Cuidar lo de todos también es querer a la empresa.',
+        'Gracias a todos los que dejan su puesto como les gustaría encontrarlo.',
       ],
     },
     brandon: {
@@ -95,42 +99,80 @@ const MESSAGES = {
     },
     porteria: {
       name: 'PORTERÍA',
-      lines: [
-        'Buenos días, Espartano. Siga, que arriba lo están esperando.',
-      ],
+      lines: ['Buenos días, Espartano. Siga, que arriba lo están esperando.'],
     },
-    mgrTi: {
-      name: 'MANAGER DE TI',
-      lines: [
-        'Si nada se cae, parece que no hicimos nada. Gracias por confiar igual.',
-      ],
+    josue: {
+      name: 'JOSUÉ',
+      lines: ['Yo cuido un piso entero, jefe. Y en el descanso, cuido esta mesa.'],
     },
-    mgrRh1: {
-      name: 'RECURSOS HUMANOS',
-      lines: [
-        'Acá contratamos personas, no hojas de vida. Por eso esto se siente distinto.',
-      ],
+    danielPardo: {
+      name: 'DANIEL PARDO',
+      lines: ['¿Están trabajando? Pueden trabajar más fuerte.'],
     },
-    mgrRh2: {
-      name: 'RECURSOS HUMANOS',
-      lines: [
-        'Lo más bonito de este trabajo es ver entrar a alguien nervioso y verlo después enseñándole a otro.',
-      ],
+    sebastian: {
+      name: 'SEBASTIÁN',
+      lines: ['Zorro, no te lo lleves.'],
     },
-    mgrRh3: {
-      name: 'RECURSOS HUMANOS',
-      lines: [
-        'Gracias por dejarnos cuidar a la gente y no solo administrarla.',
-      ],
+    zorro: {
+      name: 'ZORRO',
+      lines: ['Yo solo pasaba por el café, no por lo que están pensando.'],
+    },
+    robot: {
+      name: 'ASPIRADORA',
+      lines: ['Bep, bop. Bep.'],
+    },
+    logisticaOps: {
+      name: 'LOGÍSTICA',
+      lines: ['¡Buen día, joven!'],
+    },
+    ops1: {
+      name: 'OPERACIONES',
+      lines: ['Uno entra a contestar llamadas y termina aprendiendo a hablarle a cualquiera sin miedo.'],
+    },
+    ops2: {
+      name: 'OPERACIONES',
+      lines: ['Lo mejor de este piso es que si uno se traba, voltea y siempre hay alguien que le ayuda.'],
+    },
+    ops3: {
+      name: 'OPERACIONES',
+      lines: ['Acá el café se acaba rápido, pero la gente no se acaba nunca.'],
+    },
+    ops5: {
+      name: 'OPERACIONES',
+      lines: ['Cuando cierro turno y miro para atrás, siempre hay alguien más que también se quedó.'],
+    },
+    ops4: {
+      name: 'OPERACIONES',
+      lines: ['Llevo tres años acá y todavía me río con los mismos de la primera semana.'],
     },
   },
 
+  // Globos cortos de la celebración en la terraza (sin tildes: se dibujan con
+  // la fuente de píxeles del juego, que es solo de mayúsculas).
+  clouds: {
+    diana: 'Gracias, HE',
+    daniel: '¡Gracias por tanto!',
+    nicolas: 'Gracias, equipo',
+    guillermo: 'Gracias por todo',
+    felipe: '¡Feliz día, HE!',
+    sergio: 'Gracias, mis espartanos',
+    brandon: 'Gracias por estar',
+    aseoT: 'Gracias a ustedes',
+    porteroT: '¡Gracias, HE!',
+    logisticaT: 'Gracias, de verdad',
+    josueT: '¡Que viva HE!',
+    zorroT: 'Gracias por tanto',
+    sebastianT: 'Gracias, HE',
+    recepT: '¡Gracias a todos!',
+    agenteT: 'Gracias, HE',
+  },
+
+  // El mensaje del equipo de desarrollo para Hired Experts.
   finale: {
-    name: 'TODO EL EDIFICIO',
+    name: 'EL EQUIPO DE DESARROLLO',
     lines: [
-      'Espartano, los seis mensajes eran apenas una excusa.',
-      'Lo que queríamos decir es más simple: gracias, Hired Experts, por ser el lugar donde aprendimos, donde nos equivocamos sin miedo y donde nos quedamos.',
-      'Ocho pisos, un montón de gente, y al final la misma idea: esto se construye entre todos.',
+      'HE nos da oportunidades, confianza, aprendizaje, equipo y respaldo.',
+      'Eso es lo que significa para nosotros ser parte de esta familia.',
       '¡Feliz Día de Amor y Amistad!',
     ],
   },
@@ -141,5 +183,5 @@ const MESSAGES = {
 };
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { MESSAGES };
+  module.exports = { MESSAGES, VALUES, VALUE_BY_ID };
 }
