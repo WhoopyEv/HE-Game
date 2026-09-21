@@ -752,7 +752,7 @@ function operaciones() {
       { art: 'nameplate', col: 13, row: RH_OFFICE.y1 },
       // Más corazones por las paredes -- decoración de amor y amistad.
       { art: 'heart', col: 5 + OPS_PAD, row: 0 },
-      { art: 'heart', col: 33 + OPS_PAD, row: 0 },
+      // Se quitó el corazón que quedaba encima del logo (se corrió a col. 47).
       { art: 'heart', col: 28, row: 0 },
       { art: 'heart', col: 33, row: 0 },
       { art: 'heart', col: 38, row: 0 },

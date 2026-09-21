@@ -45,12 +45,6 @@
   let time = 0;
   let collected = [];
   let missionGiven = false;
-  // DEV: bloqueos de misión/ascensor desactivados a propósito para probar
-  // más rápido durante el desarrollo (entrar a la terraza sin las 5 piezas,
-  // usar el ascensor sin haber hablado con Sergio). TODO: volver a `false`
-  // antes de publicar -- son las dos únicas líneas que usan esta bandera
-  // (buscar DEV_SKIP_GATES).
-  const DEV_SKIP_GATES = true;
   let finaleTriggered = false;
   let partyOn = false;
   let floorIdx = 0;
@@ -632,7 +626,7 @@
   function confirmElevator() {
     const target = elevSel;
     closeElevator();
-    if (!DEV_SKIP_GATES && target === TERRACE_IDX && !complete()) {
+    if (target === TERRACE_IDX && !complete()) {
       Audio8.confirm();
       openDialogue(MESSAGES.terraceLocked.name, MESSAGES.terraceLocked.lines);
       return;
@@ -764,7 +758,7 @@
       return;
     }
     if (!nearElevator(player, fs.def.elev)) return;
-    if (!DEV_SKIP_GATES && !missionGiven) {
+    if (!missionGiven) {
       Audio8.confirm();
       openDialogue(MESSAGES.elevatorLocked.name, MESSAGES.elevatorLocked.lines);
       return;
