@@ -121,7 +121,11 @@ const MESSAGES = {
     },
     marce: {
       name: 'MARCE',
-      lines: ['Hola, muy buenos días, ¿qué se te antoja?.'],
+      lines: ['Hoy no fío, mañana sí.'],
+    },
+    mafe: {
+      name: 'MAFE',
+      lines: ['Muy buenos días, ¿qué se te antoja?'],
     },
     robot: {
       name: 'ESPERANCITA',

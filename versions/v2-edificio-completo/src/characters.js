@@ -48,6 +48,7 @@ function createNpcs(def) {
       bounce: !!n.bounce,
       hipSway: !!n.hipSway,
       shine: !!n.shine,
+      counterFront: !!n.counterFront,
       scale: n.scale || null,
     };
     // Los globos se reparten salteados en el ciclo para que no salgan dos vecinos a la vez.

@@ -49,6 +49,10 @@ const PALETTE = {
   d: '#8fd4e8',
   D: '#5aa6c0',
   K: '#254b97',
+  // Chalecos/chaquetas fosforescentes (logística, Brandon).
+  N: '#7dfa3c',
+  U: '#3f9e1a',
+  I: '#ff8a1a',
 };
 
 const SPARTAN_DOWN_0 = [
@@ -437,7 +441,8 @@ const NAMED_STYLES = {
   // También es de logística -- piernas normales (sin falda) y ropa roja,
   // como el resto del equipo de logística. Pelo femenino, sin diadema.
   recep: { hair: 'c', hairDark: 'C', shirt: 'r', shirtDark: 'R', skin: 's', femHair: true },
-  josue: { hair: 'h', hairDark: 'H', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' },
+  // Chaleco verde fosforescente, como el resto de logística.
+  josue: { hair: 'h', hairDark: 'H', shirt: 'N', shirtDark: 'U', skin: 'i', pants: 'Z' },
   sebastian: { hair: 'b', hairDark: 'B', shirt: 'y', shirtDark: 'Y', skin: 's' },
   danielPardo: { hair: 'l', hairDark: 'L', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
   diegoG: { hair: 'l', hairDark: 'L', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z' },
@@ -451,7 +456,8 @@ const NAMED_STYLES = {
   mgrRh1: { hair: 'n', hairDark: 'H', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z', long: true },
   mgrRh2: { hair: 'h', hairDark: 'H', shirt: 'p', shirtDark: 'P', skin: 'i', pants: 'Z' },
   mgrRh3: { hair: 'j', hairDark: 'J', shirt: 'c', shirtDark: 'C', skin: 'u', pants: 'Z', long: true },
-  brandon: { hair: 'H', hairDark: 'k', shirt: 'o', shirtDark: 'O', skin: 'u', pants: 'Z' },
+  // Chaqueta naranja fosforescente.
+  brandon: { hair: 'H', hairDark: 'k', shirt: 'I', shirtDark: 'E', skin: 'u', pants: 'Z' },
   // Jonathan: piel clara y pelo negro (mismo peinado, antes era castaño).
   jonathan: { hair: 'l', hairDark: 'L', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z' },
   frehynner: { hair: 'n', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 'i', pants: 'Z' },
@@ -459,11 +465,13 @@ const NAMED_STYLES = {
   marco: { hair: 'l', hairDark: 'L', shirt: 'z', shirtDark: 'Z', skin: 's', pants: 'Z' },
   // El de logística de la puerta: piel morena. Estilo propio (no el genérico
   // logistica2) para no cambiarle la piel a nadie más que use ese mismo look.
-  porteria: { hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' },
+  porteria: { hair: 'H', hairDark: 'k', shirt: 'N', shirtDark: 'U', skin: 'i', pants: 'Z' },
   // Jorge A., supervisor: piel clara, pelo castaño y crespo.
   jorge: { hair: 'n', hairDark: 'H', shirt: 'v', shirtDark: 'V', skin: 's', pants: 'Z', curly: true },
   // De RH: piel blanca, pelo negro.
   rhRecluta: { hair: 'H', hairDark: 'k', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', femHair: true },
+  // Mafe, al lado de Marce: uniforme azul oscuro, pelo negro largo.
+  mafe: { hair: 'H', hairDark: 'k', shirt: 'z', shirtDark: 'Z', skin: 'i', hairLong: true },
 };
 
 // --- el equipo de desarrollo ---
@@ -633,10 +641,10 @@ SPRITES.porteroStand = [
   buildCapPerson({ cap: 'v', capDark: 'V', shirt: 'v', shirtDark: 'V', skin: 'u' }),
 ];
 SPRITES.logisticaStand = [
-  buildStandLong({ hair: 'n', hairDark: 'H', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
+  buildStandLong({ hair: 'n', hairDark: 'H', shirt: 'N', shirtDark: 'U', skin: 's', pants: 'Z' }),
 ];
 SPRITES.logistica2Stand = [
-  buildStand({ hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
+  buildStand({ hair: 'H', hairDark: 'k', shirt: 'N', shirtDark: 'U', skin: 's', pants: 'Z' }),
 ];
 
 // Alas doradas grandes a los lados, de la nuca a la cadera. Se le pueden

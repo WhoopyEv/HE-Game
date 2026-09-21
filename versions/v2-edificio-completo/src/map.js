@@ -260,6 +260,14 @@ function drawCounter(ctx, x, y, col, row, floor) {
   if (right) px(ctx, x + 15, y - 2, 1, 18, COLORS.counterDark);
 }
 
+// Solo el filo de abajo del mostrador, para volver a pintarlo encima de los
+// pies de quien esté parada justo en esa casilla (ver counterFront en
+// drawEntities) -- si no, el mostrador queda detrás del NPC y da la
+// sensación de que está parada encima del mueble en vez de detrás.
+function drawCounterFrontLip(ctx, x, y) {
+  px(ctx, x, y + 13, TILE, 3, COLORS.counterDark);
+}
+
 function drawServerRack(ctx, x, y) {
   px(ctx, x + 1, y - 8, 14, 24, COLORS.serverDark);
   px(ctx, x + 2, y - 7, 12, 22, COLORS.server);

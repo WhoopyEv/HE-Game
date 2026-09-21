@@ -863,8 +863,8 @@ function terraza() {
   // tienda de Marce, pegada a la esquina superior izquierda (un renglón
   // más abajo que antes -- mesa y lo que va encima, todo junto).
   fill(g, 2, 3, 6, 3, 'c');
-  put(g, 1, 2, 'F');
-  put(g, 6, 2, 'B');
+  put(g, 1, 1, 'F');
+  put(g, 6, 1, 'B');
 
   // mesas a la derecha, lejos de donde se arma la celebración
   // Cuadrícula pareja (columnas 32 y 37, filas 2/7/12): dos columnas y tres
@@ -905,6 +905,7 @@ function terraza() {
     { id: 'yesica', kind: 'boss', style: 'yesica', col: 20, row: 7, role: 'none', stand: true },
     // Marce se corrió al puesto donde antes estaba Sergio.
     { id: 'marce', kind: 'staff', style: 'marce', col: 5, row: 4, role: 'optional', stand: true },
+    { id: 'mafe', kind: 'staff', style: 'mafe', col: 3, row: 2, role: 'optional', stand: true, counterFront: true },
     // Gente ya sentada en las mesas, para que la terraza no se vea vacía
     // mientras no se ha hablado con Sergio.
     { id: 'guest1', kind: 'guest', style: 'agent2', col: 1, row: 7, role: 'none' },
@@ -1004,9 +1005,9 @@ function terraza() {
     decorTop: hearts.concat([
       { art: 'trashCans', col: 2, row: 12 },
       { art: 'logo', col: 23, row: 1 },
-      { art: 'menu', col: 3, row: 1 },
-      { art: 'coffee', col: 2, row: 2 },
-      { art: 'pastry', col: 5, row: 2 },
+      { art: 'menu', col: 3, row: 0 },
+      { art: 'coffee', col: 2, row: 1 },
+      { art: 'pastry', col: 5, row: 1 },
       { art: 'cups', col: 3, row: 3 },
       { art: 'mug', col: 5, row: 3 },
     ]),

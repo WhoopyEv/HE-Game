@@ -844,6 +844,14 @@
           },
         });
       }
+      if (n.counterFront) {
+        drawables.push({
+          y: n.y + 16,
+          draw: function () {
+            drawCounterFrontLip(ctx, n.x, n.y);
+          },
+        });
+      }
     });
 
     drawables.push({
