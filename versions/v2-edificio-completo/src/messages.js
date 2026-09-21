@@ -171,10 +171,10 @@ const MESSAGES = {
       lines: ['¿Quién pa\' tomarnos algo, después del work?'],
     },
     ops16: {
-      lines: ['¿Pola, después del work, o mareos?'],
+      lines: ['Oxxo, después del work, o mareos?'],
     },
     ops17: {
-      lines: ['¿Después del work, Pola o miedo?'],
+      lines: ['¿Después del work, Oxxo o miedo?'],
     },
     ops18: {
       lines: ['¡Mis pielnas, mis pielnas!'],
