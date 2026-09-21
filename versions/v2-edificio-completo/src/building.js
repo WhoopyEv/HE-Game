@@ -412,7 +412,6 @@ const OPS_EXTRAS = [
   ['ops15', 24, 6],
   ['ops16', 39, 21],
   ['ops17', 48, 6],
-  ['ops18', 33, 21],
 ];
 
 function opsShell() {

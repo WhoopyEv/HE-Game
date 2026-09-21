@@ -176,9 +176,6 @@ const MESSAGES = {
     ops17: {
       lines: ['¿Después del work, Oxxo o miedo?'],
     },
-    ops18: {
-      lines: ['¡Mis pielnas, mis pielnas!'],
-    },
     jonathan: {
       name: 'JHONNATAN',
       lines: ['Esto está muy family friendly.'],
