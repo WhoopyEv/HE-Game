@@ -12,9 +12,15 @@
     confianza: { x: 4, y: 13 },
     equipo: { x: 16, y: 18 },
   };
-  const LOGO_SCALE = 3;
+  const LOGO_SCALE = 4;
   const LOGO_X = Math.round((VIEW_W - 32 * LOGO_SCALE) / 2);
   const LOGO_Y = 18;
+  // El logo que se arma al final siempre se ve completo -- si a alguien le
+  // faltó una pieza (por ejemplo probando el juego con los bloqueos
+  // desactivados), igual se revela entero, no a medias.
+  const ALL_VALUE_IDS = VALUES.map(function (v) {
+    return v.id;
+  });
 
   const STATE = {
     TITLE: 'title',
@@ -43,6 +49,7 @@
   let partyOn = false;
   let floorIdx = 0;
   let elevSel = 0;
+  let breakGuyDone = false;
   let labelTimer = 0;
   let flashTimer = 0;
   let playerHintTimer = 0;
@@ -157,7 +164,11 @@
     }
     if (bubbleFor !== npc.id) {
       bubbleFor = npc.id;
-      el['bubble-name'].textContent = msg.name;
+      // El nombre es opcional -- si no se pone (para no inventarle un
+      // "OPERACIONES" a cualquiera), el globo sale sin esa línea.
+      const name = msg.name || '';
+      el['bubble-name'].textContent = name;
+      el['bubble-name'].style.display = name ? '' : 'none';
       el['bubble-text'].textContent = msg.lines.join(' ');
       bubbleW = el.bubble.offsetWidth;
       bubbleH = el.bubble.offsetHeight;
@@ -258,8 +269,11 @@
   function goToFloor(i) {
     floorIdx = i;
     const fs = current();
-    player.x = ELEV_SPAWN.col * TILE;
-    player.y = ELEV_SPAWN.row * TILE;
+    // Casi todos los pisos comparten el mismo ascensor (ELEV_SPAWN), pero
+    // operaciones tiene el suyo reposicionado (ver fs.def.elev).
+    const elev = fs.def.elev || ELEV;
+    player.x = elev.col * TILE;
+    player.y = (elev.row + 1) * TILE;
     player.dir = 'down';
     player.moving = false;
     backgroundFor(fs);
@@ -318,6 +332,68 @@
     });
   }
 
+  // Camino hacia el ascensor: baja 3, luego izquierda 4 (ahí ya queda
+  // alineado con la columna del ascensor) y de ahí sube derecho hasta él.
+  const BREAK_GUY_PATH = [
+    { col: 20, row: 6 },
+    { col: 16, row: 6 },
+    { col: ELEV.col + 1, row: ELEV.row },
+  ];
+
+  // Se ve desde antes de entrar a bienestar (no arranca escondido). Con leer
+  // su globo un segundo alcanza para que quede "leído" -- pero no arranca a
+  // caminar mientras lo seguís leyendo, sino justo cuando te alejás (el
+  // globo deja de ser el suyo). Con el mensaje pegado todo el camino, y ahí
+  // sí desaparece al llegar. Una sola vez por partida.
+  function updateBreakGuy(fs, dt) {
+    if (breakGuyDone || floorIdx !== 0) return;
+    const npc = fs.npcs.filter(function (n) {
+      return n.id === 'breakGuy';
+    })[0];
+    if (!npc) return;
+
+    if (npc.phase !== 'walking') {
+      const bubbleNpc = nearestBubbleNpc(player, fs.npcs);
+      const readingHim = bubbleNpc && bubbleNpc.id === 'breakGuy';
+      if (readingHim) {
+        npc.readTimer = (npc.readTimer || 0) + dt;
+        if (npc.readTimer >= 1) npc.hasRead = true;
+      } else if (npc.hasRead) {
+        npc.phase = 'walking';
+        npc.forceBubble = true;
+        npc.wp = 0;
+        Audio8.confirm();
+      }
+      return;
+    }
+
+    const target = BREAK_GUY_PATH[npc.wp];
+    const tx = target.col * TILE;
+    const ty = target.row * TILE;
+    const dx = tx - npc.x;
+    const dy = ty - npc.y;
+    const dist = Math.hypot(dx, dy);
+    const step = 46 * dt;
+    if (dist <= step) {
+      npc.x = tx;
+      npc.y = ty;
+      if (npc.wp >= BREAK_GUY_PATH.length - 1) {
+        npc.hidden = true;
+        npc.forceBubble = false;
+        breakGuyDone = true;
+        return;
+      }
+      npc.wp += 1;
+      return;
+    }
+    npc.x += (dx / dist) * step;
+    npc.y += (dy / dist) * step;
+    npc.flip = dx < 0;
+    // Piernas alternando (mismo truco que movePatrolNpc con Zorro/Danilo).
+    npc.animTime = (npc.animTime || 0) + dt;
+    npc.frame = Math.floor(npc.animTime * 6) % 2;
+  }
+
   // Después de hablar con Marce: todos van saliendo del ascensor y se reparten
   // por la terraza. Cuando el último llega, viene el mensaje del equipo.
   function startParade() {
@@ -373,26 +449,28 @@
     px(ctx, x + 3, py + 5, 2, 2, '#f4f0e6');
   }
 
+  // Mismo logo que ya está en recepción/operaciones/terraza (src/map.js,
+  // drawLogo) -- antes esta era una segunda versión hecha a mano, con otras
+  // proporciones. Se arma pieza por pieza para la animación del final.
   function drawLogoParts(g, x, y, have) {
     const has = function (id) {
       return have.indexOf(id) !== -1;
     };
-    if (has('respaldo')) {
-      px(g, x, y, 32, 22, '#0d0a12');
-      px(g, x, y, 32, 1, '#3a3244');
-      px(g, x, y + 21, 32, 1, '#3a3244');
-    }
-    if (has('oportunidad')) px(g, x + 22, y + 2, 8, 3, '#8f2fd4');
+    const w = '#f4f0e6';
+    if (has('respaldo')) px(g, x, y, 32, 22, '#0d0a12');
     if (has('aprendizaje')) {
-      px(g, x + 4, y + 6, 3, 9, '#f4f0e6');
-      px(g, x + 11, y + 3, 3, 12, '#f4f0e6');
-      px(g, x + 7, y + 9, 4, 3, '#f4f0e6');
-      px(g, x + 17, y + 6, 3, 9, '#f4f0e6');
-      px(g, x + 20, y + 6, 7, 3, '#f4f0e6');
-      px(g, x + 20, y + 12, 7, 3, '#f4f0e6');
+      // H
+      px(g, x + 2, y + 3, 4, 8, w);
+      px(g, x + 2, y + 8, 13, 3, w);
+      px(g, x + 11, y + 3, 4, 14, w);
+      // E
+      px(g, x + 18, y + 8, 12, 3, w);
+      px(g, x + 18, y + 8, 4, 9, w);
+      px(g, x + 18, y + 14, 12, 3, w);
     }
-    if (has('confianza')) px(g, x + 2, y + 11, 4, 4, '#e0453e');
-    if (has('equipo')) px(g, x + 3, y + 17, 26, 3, '#f2c50a');
+    if (has('confianza')) px(g, x + 2, y + 12, 4, 5, '#e0453e');
+    if (has('oportunidad')) px(g, x + 18, y + 3, 12, 3, '#8f2fd4');
+    if (has('equipo')) px(g, x + 2, y + 18, 28, 3, '#f2c50a');
   }
 
   function buildLogoCanvas(have) {
@@ -464,7 +542,7 @@
     if (f.phase === 'flip') {
       if (!f.flipped && f.t >= 0.35) {
         f.flipped = true;
-        logoCanvas = buildLogoCanvas(f.have);
+        logoCanvas = buildLogoCanvas(ALL_VALUE_IDS);
       }
       if (f.t >= 0.75) {
         f.phase = 'devs';
@@ -509,7 +587,7 @@
     ctx.scale(sx, 1);
     ctx.translate(-cx, 0);
     if (f.flipped || f.phase !== 'flip') {
-      if (!logoCanvas) logoCanvas = buildLogoCanvas(f.have);
+      if (!logoCanvas) logoCanvas = buildLogoCanvas(ALL_VALUE_IDS);
       ctx.drawImage(logoCanvas, LOGO_X, LOGO_Y, 32 * LOGO_SCALE, 22 * LOGO_SCALE);
     } else {
       f.pieces.forEach(function (p) {
@@ -679,7 +757,7 @@
       talkTo(npc, fs);
       return;
     }
-    if (!nearElevator(player)) return;
+    if (!nearElevator(player, fs.def.elev)) return;
     if (!missionGiven) {
       Audio8.confirm();
       openDialogue(MESSAGES.elevatorLocked.name, MESSAGES.elevatorLocked.lines);
@@ -688,24 +766,13 @@
     openElevator();
   }
 
-  function drawPaddle(x, y, flip) {
-    ctx.fillStyle = '#6b4a2a';
-    ctx.fillRect(x + (flip ? 3 : 1), y + 4, 2, 2);
-    ctx.fillStyle = '#c9454a';
-    ctx.fillRect(x + (flip ? 0 : 2), y, 3, 5);
-    ctx.fillStyle = '#e06a6a';
-    ctx.fillRect(x + (flip ? 1 : 3), y + 1, 1, 2);
-  }
-
+  // Las paletas ya no se dibujan acá -- ahora son parte del propio personaje
+  // (drawHeldPaddle, en characters.js), pegadas a él en vez de vivir aparte
+  // con su propia posición que había que mantener sincronizada a mano.
   function drawPingScene(fs) {
     const ping = fs.def.ping;
     if (!ping) return;
     const centerY = (ping.row + 1) * TILE;
-    const ax = ping.aCol * TILE;
-    const bx = ping.bCol * TILE;
-    const beat = Math.floor(time * 4) % 2;
-    drawPaddle(ax + 14, centerY - 5 + beat, false);
-    drawPaddle(bx - 2, centerY - 5 + (1 - beat), true);
     const rally = 0.85;
     const cycle = (time % (rally * 2)) / rally;
     const p = cycle < 1 ? cycle : 2 - cycle;
@@ -732,6 +799,7 @@
         y: n.y,
         draw: function () {
           if (n.kind === 'robot') drawRobotVac(ctx, n.x, n.y);
+          else if (n.kind === 'printer') drawPrinter(ctx, n.x, n.y);
           else drawNpc(ctx, n, time);
         },
       });
@@ -755,7 +823,8 @@
         drawables.push({
           y: n.y + 1,
           draw: function () {
-            drawDeskItem(ctx, n.x + 12, n.y - 2, n.side);
+            const sx = n.flip ? n.x - 12 : n.x + 12;
+            drawDeskItem(ctx, sx, n.y - 2, n.side);
           },
         });
       }
@@ -780,7 +849,7 @@
     drawables.push({
       y: player.y,
       draw: function () {
-        drawPlayer(ctx, player);
+        drawPlayer(ctx, player, time);
       },
     });
 
@@ -796,17 +865,33 @@
     if (state !== STATE.PLAYING) return;
     const near = nearestInteractive(player, fs.npcs);
     fs.npcs.forEach(function (n) {
+      if (n.hidden) return;
       if (n.role === 'none') return;
       if (n.role === 'required' && n.talked) return;
       if (!visible(n.x, n.y, cam)) return;
       if (bubbleNpc && n.id === bubbleNpc.id) return;
+      // Sergio ya no necesita el "!" en los pisos de abajo una vez dada la
+      // misión -- solo vuelve a aparecer en la terraza, para el cierre.
+      if (n.role === 'mission' && missionGiven && floorIdx !== TERRACE_IDX) return;
       if (n === near) drawPrompt(ctx, n.x, n.y, time);
       else if (n.piece) drawPieceMark(ctx, n.x, n.y, time, pieceColor(n.piece));
-      else if (n.role === 'mission') drawQuestMark(ctx, n.x, n.y, time);
+      else if (n.role === 'mission') drawQuestMark(ctx, n.x, n.y, time, '#8f2fd4');
       else drawTalkDots(ctx, n.x, n.y, time);
     });
-    if (near || !nearElevator(player)) return;
-    drawPrompt(ctx, ELEV.col * TILE + 8, (ELEV.row + 1) * TILE, time);
+    const elev = fs.def.elev || ELEV;
+    const elevX = elev.col * TILE + 8;
+    const elevY = (elev.row + 1) * TILE;
+    // El ascensor se marca solo mientras esté a la vista y el jugador no esté
+    // ya parado justo ahí (donde manda el prompt de "E"). En operaciones no
+    // tiene sentido mandarte de vuelta al ascensor hasta que ya tengas las 5
+    // piezas -- si no, quedaba prendido desde que subías, sin haber
+    // recogido nada.
+    const wantsElevator = floorIdx === 0 || complete();
+    if (missionGiven && wantsElevator && floorIdx !== TERRACE_IDX && visible(elevX, elevY, cam) && !nearElevator(player, fs.def.elev)) {
+      drawQuestMark(ctx, elevX, elevY, time, '#8f2fd4');
+    }
+    if (near || !nearElevator(player, fs.def.elev)) return;
+    drawPrompt(ctx, elevX, elevY, time);
   }
 
   function pieceColor(id) {
@@ -856,18 +941,27 @@
   // Flecha en el borde que apunta a quien falta por visitar (o a Marce al final).
   function guideTargets(fs) {
     const out = [];
+    // Morado para todas las flechas de guía, sin importar a qué apunten --
+    // antes cada una tenía su propio color (el de la pieza, dorado...) pero
+    // algunos de esos colores casi no se veían contra ciertos fondos.
     fs.npcs.forEach(function (n) {
       if (n.piece && !n.talked) {
-        out.push({ x: n.x + 8, y: n.y + 8, color: pieceColor(n.piece) });
+        out.push({ x: n.x + 8, y: n.y + 8, color: '#8f2fd4' });
         return;
       }
       if (n.role === 'mission' && (!missionGiven || floorIdx === TERRACE_IDX)) {
-        out.push({ x: n.x + 8, y: n.y + 8, color: '#e8c25a' });
+        out.push({ x: n.x + 8, y: n.y + 8, color: '#8f2fd4' });
       }
     });
-    // Ya no falta nadie por visitar: apunta al ascensor para subir a la terraza.
-    if (complete() && floorIdx !== TERRACE_IDX) {
-      out.push({ x: (ELEV.col + 1) * TILE, y: ELEV.row * TILE + 8, color: '#4fa06a' });
+    // Mismo criterio que la marca sobre el ascensor en drawIndicators: en
+    // operaciones no aparece hasta tener las 5 piezas.
+    if (missionGiven && (floorIdx === 0 || complete()) && floorIdx !== TERRACE_IDX) {
+      const elev = fs.def.elev || ELEV;
+      out.push({
+        x: (elev.col + 1) * TILE,
+        y: elev.row * TILE + 8,
+        color: '#8f2fd4',
+      });
     }
     return out;
   }
@@ -892,7 +986,7 @@
   // Se apaga sola apenas se mueve, o después de unos segundos.
   function drawPlayerHint() {
     const bounce = Math.round(Math.sin(time * 5) * 2);
-    arrowTriangle(ctx, player.x + 8, player.y - 8 + bounce, 'down', 5, '#e8c25a');
+    arrowTriangle(ctx, player.x + 8, player.y - 8 + bounce, 'down', 5, '#8f2fd4');
   }
 
   function render() {
@@ -1016,6 +1110,7 @@
     }
     moveRobot(current());
     movePatrols(current(), dt);
+    updateBreakGuy(current(), dt);
     if (partyOn) updateConfetti(dt);
     render();
   }

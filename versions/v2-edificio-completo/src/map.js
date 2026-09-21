@@ -89,7 +89,7 @@ const COLORS = {
   balloonShine: '#f7b0ac',
 };
 
-const SOLID = '#|LDdKcSRNAEYMmZVWFBPX ';
+const SOLID = '#|LDdKcSRNAEYMmZVWFBPXC ';
 
 function px(ctx, x, y, w, h, color) {
   ctx.fillStyle = color;
@@ -271,6 +271,17 @@ function drawServerRack(ctx, x, y) {
   px(ctx, x + 1, y + 14, 14, 2, COLORS.serverDark);
 }
 
+// Switch de red: una cajita de pared con lucecitas, para variar frente al
+// rack alto -- mismos colores que el servidor, para que se lean como del
+// mismo mundo.
+function drawNetSwitch(ctx, x, y) {
+  px(ctx, x + 1, y + 5, 14, 7, COLORS.serverDark);
+  px(ctx, x + 2, y + 6, 12, 5, COLORS.server);
+  for (let i = 0; i < 4; i++) {
+    px(ctx, x + 3 + i * 3, y + 8, 1, 1, i % 2 ? COLORS.serverLed : COLORS.serverLed2);
+  }
+}
+
 function drawWhiteboard(ctx, x, y) {
   px(ctx, x, y + 2, TILE, 12, COLORS.boardFrame);
   px(ctx, x + 1, y + 3, 14, 9, COLORS.board);
@@ -392,6 +403,41 @@ function drawFridge(ctx, x, y) {
   px(ctx, x + 11, y + 6, 2, 4, COLORS.metalEdge);
 }
 
+// Archivador metálico: típico de RH, con 3 cajones y sus manijas.
+function drawFileCabinet(ctx, x, y) {
+  px(ctx, x + 2, y, 12, 16, COLORS.metalDark);
+  px(ctx, x + 3, y + 1, 10, 4, COLORS.metal);
+  px(ctx, x + 3, y + 6, 10, 4, COLORS.metal);
+  px(ctx, x + 3, y + 11, 10, 4, COLORS.metal);
+  px(ctx, x + 7, y + 2, 4, 1, COLORS.metalEdge);
+  px(ctx, x + 7, y + 7, 4, 1, COLORS.metalEdge);
+  px(ctx, x + 7, y + 12, 4, 1, COLORS.metalEdge);
+}
+
+// Una caneca sola: tapa, cuerpo y un brillo lateral para que no se vea plana.
+function drawTrashCan(ctx, x, y, body, lid, shade) {
+  px(ctx, x + 1, y, 14, 3, lid);
+  px(ctx, x + 2, y + 3, 12, 1, shade);
+  px(ctx, x + 1, y + 4, 14, 10, body);
+  px(ctx, x + 3, y + 5, 2, 8, shade);
+  px(ctx, x + 1, y + 13, 14, 1, shade);
+}
+
+// Tres canecas juntas contra la pared: verde, negra y blanca.
+function drawTrashCans(ctx, x, y) {
+  drawTrashCan(ctx, x, y, '#3f8a52', '#2f6b46', '#2d6b3d');
+  drawTrashCan(ctx, x + TILE, y, '#2e2e34', '#1a1a1e', '#1c1a24');
+  drawTrashCan(ctx, x + TILE * 2, y, '#e6e2d9', '#c9c4b6', '#b2aca1');
+}
+
+// Las mismas tres, apiladas en vertical -- para paredes que corren de arriba
+// a abajo en vez de lado a lado.
+function drawTrashCansVert(ctx, x, y) {
+  drawTrashCan(ctx, x, y, '#3f8a52', '#2f6b46', '#2d6b3d');
+  drawTrashCan(ctx, x, y + TILE, '#2e2e34', '#1a1a1e', '#1c1a24');
+  drawTrashCan(ctx, x, y + TILE * 2, '#e6e2d9', '#c9c4b6', '#b2aca1');
+}
+
 function drawShelf(ctx, x, y) {
   px(ctx, x, y, TILE, TILE, COLORS.shelfDark);
   px(ctx, x + 1, y + 1, 14, 6, COLORS.shelf);
@@ -446,6 +492,7 @@ const OBJECT_DRAW = {
   c: drawCounter,
   S: drawServerRack,
   R: drawWhiteboard,
+  C: drawFileCabinet,
   N: drawToilet,
   A: drawSink,
   E: drawHedge,
@@ -575,9 +622,22 @@ function drawCups(ctx, x, y) {
   px(ctx, x + 12, y + 5, 1, 2, '#d8d2c4');
 }
 
+// Centrada en el ancho del tile (no pegada al borde izquierdo, como antes) y
+// alta como las dos filas de la mesa, para que sí llegue hasta abajo.
 function drawPingNet(ctx, x, y) {
-  px(ctx, x - 1, y - 1, 2, TILE + 2, COLORS.pingNet);
-  px(ctx, x - 2, y - 2, 4, 2, COLORS.pingNetPost);
+  px(ctx, x + 7, y - 1, 2, TILE * 2 + 2, COLORS.pingNet);
+  px(ctx, x + 6, y - 2, 4, 2, COLORS.pingNetPost);
+}
+
+function drawPrinter(ctx, x, y) {
+  // Antes arrancaba 4px más arriba (y - 4) y quedaba flotando sobre la
+  // baldosa; ahora el cuerpo llena todo el alto del tile, a ras de piso.
+  px(ctx, x + 1, y, 14, 16, COLORS.metalDark);
+  px(ctx, x + 2, y + 1, 12, 8, COLORS.metal);
+  px(ctx, x + 3, y + 2, 4, 2, '#241a2b');
+  px(ctx, x + 8, y + 2, 3, 2, '#7ad87a');
+  px(ctx, x + 2, y + 10, 12, 5, COLORS.metalEdge);
+  px(ctx, x + 4, y + 12, 8, 2, '#f4f0e6');
 }
 
 function drawRobotVac(ctx, x, y) {
@@ -588,6 +648,98 @@ function drawRobotVac(ctx, x, y) {
   px(ctx, x + 11, y + 6, 2, 2, '#7ad87a');
   px(ctx, x + 3, y + 13, 3, 1, '#6f757f');
   px(ctx, x + 10, y + 13, 3, 1, '#6f757f');
+}
+
+// Letrero pequeño de puerta (RH, TI...): plaqueta metálica con 1-2 letras a
+// mano, mismo criterio que el resto de los letreros a pixel del juego.
+const DOOR_SIGN_FONT = {
+  R: ['###.', '#..#', '###.', '#.#.', '#..#'],
+  H: ['#..#', '#..#', '####', '#..#', '#..#'],
+  T: ['####', '.##.', '.##.', '.##.', '.##.'],
+  I: ['.##.', '..#.', '..#.', '..#.', '.##.'],
+  C: ['.###', '#...', '#...', '#...', '.###'],
+  O: ['.##.', '#..#', '#..#', '#..#', '.##.'],
+  K: ['#..#', '#.#.', '##..', '#.#.', '#..#'],
+  E: ['####', '#...', '###.', '#...', '####'],
+  S: ['.###', '#...', '.##.', '...#', '###.'],
+};
+
+// Mismo alfabeto de los letreros de puerta, ahora factorizado -- lo usan
+// tanto makeDoorSign como el cartel de las galletas.
+function drawPixelWord(ctx, text, x, y, color) {
+  let cx = x;
+  for (let i = 0; i < text.length; i++) {
+    const glyph = DOOR_SIGN_FONT[text[i]];
+    if (glyph) {
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 4; col++) {
+          if (glyph[row][col] === '#') px(ctx, cx + col, y + row, 1, 1, color);
+        }
+      }
+    }
+    cx += 5;
+  }
+}
+
+// drawDecorList llama cada función como (ctx, x, y, col, row, floor) -- no
+// pasa el objeto de decoración completo, así que el texto no puede viajar
+// por un parámetro "d"; en cambio, cada letrero es una función ya hecha a
+// la medida (fábrica con el texto metido adentro por closure).
+function makeDoorSign(text) {
+  const textW = text.length * 5 - 1;
+  const boxW = textW + 6;
+  const boxH = 11;
+  return function (ctx, x, y) {
+    const bx = x + Math.round((TILE - boxW) / 2);
+    const by = y + 2;
+    px(ctx, bx, by, boxW, boxH, '#e8c25a');
+    px(ctx, bx + 1, by + 1, boxW - 2, boxH - 2, '#241a2b');
+    drawPixelWord(ctx, text, bx + 3, by + 3, '#e8c25a');
+  };
+}
+
+// Pila de cajas de cartón con galletas asomando y un cartelito de madera
+// encima que dice COOKIES -- antes era una sola canasta de mimbre, ahora
+// son varias cajas apiladas.
+function drawCookieBox(ctx, x, y, w, h, dark) {
+  const box = dark ? '#2a8a7d' : '#3fb8a8';
+  const edge = dark ? '#5fcbc0' : '#8ef0e4';
+  px(ctx, x, y, w, h, box);
+  px(ctx, x, y, w, 1, edge);
+  px(ctx, x, y + h - 1, w, 1, '#123f3a');
+  px(ctx, x + Math.floor(w / 2), y, 1, h, '#123f3a');
+}
+
+function drawCookieBasket(ctx, x, y) {
+  // caja extra, asomando por detrás a la izquierda
+  drawCookieBox(ctx, x - 6, y + 7, 6, 6, true);
+  // caja de atrás, más chica y un poco más arriba
+  drawCookieBox(ctx, x, y + 3, 8, 10, true);
+  // caja de al lado, contra el piso
+  drawCookieBox(ctx, x + 7, y + 8, 9, 5);
+  // otra más, extendiendo la pila hacia la derecha
+  drawCookieBox(ctx, x + 15, y + 6, 7, 7, true);
+  // caja principal, al frente, destapada
+  drawCookieBox(ctx, x - 1, y + 6, 12, 9);
+  // una más, encimada sobre la principal
+  drawCookieBox(ctx, x + 2, y, 7, 7);
+  px(ctx, x + 1, y + 5, 2, 2, '#c9854b');
+  px(ctx, x + 1, y + 5, 2, 1, '#e0b378');
+  px(ctx, x + 4, y + 4, 2, 2, '#c08850');
+  px(ctx, x + 7, y + 5, 2, 2, '#c9854b');
+  px(ctx, x + 7, y + 5, 2, 1, '#e0b378');
+}
+
+function drawCookiesSign(ctx, x, y) {
+  drawCookieBasket(ctx, x, y);
+  const text = 'COOKIES';
+  const boxW = text.length * 5 - 1 + 6;
+  const boxH = 11;
+  const bx = x + 8 - Math.round(boxW / 2);
+  const by = y - 13;
+  px(ctx, bx, by, boxW, boxH, '#7a4f2c');
+  px(ctx, bx + 1, by + 1, boxW - 2, boxH - 2, '#f4e3c1');
+  drawPixelWord(ctx, text, bx + 3, by + 3, '#7a4f2c');
 }
 
 function drawNameplate(ctx, x, y) {
@@ -834,6 +986,12 @@ function drawMonitor(ctx, x, y, kind) {
   ctx.drawImage(monitorCache[kind], Math.round(x), Math.round(y) - 8);
 }
 
+// Monitor suelto sobre un mueble (sin depender de que haya alguien sentado
+// ahí) -- mismo dibujo que el de los escritorios, reusado como decoración.
+function drawDeskMonitor(ctx, x, y) {
+  drawMonitorArt(ctx, x, y, 'flat');
+}
+
 const DECOR_DRAW = {
   chairDown: drawChairDown,
   chairUp: drawChairUp,
@@ -844,12 +1002,20 @@ const DECOR_DRAW = {
   mop: drawMop,
   pingNet: drawPingNet,
   nameplate: drawNameplate,
+  doorSignRH: makeDoorSign('RH'),
+  doorSignTI: makeDoorSign('TI'),
+  cookies: drawCookiesSign,
+  deskMonitor: drawDeskMonitor,
+  trashCans: drawTrashCans,
+  trashCansV: drawTrashCansVert,
+  netSwitch: drawNetSwitch,
   banner: drawBanner,
   logo: drawLogo,
   mural: drawSpartanMural,
   heart: drawHeartDecor,
   coffee: drawCoffeeMachine,
   robot: drawRobotVac,
+  printer: drawPrinter,
   pastry: drawPastryCase,
   menu: drawMenuBoard,
   cups: drawCups,

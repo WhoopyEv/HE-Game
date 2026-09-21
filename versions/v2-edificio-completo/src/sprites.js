@@ -48,6 +48,7 @@ const PALETTE = {
   L: '#0f0e14',
   d: '#8fd4e8',
   D: '#5aa6c0',
+  K: '#254b97',
 };
 
 const SPARTAN_DOWN_0 = [
@@ -134,9 +135,9 @@ const SPARTAN_SIDE_0 = [
   '...kbbbbbbbbk.n.',
   '...kbbbbbkksk.n.',
   '...kbbbbbkksk.n.',
-  '...kbbbbbbbsk.n.',
-  '....kbbbbbbk..n.',
-  '...kkkTTTTkk..n.',
+  '...kbbbbbbkkk.n.',
+  '....kbbbbbkk..n.',
+  '...kkkTTTTTk..n.',
   '..kOkTTTTTTTk.n.',
   '.kOokTTTTTTTksn.',
   '.kOokkTTTTTk..n.',
@@ -153,9 +154,9 @@ const SPARTAN_SIDE_1 = [
   '...kbbbbbbbbk.n.',
   '...kbbbbbkksk.n.',
   '...kbbbbbkksk.n.',
-  '...kbbbbbbbsk.n.',
-  '....kbbbbbbk..n.',
-  '...kkkTTTTkk..n.',
+  '...kbbbbbbkkk.n.',
+  '....kbbbbbkk..n.',
+  '...kkkTTTTTk..n.',
   '..kOkTTTTTTTk.n.',
   '.kOokTTTTTTTksn.',
   '.kOokkTTTTTk..n.',
@@ -176,7 +177,7 @@ function buildSit(st) {
   const shD = st.shirtDark;
   return [
     '................',
-    '.....kkkkkk.....',
+    '......kkkk......',
     '....k' + hD + rep(hair, 4) + hD + 'k....',
     '...k' + hD + rep(hair, 6) + hD + 'k...',
     '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
@@ -203,7 +204,7 @@ function buildStand(st) {
   const shD = st.shirtDark;
   return [
     '................',
-    '.....kkkkkk.....',
+    '......kkkk......',
     '....k' + hD + rep(hair, 4) + hD + 'k....',
     '...k' + hD + rep(hair, 6) + hD + 'k...',
     '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
@@ -230,12 +231,14 @@ function buildSitLong(st) {
   const shD = st.shirtDark;
   return [
     '................',
-    '..' + rep(hD, 12) + '..',
-    '..' + hD + rep(hair, 10) + hD + '..',
-    '..' + hD + rep(hair, 10) + hD + '..',
-    '..' + hair + 'k' + rep(s, 2) + rep(hair, 4) + rep(s, 2) + 'k' + hair + '..',
+    '...k' + rep(hD, 8) + 'k...',
+    '..k' + hD + rep(hair, 8) + hD + 'k..',
+    '..k' + hD + rep(hair, 8) + hD + 'k..',
+    // sin flequillo -- antes tenía 4px de pelo en la mitad de la frente y se
+    // veía como capul.
     '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
-    '..' + hair + 'k' + s + 'k' + rep(s, 4) + 'k' + s + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + hair + '..',
     '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
     '...' + hair + 'k' + rep(s, 6) + 'k' + hair + '...',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
@@ -257,11 +260,13 @@ function buildStandLong(st) {
   const shD = st.shirtDark;
   return [
     '................',
-    '..' + rep(hD, 12) + '..',
-    '..' + hD + rep(hair, 10) + hD + '..',
-    '..' + hair + 'k' + rep(s, 2) + rep(hair, 4) + rep(s, 2) + 'k' + hair + '..',
+    '...k' + rep(hD, 8) + 'k...',
+    '..k' + hD + rep(hair, 8) + hD + 'k..',
+    // sin flequillo -- antes tenía 4px de pelo en la mitad de la frente y se
+    // veía como capul.
+    '..' + hair + 'kk' + rep(s, 6) + 'kk' + hair + '..',
     '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
-    '..' + hair + 'k' + s + 'k' + rep(s, 4) + 'k' + s + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + hair + '..',
     '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
     '...' + hair + 'k' + rep(s, 6) + 'k' + hair + '...',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
@@ -276,6 +281,15 @@ function buildStandLong(st) {
   ];
 }
 
+// Pelo largo (mismo peinado que buildStandLong) pero con pantalón y piernas
+// normales en vez de falda -- para cuando se quiere el cabello femenino sin
+// cambiar la silueta del cuerpo.
+function buildStandLongPants(st) {
+  const long = buildStandLong(st);
+  const pants = buildStand(st);
+  return long.slice(0, 12).concat(pants.slice(12, 16));
+}
+
 // Igual que la anterior pero con el torso más largo y la cabeza más arriba:
 // se ve más alta sin agrandarle la cabeza.
 function buildStandTall(st) {
@@ -286,11 +300,13 @@ function buildStandTall(st) {
   const sh = st.shirt;
   const shD = st.shirtDark;
   return [
-    '..' + rep(hD, 12) + '..',
-    '..' + hD + rep(hair, 10) + hD + '..',
-    '..' + hair + 'k' + rep(s, 2) + rep(hair, 4) + rep(s, 2) + 'k' + hair + '..',
+    '...k' + rep(hD, 8) + 'k...',
+    '..k' + hD + rep(hair, 8) + hD + 'k..',
+    // sin flequillo -- antes tenía 4px de pelo en la mitad de la frente y se
+    // veía como capul.
     '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
-    '..' + hair + 'k' + s + 'k' + rep(s, 4) + 'k' + s + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
+    '..' + hair + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + hair + '..',
     '..' + hair + 'k' + rep(s, 8) + 'k' + hair + '..',
     '...' + hair + 'k' + rep(s, 6) + 'k' + hair + '...',
     '.' + hair + 'k' + rep(sh, 10) + 'k' + hair + '.',
@@ -305,23 +321,54 @@ function buildStandTall(st) {
   ];
 }
 
+// Calvo: mismo contorno de cabeza que buildSit/buildStand, pero relleno de
+// piel en vez de pelo -- para que unos pocos agentes no tengan pelo.
+function baldenHead(rows, s) {
+  rows[2] = '....k' + rep(s, 6) + 'k....';
+  rows[3] = '...k' + rep(s, 8) + 'k...';
+  rows[4] = '...k' + rep(s, 8) + 'k...';
+  return rows;
+}
+
 function personSit(st) {
-  return st.long ? buildSitLong(st) : buildSit(st);
+  const rows = st.long ? buildSitLong(st) : buildSit(st);
+  return st.bald ? baldenHead(rows, st.skin || 's') : rows;
 }
 
 function personStand(st) {
   if (st.tallBody) return buildStandTall(st);
-  return st.long ? buildStandLong(st) : buildStand(st);
+  const rows = st.long ? buildStandLong(st) : st.hairLong ? buildStandLongPants(st) : buildStand(st);
+  return st.bald ? baldenHead(rows, st.skin || 's') : rows;
+}
+
+// Diadema de pelo largo sentada: un color propio y un moñito arriba, en vez
+// de depender del color de pelo (que a veces se confunde con el contorno) --
+// así se nota que es una mujer sin importar qué tan oscuro sea el pelo.
+// Solo tonos que se lean como accesorio (cinta/moño), nunca morado ni azul --
+// esos ya son colores de pelo de verdad (como el azul de recepción) y
+// confundirían la diadema con un tinte de pelo.
+const DIADEMA_COLORS = ['r', 'y', 'e', 'o'];
+function diademaColorFor(st) {
+  const seed = (st.hair || 'a').charCodeAt(0) + (st.shirt || 'a').charCodeAt(0);
+  return DIADEMA_COLORS[seed % DIADEMA_COLORS.length];
+}
+function applyDiadema(rows, st) {
+  const s = st.skin || 's';
+  const band = st.band || diademaColorFor(st);
+  rows[0] = '.......' + band + band + '.......';
+  rows[2] = '....k' + rep(band, 6) + 'k....';
+  rows[5] = '...' + band + st.hair + rep(s, 6) + st.hair + band + '...';
+  rows[6] = '...k' + st.hair + s + 'k' + rep(s, 2) + 'k' + s + st.hair + band + '...';
+  return rows;
 }
 
 function buildAgentSit(st) {
   const s = st.skin || 's';
   const rows = personSit(st);
-  rows[2] = '....k' + rep('c', 6) + 'k....';
   if (st.long) {
-    rows[5] = '...c' + st.hair + rep(s, 6) + st.hair + 'c...';
-    rows[6] = '...k' + st.hair + s + 'k' + rep(s, 2) + 'k' + s + st.hair + 'c...';
+    applyDiadema(rows, st);
   } else {
+    rows[2] = '....k' + rep('c', 6) + 'k....';
     rows[5] = '...c' + rep(s, 8) + 'c...';
     rows[6] = '...k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'c...';
   }
@@ -357,22 +404,24 @@ function buildCapPerson(st) {
 const AGENT_STYLES = [
   { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's' },
   { hair: 'H', hairDark: 'k', shirt: 't', shirtDark: 'T', skin: 'u', long: true },
-  { hair: 'e', hairDark: 'E', shirt: 'g', shirtDark: 'G', skin: 's' },
+  { hair: 'b', hairDark: 'B', shirt: 'g', shirtDark: 'G', skin: 's' },
   { hair: 'n', hairDark: 'H', shirt: 'p', shirtDark: 'P', skin: 'u', long: true },
-  { hair: 'j', hairDark: 'J', shirt: 'y', shirtDark: 'Y', skin: 'i' },
+  { hair: 'j', hairDark: 'J', shirt: 'y', shirtDark: 'Y', skin: 'i', bald: true },
   { hair: 'h', hairDark: 'H', shirt: 'q', shirtDark: 'Q', skin: 'i', long: true },
   { hair: 'b', hairDark: 'B', shirt: 'c', shirtDark: 'C', skin: 's', long: true },
   { hair: 'H', hairDark: 'k', shirt: 'w', shirtDark: 'W', skin: 'u' },
   { hair: 'n', hairDark: 'H', shirt: 'e', shirtDark: 'E', skin: 's', long: true },
-  { hair: 'H', hairDark: 'k', shirt: 'g', shirtDark: 'G', skin: 'i' },
-  { hair: 'e', hairDark: 'E', shirt: 'p', shirtDark: 'P', skin: 'u' },
+  { hair: 'H', hairDark: 'k', shirt: 'g', shirtDark: 'G', skin: 'i', bald: true },
+  { hair: 'h', hairDark: 'H', shirt: 'p', shirtDark: 'P', skin: 'u' },
   { hair: 'h', hairDark: 'H', shirt: 'y', shirtDark: 'Y', skin: 's', long: true },
+  // Pelirroja -- la única del piso a propósito, no es el color por defecto de nadie más.
+  { hair: 't', hairDark: 'T', shirt: 'q', shirtDark: 'Q', skin: 's', long: true },
 ];
 
 const STAFF_STYLES = [
   { hair: 'h', hairDark: 'H', shirt: 'w', shirtDark: 'W', skin: 's' },
   { hair: 'H', hairDark: 'k', shirt: 'p', shirtDark: 'P', skin: 'u', long: true },
-  { hair: 'e', hairDark: 'E', shirt: 'c', shirtDark: 'C', skin: 's', long: true },
+  { hair: 'b', hairDark: 'B', shirt: 'c', shirtDark: 'C', skin: 's', long: true },
   { hair: 'j', hairDark: 'J', shirt: 't', shirtDark: 'T', skin: 'i' },
 ];
 
@@ -380,27 +429,41 @@ const SUP_STYLES = [
   { hair: 'H', hairDark: 'k', shirt: 'z', shirtDark: 'Z', skin: 's', pants: 'Z' },
   { hair: 'h', hairDark: 'H', shirt: 'a', shirtDark: 'A', skin: 'u', pants: 'Z', long: true },
   { hair: 'n', hairDark: 'H', shirt: 'v', shirtDark: 'V', skin: 'i', pants: 'Z' },
-  { hair: 'e', hairDark: 'E', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z', long: true },
+  { hair: 'h', hairDark: 'H', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z', long: true },
 ];
 
 const NAMED_STYLES = {
-  marce: { hair: 'b', hairDark: 'B', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'X', long: true },
-  recep: { hair: 'c', hairDark: 'C', shirt: 'c', shirtDark: 'C', skin: 's', long: true },
+  marce: { hair: 'b', hairDark: 'B', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'X', hairLong: true },
+  // También es de logística -- piernas normales (sin falda) y ropa roja,
+  // como el resto del equipo de logística. Pelo femenino, sin diadema.
+  recep: { hair: 'c', hairDark: 'C', shirt: 'r', shirtDark: 'R', skin: 's', femHair: true },
   josue: { hair: 'h', hairDark: 'H', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' },
   sebastian: { hair: 'b', hairDark: 'B', shirt: 'y', shirtDark: 'Y', skin: 's' },
+  danielPardo: { hair: 'l', hairDark: 'L', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
+  diegoG: { hair: 'l', hairDark: 'L', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z' },
   sergio: { hair: 'H', hairDark: 'k', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z' },
   mgr3: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
-  mgr4: { hair: 'e', hairDark: 'E', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'Z', long: true },
+  mgr4: { hair: 'b', hairDark: 'B', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'Z', long: true },
   mgr5: { hair: 'H', hairDark: 'k', shirt: 'g', shirtDark: 'G', skin: 'i', pants: 'Z' },
   mgr6: { hair: 'j', hairDark: 'J', shirt: 'y', shirtDark: 'Y', skin: 's', pants: 'Z', long: true },
   mgr7: { hair: 'n', hairDark: 'H', shirt: 't', shirtDark: 'T', skin: 'u', pants: 'Z' },
   mgrTi: { hair: 'H', hairDark: 'k', shirt: 'q', shirtDark: 'Q', skin: 'u', pants: 'Z' },
-  mgrRh1: { hair: 'e', hairDark: 'E', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z', long: true },
+  mgrRh1: { hair: 'n', hairDark: 'H', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z', long: true },
   mgrRh2: { hair: 'h', hairDark: 'H', shirt: 'p', shirtDark: 'P', skin: 'i', pants: 'Z' },
   mgrRh3: { hair: 'j', hairDark: 'J', shirt: 'c', shirtDark: 'C', skin: 'u', pants: 'Z', long: true },
   brandon: { hair: 'H', hairDark: 'k', shirt: 'o', shirtDark: 'O', skin: 'u', pants: 'Z' },
-  jonathan: { hair: 'n', hairDark: 'H', shirt: 'x', shirtDark: 'X', skin: 'u', pants: 'Z', long: true },
+  // Jonathan: piel clara y pelo negro (mismo peinado, antes era castaño).
+  jonathan: { hair: 'l', hairDark: 'L', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z' },
   frehynner: { hair: 'n', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 'i', pants: 'Z' },
+  // Marco, de TI: piel blanca, pelo negro.
+  marco: { hair: 'l', hairDark: 'L', shirt: 'z', shirtDark: 'Z', skin: 's', pants: 'Z' },
+  // El de logística de la puerta: piel morena. Estilo propio (no el genérico
+  // logistica2) para no cambiarle la piel a nadie más que use ese mismo look.
+  porteria: { hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' },
+  // Jorge A., supervisor: piel clara, pelo castaño y crespo.
+  jorge: { hair: 'n', hairDark: 'H', shirt: 'v', shirtDark: 'V', skin: 's', pants: 'Z', curly: true },
+  // De RH: piel blanca, pelo negro.
+  rhRecluta: { hair: 'H', hairDark: 'k', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', femHair: true },
 };
 
 // --- el equipo de desarrollo ---
@@ -435,6 +498,18 @@ function addBeard(rows, color) {
   return rows;
 }
 
+// Pelo más lleno arriba y unos mechones enmarcando la cara, sin tocar el
+// torso ni las piernas -- para dejar claro que es una mujer sin pasarla por
+// el sistema de falda (buildStandLong/buildSitLong).
+function femHair(rows, hair, hD, s) {
+  rows[2] = '..k' + hD + rep(hair, 8) + hD + 'k..';
+  rows[3] = '..k' + hD + rep(hair, 8) + hD + 'k..';
+  rows[5] = '.' + hair + '.k' + rep(s, 8) + 'k.' + hair + '.';
+  rows[6] = '.' + hair + '.k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k.' + hair + '.';
+  rows[7] = '..' + hair + hair + 'k' + rep(s, 6) + 'k' + hair + hair + '..';
+  return rows;
+}
+
 function addHeadset(rows, band, shade) {
   const b = band || 'c';
   const d = shade || 'C';
@@ -452,7 +527,7 @@ const DEV_STYLES = {
   daniel: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z', headset: 'd', headsetShade: 'D', wide: true },
   diana: { hair: 'l', hairDark: 'L', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', long: true, tallBody: true },
   nicolas: { hair: 'h', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z', curly: true },
-  guillermo: { hair: 'l', hairDark: 'L', shirt: 'f', shirtDark: 'F', skin: 'u', pants: 'F' },
+  guillermo: { hair: 'l', hairDark: 'L', shirt: 'r', shirtDark: 'R', skin: 'u', pants: 'F' },
   // Calvo: el pelo se pinta del mismo tono de piel, así queda liso y sin
   // silueta de cabello (con lentes y bigote para reconocerlo igual).
   felipe: { hair: 's', hairDark: 'u', shirt: 't', shirtDark: 'T', skin: 's', pants: 'Z', glasses: true, mustache: true },
@@ -462,6 +537,7 @@ function devFrame(st, sitting) {
   let rows = sitting ? personSit(st) : personStand(st);
   if (st.spiky) rows = spikyHair(rows, st.hair, st.hairDark);
   if (st.curly) rows = curlyHair(rows, st.hair, st.hairDark);
+  if (st.femHair) rows = femHair(rows, st.hair, st.hairDark, st.skin || 's');
   if (st.glasses) rows = addGlasses(rows);
   if (st.mustache) rows = addMustache(rows);
   if (st.headset) rows = addHeadset(rows, st.headset, st.headsetShade);
@@ -481,22 +557,32 @@ Object.keys(DEV_STYLES).forEach(function (key) {
 
 AGENT_STYLES.forEach(function (st, i) {
   SPRITES['agent' + i + 'Sit'] = [buildAgentSit(st)];
-  SPRITES['agent' + i + 'Stand'] = [personStand(st)];
+  // Segundo cuadro con las piernas juntas, para el que ande caminando
+  // (breakGuy) -- a los que se quedan quietos no les cambia nada, porque
+  // drawNpc solo pasa a frame 1 cuando se está moviendo.
+  SPRITES['agent' + i + 'Stand'] = [personStand(st), personWalkLegs(personStand(st))];
+  // Misma persona pero sin diadema: para quienes están en reunión, no en llamada.
+  SPRITES['agent' + i + 'PlainSit'] = [personSit(st)];
+  SPRITES['agent' + i + 'PlainStand'] = [personStand(st), personWalkLegs(personStand(st))];
 });
 
+// Mismo problema que en AGENT_STYLES: sentadas, el pelo largo por sí solo no
+// siempre se nota (sobre todo si es oscuro) -- se le agrega la diadema.
 STAFF_STYLES.forEach(function (st, i) {
-  SPRITES['staff' + i + 'Sit'] = [personSit(st)];
+  SPRITES['staff' + i + 'Sit'] = [st.long ? applyDiadema(personSit(st), st) : personSit(st)];
   SPRITES['staff' + i + 'Stand'] = [personStand(st)];
 });
 
 SUP_STYLES.forEach(function (st, i) {
-  SPRITES['sup' + i + 'Sit'] = [personSit(st)];
+  SPRITES['sup' + i + 'Sit'] = [st.long ? applyDiadema(personSit(st), st) : personSit(st)];
   SPRITES['sup' + i + 'Stand'] = [personStand(st)];
 });
 
 Object.keys(NAMED_STYLES).forEach(function (key) {
-  SPRITES[key + 'Sit'] = [personSit(NAMED_STYLES[key])];
-  SPRITES[key + 'Stand'] = [personStand(NAMED_STYLES[key])];
+  // devFrame es un no-op salvo que el estilo pida un retoque (curly, spiky...),
+  // como el pelo crespo de Jorge -- así no hay que repetir esa lógica acá.
+  SPRITES[key + 'Sit'] = [devFrame(NAMED_STYLES[key], true)];
+  SPRITES[key + 'Stand'] = [devFrame(NAMED_STYLES[key], false)];
 });
 
 SPRITES.brandonStand = [addBeard(SPRITES.brandonStand[0], NAMED_STYLES.brandon.hair)];
@@ -547,7 +633,7 @@ SPRITES.porteroStand = [
   buildCapPerson({ cap: 'v', capDark: 'V', shirt: 'v', shirtDark: 'V', skin: 'u' }),
 ];
 SPRITES.logisticaStand = [
-  buildStandLong({ hair: 'e', hairDark: 'E', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
+  buildStandLong({ hair: 'n', hairDark: 'H', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
 ];
 SPRITES.logistica2Stand = [
   buildStand({ hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'Z' }),
@@ -579,7 +665,7 @@ SPRITES.sergioBossSit = SPRITES.sergioBossStand;
 // Yesica: siempre junto a Sergio, con las mismas alas pero su propia ropa
 // (no todo de blanco como él, solo las alas).
 SPRITES.yesicaStand = [
-  addWings(buildStandLong({ hair: 'l', hairDark: 'L', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'R', long: true }), 7),
+  addWings(buildStandLongPants({ hair: 'l', hairDark: 'L', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'R' }), 7),
 ];
 SPRITES.yesicaSit = SPRITES.yesicaStand;
 
@@ -593,8 +679,8 @@ function buildFox(st) {
   rows[2] = '..keek....keek..';
   rows[3] = '...keeeeeeeek...';
   rows[4] = '...eeeeeeeeee...';
-  rows[5] = '...ekkeeeekke...';
-  rows[6] = '...eewwwwwwee...';
+  rows[5] = '..eekkeeeekkee..';
+  rows[6] = '..eeewwwwwweee..';
   rows[7] = '....ewwkkwwe....';
   rows[8] = '.....wwwwww.....';
   return rows;
@@ -608,7 +694,16 @@ function foxWalkLegs(rows) {
   return rows;
 }
 
-const ZORRO_STYLE = { hair: 'e', hairDark: 'E', shirt: 'r', shirtDark: 'R', skin: 'e', pants: 'Z' };
+// Mismo truco que foxWalkLegs pero para el molde genérico de pie
+// (buildStand): piernas juntas al centro, para alternar con el cuadro quieto
+// mientras alguien camina (breakGuy y cualquier otro agente que patrulle).
+function personWalkLegs(rows) {
+  rows[14] = '....knnkknnk....';
+  rows[15] = '....kkkkkk......';
+  return rows;
+}
+
+const ZORRO_STYLE = { hair: 'e', hairDark: 'E', shirt: 'K', shirtDark: 'X', skin: 'e', pants: 'Z' };
 SPRITES.zorroStand = [buildFox(ZORRO_STYLE), foxWalkLegs(buildFox(ZORRO_STYLE))];
 
 const spriteCache = {};
