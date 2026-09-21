@@ -281,6 +281,15 @@ function buildStandLong(st) {
   ];
 }
 
+// Pelo largo (mismo peinado que buildStandLong) pero con pantalón y piernas
+// normales en vez de falda -- para cuando se quiere el cabello femenino sin
+// cambiar la silueta del cuerpo.
+function buildStandLongPants(st) {
+  const long = buildStandLong(st);
+  const pants = buildStand(st);
+  return long.slice(0, 12).concat(pants.slice(12, 16));
+}
+
 // Igual que la anterior pero con el torso más largo y la cabeza más arriba:
 // se ve más alta sin agrandarle la cabeza.
 function buildStandTall(st) {
@@ -328,7 +337,7 @@ function personSit(st) {
 
 function personStand(st) {
   if (st.tallBody) return buildStandTall(st);
-  const rows = st.long ? buildStandLong(st) : buildStand(st);
+  const rows = st.long ? buildStandLong(st) : st.hairLong ? buildStandLongPants(st) : buildStand(st);
   return st.bald ? baldenHead(rows, st.skin || 's') : rows;
 }
 
@@ -424,12 +433,14 @@ const SUP_STYLES = [
 ];
 
 const NAMED_STYLES = {
-  marce: { hair: 'b', hairDark: 'B', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'X', long: true },
+  marce: { hair: 'b', hairDark: 'B', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'X', hairLong: true },
   // También es de logística -- piernas normales (sin falda) y ropa roja,
   // como el resto del equipo de logística. Pelo femenino, sin diadema.
   recep: { hair: 'c', hairDark: 'C', shirt: 'r', shirtDark: 'R', skin: 's', femHair: true },
   josue: { hair: 'h', hairDark: 'H', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' },
   sebastian: { hair: 'b', hairDark: 'B', shirt: 'y', shirtDark: 'Y', skin: 's' },
+  danielPardo: { hair: 'l', hairDark: 'L', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
+  diegoG: { hair: 'l', hairDark: 'L', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z' },
   sergio: { hair: 'H', hairDark: 'k', shirt: 'w', shirtDark: 'W', skin: 's', pants: 'Z' },
   mgr3: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z' },
   mgr4: { hair: 'b', hairDark: 'B', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'Z', long: true },
@@ -442,7 +453,7 @@ const NAMED_STYLES = {
   mgrRh3: { hair: 'j', hairDark: 'J', shirt: 'c', shirtDark: 'C', skin: 'u', pants: 'Z', long: true },
   brandon: { hair: 'H', hairDark: 'k', shirt: 'o', shirtDark: 'O', skin: 'u', pants: 'Z' },
   // Jonathan: piel clara y pelo negro (mismo peinado, antes era castaño).
-  jonathan: { hair: 'l', hairDark: 'L', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z', long: true },
+  jonathan: { hair: 'l', hairDark: 'L', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z' },
   frehynner: { hair: 'n', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 'i', pants: 'Z' },
   // Marco, de TI: piel blanca, pelo negro.
   marco: { hair: 'l', hairDark: 'L', shirt: 'z', shirtDark: 'Z', skin: 's', pants: 'Z' },
@@ -451,6 +462,8 @@ const NAMED_STYLES = {
   porteria: { hair: 'H', hairDark: 'k', shirt: 'r', shirtDark: 'R', skin: 'i', pants: 'Z' },
   // Jorge A., supervisor: piel clara, pelo castaño y crespo.
   jorge: { hair: 'n', hairDark: 'H', shirt: 'v', shirtDark: 'V', skin: 's', pants: 'Z', curly: true },
+  // De RH: piel blanca, pelo negro.
+  rhRecluta: { hair: 'H', hairDark: 'k', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', femHair: true },
 };
 
 // --- el equipo de desarrollo ---
@@ -514,7 +527,7 @@ const DEV_STYLES = {
   daniel: { hair: 'h', hairDark: 'H', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'Z', headset: 'd', headsetShade: 'D', wide: true },
   diana: { hair: 'l', hairDark: 'L', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', long: true, tallBody: true },
   nicolas: { hair: 'h', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'Z', curly: true },
-  guillermo: { hair: 'l', hairDark: 'L', shirt: 'f', shirtDark: 'F', skin: 'u', pants: 'F' },
+  guillermo: { hair: 'l', hairDark: 'L', shirt: 'r', shirtDark: 'R', skin: 'u', pants: 'F' },
   // Calvo: el pelo se pinta del mismo tono de piel, así queda liso y sin
   // silueta de cabello (con lentes y bigote para reconocerlo igual).
   felipe: { hair: 's', hairDark: 'u', shirt: 't', shirtDark: 'T', skin: 's', pants: 'Z', glasses: true, mustache: true },
@@ -548,6 +561,9 @@ AGENT_STYLES.forEach(function (st, i) {
   // (breakGuy) -- a los que se quedan quietos no les cambia nada, porque
   // drawNpc solo pasa a frame 1 cuando se está moviendo.
   SPRITES['agent' + i + 'Stand'] = [personStand(st), personWalkLegs(personStand(st))];
+  // Misma persona pero sin diadema: para quienes están en reunión, no en llamada.
+  SPRITES['agent' + i + 'PlainSit'] = [personSit(st)];
+  SPRITES['agent' + i + 'PlainStand'] = [personStand(st), personWalkLegs(personStand(st))];
 });
 
 // Mismo problema que en AGENT_STYLES: sentadas, el pelo largo por sí solo no
@@ -649,7 +665,7 @@ SPRITES.sergioBossSit = SPRITES.sergioBossStand;
 // Yesica: siempre junto a Sergio, con las mismas alas pero su propia ropa
 // (no todo de blanco como él, solo las alas).
 SPRITES.yesicaStand = [
-  addWings(buildStandLong({ hair: 'l', hairDark: 'L', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'R', long: true }), 7),
+  addWings(buildStandLongPants({ hair: 'l', hairDark: 'L', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'R' }), 7),
 ];
 SPRITES.yesicaSit = SPRITES.yesicaStand;
 

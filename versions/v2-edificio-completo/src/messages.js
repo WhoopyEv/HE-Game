@@ -62,23 +62,23 @@ const MESSAGES = {
   devs: {
     diana: {
       name: 'DIANA A.',
-      lines: ['Acá me dieron la oportunidad cuando yo misma todavía no sabía si podía: esa pieza es suya.'],
+      lines: ['A mí me dieron la oportunidad antes de que yo misma estuviera segura de poder. Mira, esta pieza es para ti.'],
     },
     daniel: {
       name: 'DANIEL R.',
-      lines: ['A mí me soltaron el proyecto sin preguntarme cuántos años llevaba, y eso tiene un nombre: confianza.'],
+      lines: ['Desde el primer día confiaron en mí y me dieron espacio para demostrar lo que podía hacer.'],
     },
     nicolas: {
       name: 'NICOLÁS D.',
-      lines: ['Todo lo que sé hacer hoy lo aprendí acá, rompiendo cosas y arreglándolas sin que nadie me hiciera sentir mal.'],
+      lines: ['Llegué con bastante conocimiento, pero acá he aprendido mucho más haciendo, equivocándome y trabajando con el equipo.'],
     },
     guillermo: {
       name: 'GUILLERMO M.',
-      lines: ['Cuando algo se cae en este equipo, no se cae uno solo: por eso la mía es la del equipo.'],
+      lines: ['Cuando hay un problema, nadie se queda solo tratando de resolverlo. Nos metemos todos y lo sacamos como equipo.'],
     },
     felipe: {
       name: 'FELIPE P.',
-      lines: ['Nunca me ha tocado resolver nada solo, siempre hay alguien detrás, y eso se llama respaldo.'],
+      lines: ['Más de una vez me he quedado mirando algo sin saber qué hacer, y siempre termina llegando alguien a dar una mano.'],
     },
   },
 
@@ -86,7 +86,7 @@ const MESSAGES = {
   extras: {
     aseo: {
       name: 'SERVICIOS GENERALES',
-      lines: ['Gracias ayudarnos a mantener el edificio siempre en orden.'],
+      lines: ['Que el edificio se vea así de limpio no es casualidad — es trabajo de todos los días.'],
     },
     // TODO: Nico, ajusta la frase si hay una forma más exacta en que la empresa lo pide.
     aseoBanos: {
@@ -105,14 +105,14 @@ const MESSAGES = {
     },
     josue: {
       name: 'JOSUÉ',
-      lines: ['Yo cuido un piso entero, jefe. Y en el descanso, cuido esta mesa.'],
+      lines: ['Yo cuido un piso entero, jefe. Y en el break, cuido esta mesa.'],
     },
     danielPardo: {
-      name: 'DANIEL P.',
+      name: 'DANIEL PARDO',
       lines: ['Mmm... ¿Están trabajando? ¿Pueden trabajar más fuerte? No, mentira, sigan así chicos.'],
     },
     sebastian: {
-      name: 'SEBASTIÁN R.',
+      name: 'SEBASTIÁN RODRIGUEZ',
       lines: ['Zorro, no te lo lleves.'],
     },
     zorro: {
@@ -121,7 +121,7 @@ const MESSAGES = {
     },
     marce: {
       name: 'MARCE',
-      lines: ['Hoy no fío, mañana sí.'],
+      lines: ['Hola, muy buenos días, ¿qué se te antoja?.'],
     },
     robot: {
       name: 'ESPERANCITA',
@@ -135,25 +135,94 @@ const MESSAGES = {
       name: 'FREHYNNER',
       lines: ['¡Ya casi pagan!!'],
     },
+    printerRH3: {
+      name: 'IMPRESORA',
+      lines: ['Estoy cansada, jefe.'],
+    },
+    // Frases sueltas de operaciones, sin nombre -- cualquiera del piso.
+    ops6: {
+      lines: ['Hey, qué buenas métricas, muchachos.'],
+    },
+    ops7: {
+      lines: ['¿Cuántas llamadas voy hoy?'],
+    },
+    ops8: {
+      lines: ['Ja, papi, cero lates este mes.'],
+    },
+    ops9: {
+      lines: ['Que no baje más el dólar, por favor, jajaja.'],
+    },
+    ops10: {
+      lines: ['A tres de cumplir la meta del mes.'],
+    },
+    ops11: {
+      lines: ['Si me sale bono este mes, invito empanada donde Marce.'],
+    },
+    ops12: {
+      lines: ['¿Quién me trae un electrolit?'],
+    },
+    ops13: {
+      lines: ['Noooo, ¡actualización de Windows!!'],
+    },
+    ops14: {
+      lines: ['Muchachosss, se cayó Forth... mentira, bromita.'],
+    },
+    ops15: {
+      lines: ['¿Quién pa\' tomarnos algo, después del work?'],
+    },
+    ops16: {
+      lines: ['¿Pola, después del work, o mareos?'],
+    },
+    ops17: {
+      lines: ['¿Pola o miedos, después del work?'],
+    },
+    ops18: {
+      lines: ['¡Mis pielnas, mis pielnas!'],
+    },
     jonathan: {
       name: 'JHONNATAN',
       lines: ['Esto está muy family friendly.'],
     },
-    andresPadilla: {
-      name: 'ANDRÉS PADILLA',
-      // TODO: frase de relleno -- Nico, cámbiala por lo que Andrés realmente quiera decir.
-      lines: ['¡Nueva wave!'],
-    },
     marco: {
       name: 'MARCO',
-      lines: ['No ticket, no arreglo.'],
+      lines: ['Reiniciar arregla el 90% de los problemas. El otro 10% soy yo.'],
+    },
+    rhRecluta: {
+      lines: ['Se cayó otro candidato :c'],
+    },
+    rhLine1: {
+      lines: ['Este candidato tiene buen perfil. No lo espanten.'],
+    },
+    rhLine2: {
+      lines: ['Un momento, estoy stalkeando LinkedIn… profesionalmente.'],
+    },
+    rhLine3: {
+      lines: ['¿Quién me quitó al candidato bueno?'],
+    },
+    rhLine4: {
+      lines: ['Si no está en el sistema, no pasó.'],
+    },
+    rhLine5: {
+      lines: ['¿Y el comprobante de la incapacidad?'],
+    },
+    rhLine6: {
+      lines: ['Todo estaba tranquilo hasta que llegó cierre de nómina.'],
+    },
+    rhLine7: {
+      lines: ['Más celulares cargando en bienestar.'],
+    },
+    tiLine1: {
+      lines: ['Necesito más información que "no funciona".'],
+    },
+    tiLine2: {
+      lines: ['No es que no quiera ayudarte. Es que necesito el ticket.'],
     },
     breakGuy: {
       name: '',
       lines: ['¡Pista, pista que se me acaba el break!'],
     },
     jorge: {
-      name: 'JORGE A.',
+      name: 'JORGE ALVARADO',
       lines: ['¿Qué curioso... no?'],
     },
     danilo: {
@@ -163,6 +232,10 @@ const MESSAGES = {
     dorilocos: {
       name: 'BIENESTAR',
       lines: ['Uff, qué buenos dorilocos.'],
+    },
+    diegoG: {
+      name: 'DIEGO G. (EL HERMANO DE JULIÁN)',
+      lines: ['Quiubo, chinit@.'],
     },
     ops1: {
       name: 'OPERACIONES',

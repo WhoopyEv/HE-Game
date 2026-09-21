@@ -284,7 +284,7 @@ function floor1() {
 // corrió 9 columnas a la derecha es TODO lo demás del open space (mismo
 // tamaño, mismo layout, solo con otros números de columna), para dejarle
 // sitio real a RH a la izquierda sin tocar el ascensor ni el baño.
-const OPS_PAD = 9;
+const OPS_PAD = 15;
 const OPS_MAIN_LEFT = OPS_PAD;
 const OPS_MAIN_RIGHT = 45 + OPS_PAD;
 const OPS_BOTTOM = 27;
@@ -298,21 +298,21 @@ const OPS_H = OPS_BOTTOM + 5;
 // El ascensor de este piso no es el mismo ELEV global (col. 15) de los otros
 // dos pisos -- acá está en la mitad del mesón del centro (ver OPS_BANKS_X),
 // así que operaciones lleva su propio punto de ascensor/llegada.
-const OPS_ELEV = { col: 32, row: 1 };
+const OPS_ELEV = { col: 37, row: 1 };
 const OPS_ELEV_SPAWN = { col: OPS_ELEV.col, row: OPS_ELEV.row + 1 };
 // El baño de este piso tampoco queda en la columna fija de los otros dos
 // pisos (13-18) -- acá se recentró para quedar alineado con el ascensor,
 // justo en la mitad del open space.
-const OPS_BATH = { col0: 29, col1: 34, doorCol: 31 };
+const OPS_BATH = { col0: 35, col1: 40, doorCol: 37 };
 
 // Tres columnas de mesones, mismo ancho (10 -- un puesto menos de cada lado
 // que antes, para que no quedaran tan pegados) y mismo espacio entre ellas y
 // contra las paredes, repartidas parejo en todo el ancho del open space
 // (col. 10 a 53): 3 + 10 + 4 + 10 + 4 + 10 + 3 = 44.
 const OPS_BANKS_X = [
-  { col0: 13, col1: 22 }, // izquierda
-  { col0: 27, col1: 36 }, // centro -- acá está el ascensor, en la mitad
-  { col0: 41, col1: 50 }, // derecha
+  { col0: 19, col1: 28 }, // izquierda
+  { col0: 33, col1: 42 }, // centro -- acá está el ascensor, en la mitad
+  { col0: 47, col1: 56 }, // derecha
 ];
 
 // Mesones largos: todos en la misma fila, sin puestos aparte para nadie.
@@ -348,18 +348,34 @@ const TI_SEATS = [46, 47, 48, 49, 50, 51, 52, 53].map(function (c) { return c + 
 // el baño): si ocupara casi toda la pared, se vería como una continuación
 // del mismo open space en vez de un cuarto aparte pegado por fuera.
 const RH_OFFICE = { x1: 0, y0: 10, y1: 24, doorRow: 17 };
+// Menos gente que antes de ensanchar la oficina: los mesones quedan
+// centrados, con tres columnas libres a cada lado (contra las paredes).
 const RH_BANKS = [
-  { col0: 1, col1: 8, row: 14 },
-  { col0: 1, col1: 8, row: 20 },
+  { col0: 4, col1: 11, row: 13 },
+  { col0: 4, col1: 11, row: 19 },
+];
+
+// Frases sueltas de RH, sin nombre propio -- cualquiera del piso.
+const RH_EXTRAS = [
+  ['rhLine1', 4, 13],
+  ['rhLine2', 6, 13],
+  ['rhLine3', 9, 13],
+  ['rhLine4', 11, 13],
+  ['rhLine5', 5, 19],
+  ['rhLine6', 9, 19],
+  ['rhLine7', 8, 13],
 ];
 
 // Los cinco del equipo, repartidos por todo el piso, lejos de la salida del
 // ascensor para no taparle el paso a nadie; Felipe está dentro de la sala de juntas.
 const OPS_DEVS = [
-  { id: 'diana', col: 20, row: 5, piece: 'oportunidad', side: 'pineapple' },
-  { id: 'nicolas', col: 45, row: 10, piece: 'aprendizaje', side: 'duck' },
+  // Cerca de RH, justo afuera de su puerta (col. OPS_MAIN_LEFT / fila 17-18).
+  { id: 'diana', col: 16, row: 21, piece: 'oportunidad', side: 'pineapple' },
+  // Arriba a la derecha, cerca del logo de la empresa (col. 56 / fila 1).
+  { id: 'nicolas', col: 55, row: 3, piece: 'aprendizaje', side: 'duck' },
   // En el pasillo entre el mesón de la izquierda y el del centro.
-  { id: 'daniel', col: 25, row: 14, piece: 'confianza', notes: true },
+  // Abajo, cerca del reloj de la pared que da con la entrada del baño.
+  { id: 'daniel', col: 30, row: 25, piece: 'confianza', notes: true },
   // Adentro de la sala de juntas, donde antes estaba Felipe.
   { id: 'guillermo', col: 40 + OPS_PAD, row: 22, piece: 'equipo', side: 'ball' },
   // Por fuera de la sala de juntas, a la izquierda de la puerta.
@@ -369,21 +385,34 @@ const OPS_DEVS = [
 // Compañeros con mensaje opcional: [id, col, fila, estilo opcional] --
 // columnas recalculadas para caer dentro de los mesones ya redistribuidos
 // (ver OPS_BANKS_X).
+// Los ops1-ops5 (mensajes genéricos de relleno) se quitaron: ya no quedan
+// agentes con ese id, vuelven a ser gente anónima de los mesones.
 const OPS_EXTRAS = [
-  ['ops1', 14, 6],
   // Se corrió un puesto a la izquierda: su silla de siempre quedó fuera del
   // mesón al achicarlo.
-  ['danielPardo', 22, 6],
-  ['ops2', 32, 6],
-  ['sebastian', 22, 11, 'sebastian'],
+  ['danielPardo', 28, 6, 'danielPardo'],
+  ['sebastian', 28, 11, 'sebastian'],
   // Ídem: un puesto a la izquierda para que no quede fuera del mesón.
-  ['frehynner', 35, 11, 'frehynner'],
-  ['ops3', 36, 11],
+  ['frehynner', 41, 11, 'frehynner'],
   // Jorge, supervisor: primera posición de la fila 16, igual que Sebastián y
   // Daniel Pardo en las suyas (la más cercana al pasillo del ascensor).
-  ['jorge', 21, 16, 'jorge'],
-  ['ops4', 15, 16],
-  ['ops5', 33, 16],
+  ['jorge', 27, 16, 'jorge'],
+  // Diego G., en el mesón de la derecha.
+  ['diegoG', 50, 6, 'diegoG'],
+  // Frases sueltas de operaciones, sin nombre propio -- cualquiera del piso.
+  ['ops6', 20, 6],
+  ['ops7', 35, 6],
+  ['ops8', 20, 11],
+  ['ops9', 35, 16],
+  ['ops10', 48, 11],
+  ['ops11', 24, 11],
+  ['ops12', 39, 16],
+  ['ops13', 24, 21],
+  ['ops14', 39, 11],
+  ['ops15', 24, 6],
+  ['ops16', 39, 21],
+  ['ops17', 48, 6],
+  ['ops18', 33, 21],
 ];
 
 function opsShell() {
@@ -403,6 +432,11 @@ function opsShell() {
   // El ascensor de operaciones no es el ELEV global -- ver OPS_ELEV.
   put(g, OPS_ELEV.col, OPS_ELEV.row, 'L');
   put(g, OPS_ELEV.col + 1, OPS_ELEV.row, 'L');
+  // Paredes que lo abrazan, igual que el ascensor de la terraza.
+  put(g, OPS_ELEV.col - 1, 1, '#');
+  put(g, OPS_ELEV.col + 2, 1, '#');
+  put(g, OPS_ELEV.col - 1, 2, '#');
+  put(g, OPS_ELEV.col + 2, 2, '#');
   fill(g, OPS_BATH.col0, OPS_BOTTOM + 1, OPS_BATH.col1, OPS_BOTTOM + 4, '#');
   fill(g, OPS_BATH.col0 + 1, OPS_BOTTOM + 1, OPS_BATH.col1 - 1, OPS_BOTTOM + 3, '.');
   put(g, OPS_BATH.doorCol, OPS_BOTTOM, 'T');
@@ -452,24 +486,31 @@ function operaciones() {
   npcs.push({ id: 'aseoBanos', kind: 'aseo', style: 'aseo4', col: OPS_BATH.col0 + 1, row: OPS_BOTTOM - 1, role: 'optional', stand: true });
   // el de logística saluda al lado del ascensor (que en este piso está
   // reposicionado -- ver OPS_ELEV).
-  npcs.push({ id: 'logisticaOps', kind: 'logistica', style: 'logistica', col: OPS_ELEV.col + 2, row: OPS_ELEV.row, role: 'optional', stand: true });
+  // Dos filas más abajo: en la fila del ascensor (y una más) ahora hay
+  // pared, por las que lo abrazan (ver arriba).
+  npcs.push({ id: 'logisticaOps', kind: 'logistica', style: 'logistica', col: OPS_ELEV.col + 2, row: OPS_ELEV.row + 2, role: 'optional', stand: true });
   // el de la cara de zorro anda de ronda por todo el piso, arrancando abajo
   // (ver patrols más abajo) -- por los pasillos entre mesones, ya
   // recalculados para el nuevo acomodo de los tres mesones.
-  npcs.push({ id: 'zorro', kind: 'logistica', style: 'zorro', col: 25, row: 23, role: 'optional', stand: true });
+  npcs.push({ id: 'zorro', kind: 'logistica', style: 'zorro', col: 31, row: 23, role: 'optional', stand: true });
   // Danilo, caminando por la parte baja del piso con su contoneo.
-  npcs.push({ id: 'danilo', kind: 'guest', style: 'danilo', col: 12 + OPS_PAD, row: 24, role: 'optional', stand: true, hipSway: true, shine: true });
+  npcs.push({ id: 'danilo', kind: 'guest', style: 'danilo', col: 54, row: 15, role: 'optional', stand: true, hipSway: true, shine: true });
 
   // ---- TI: oficina cerrada, colgada por fuera del rectángulo principal ----
   // Puerta de dos casillas, igual que la de RH.
   sidePod(g, OPS_MAIN_RIGHT, TI_OFFICE.x1, TI_OFFICE.y0, TI_OFFICE.y1, TI_OFFICE.doorRow, true);
-  // pared de racks al fondo y en todo el lateral derecho -- cuarto de
-  // servidores de verdad, no solo un rack suelto.
+  // pared de racks al fondo -- ya no es toda servidor: se mezcla con un
+  // par de estantes y un archivador, como cualquier cuarto de TI real.
   fill(g, TI_RACKS.col0, TI_RACKS.row, TI_RACKS.col1, TI_RACKS.row, 'S');
+  put(g, TI_RACKS.col0 + 2, TI_RACKS.row, 'B');
+  put(g, TI_RACKS.col0 + 5, TI_RACKS.row, 'C');
+  // lateral derecho, mismo criterio: casi todo servidor, un estante colado.
   for (let r = TI_RACKS_SIDE.row0; r <= TI_RACKS_SIDE.row1; r++) put(g, TI_RACKS_SIDE.col, r, 'S');
-  // tablero, estante de repuestos y cajas de equipo, contra la pared izquierda
+  put(g, TI_RACKS_SIDE.col, TI_RACKS_SIDE.row1 - 1, 'B');
+  // tablero y cajas de equipo, contra la pared izquierda -- la biblioteca
+  // que quedaba pegada a la puerta se quitó (justo lo primero que se veía
+  // al entrar, y no aportaba nada distinto al resto de la pared).
   put(g, TI_RACKS.col0, 4, 'R');
-  put(g, TI_RACKS.col0, 7, 'B');
   put(g, 48 + OPS_PAD, 4, 'X');
   put(g, 52 + OPS_PAD, 4, 'X');
   const TI_ROW = TI_OFFICE.y1 - 2;
@@ -478,25 +519,67 @@ function operaciones() {
   TI_SEATS.forEach(function (c) {
     put(g, c, TI_ROW + 1, 'D');
   });
-  // Jonathan se traslada acá: antes estaba sentado en la sala de juntas.
-  npcs.push({ id: 'jonathan', kind: 'staff', style: 'jonathan', col: TI_SEATS[0], row: TI_ROW, role: 'optional' });
-  npcs.push(agentAt(2, TI_SEATS[1], TI_ROW));
-  npcs.push(Object.assign(agentAt(2, TI_SEATS[2], TI_ROW), { kind: 'staff', style: 'mgrTi' }));
-  // Marco, movido un puesto más allá para que no quede pegado a Jonathan.
-  npcs.push(Object.assign(agentAt(2, TI_SEATS[3], TI_ROW), { kind: 'staff', style: 'marco', id: 'marco', role: 'optional' }));
-  // Dos mujeres entre los nuevos puestos; una de ellas, pelirroja (estilo dedicado, no genérico).
-  npcs.push(Object.assign(agentAt(2, TI_SEATS[4], TI_ROW), { style: 'agent6' }));
-  npcs.push(agentAt(2, TI_SEATS[5], TI_ROW));
-  npcs.push(Object.assign(agentAt(2, TI_SEATS[6], TI_ROW), { style: 'agent12' }));
-  npcs.push(agentAt(2, TI_SEATS[7], TI_ROW));
+  // Menos gente trabajando que puestos: los 8 escritorios y sus
+  // computadores se quedan (ver TI_SEATS más arriba), pero solo 4 tienen
+  // alguien sentado -- los otros quedan con el computador prendido y la
+  // silla vacía (mismo truco que la aspiradora-fantasma: un NPC sin estilo
+  // no dibuja a nadie, pero sigue trayendo su monitor).
+  TI_SEATS.forEach(function (c, i) {
+    if (i === 3) {
+      // Marco, el único con diálogo propio de este grupo.
+      npcs.push(Object.assign(agentAt(2, c, TI_ROW), { kind: 'staff', style: 'marco', id: 'marco', role: 'optional' }));
+      return;
+    }
+    if (i === 6) {
+      // La pelirroja -- estilo dedicado, no genérico.
+      npcs.push(Object.assign(agentAt(2, c, TI_ROW), { style: 'agent12' }));
+      return;
+    }
+    if (i === 0) {
+      npcs.push(Object.assign(agentAt(2, c, TI_ROW), { id: 'tiLine1', role: 'optional' }));
+      return;
+    }
+    if (i === 5) {
+      npcs.push(Object.assign(agentAt(2, c, TI_ROW), { id: 'tiLine2', role: 'optional' }));
+      return;
+    }
+    // Puesto vacío: se queda el computador, se va la persona.
+    npcs.push(Object.assign(agentAt(2, c, TI_ROW), { style: '' }));
+  });
+  // Jonathan, parado a mitad de la oficina de TI (mismo tipo de cuerpo que
+  // Guillermo), lejos de la pared de servidores y de los puestos.
+  npcs.push({ id: 'jonathan', kind: 'staff', style: 'jonathan', col: 64, row: 8, role: 'optional', stand: true });
 
   // ---- RH: oficina cerrada, colgada del lado izquierdo del rectángulo
   // principal, por fuera -- misma técnica que TI, en espejo.
   sidePod(g, OPS_MAIN_LEFT, RH_OFFICE.x1, RH_OFFICE.y0, RH_OFFICE.y1, RH_OFFICE.doorRow, true);
-  // archivadores contra la pared izquierda de RH
-  [12, 23].forEach(function (r) {
-    put(g, RH_OFFICE.x1 + 1, r, 'C');
-  });
+  // Las dos paredes largas, llenas de archivadores y estantes (con un par
+  // de plantas metidas para que no se sienta solo de oficina): fila por
+  // fila, esquivando los dos mesones (filas 14/15 y 20/21).
+  const rhLeftWall = RH_OFFICE.x1 + 1;
+  const rhRightWall = OPS_MAIN_LEFT - 1;
+  // Toda la fila de arriba (la primera del interior), de pared a pared,
+  // llena de archivadores.
+  fill(g, rhLeftWall, 11, rhRightWall, 11, 'C');
+  [
+    [rhLeftWall, 12, 'C'], [rhLeftWall, 13, 'B'],
+    [rhLeftWall, 16, 'C'], [rhLeftWall, 18, 'B'], [rhLeftWall, 19, 'C'],
+    [rhLeftWall, 22, 'B'], [rhLeftWall, 23, 'C'],
+  ].forEach(function (t) { put(g, t[0], t[1], t[2]); });
+  // Filas 17-18 (el ancho de la puerta) se dejan libres a propósito --
+  // nada bloqueando la entrada. La planta y el dispensador que quedaban ahí
+  // se corrieron más abajo, lejos de la puerta.
+  [
+    [rhRightWall, 12, 'B'], [rhRightWall, 13, 'P'],
+    [rhRightWall, 16, 'B'],
+    [rhRightWall, 19, 'C'],
+    [rhRightWall, 22, 'W'], [rhRightWall, 23, 'P'],
+  ].forEach(function (t) { put(g, t[0], t[1], t[2]); });
+  // Impresoras de RH, contra las paredes -- dos mudas, y una que sí tiene
+  // algo que decir.
+  npcs.push({ id: 'printerRH1', kind: 'printer', style: 'printer', col: rhLeftWall, row: 14, role: 'none' });
+  npcs.push({ id: 'printerRH2', kind: 'printer', style: 'printer', col: rhRightWall, row: 14, role: 'none' });
+  npcs.push({ id: 'printerRH3', kind: 'printer', style: 'printer', col: rhLeftWall, row: 20, role: 'optional' });
   // La mayoría de los puestos de RH son mujeres: se cicla un estilo corto
   // cada dos o tres largos, en vez de dejarlo a la suerte de agentAt().
   const RH_STYLE_CYCLE = ['agent1', 'agent3', 'agent0', 'agent6', 'agent8', 'agent9', 'agent5', 'agent11'];
@@ -509,15 +592,23 @@ function operaciones() {
       npcs.push(Object.assign(agentAt(2, c, bank.row), { style: style }));
     }
   });
-  // Andrés Padilla reemplaza el puesto del medio del primer mesón de RH.
-  const andresCol = RH_BANKS[0].col0 + Math.floor((RH_BANKS[0].col1 - RH_BANKS[0].col0) / 2);
+  // Puesto del medio del segundo mesón de RH: reclutadora, con línea propia.
+  const rhReclutaCol = RH_BANKS[1].col0 + Math.floor((RH_BANKS[1].col1 - RH_BANKS[1].col0) / 2);
   npcs.forEach(function (n) {
-    if (n.col === andresCol && n.row === RH_BANKS[0].row) {
-      n.id = 'andresPadilla';
+    if (n.col === rhReclutaCol && n.row === RH_BANKS[1].row) {
+      n.id = 'rhRecluta';
+      n.style = 'rhRecluta';
       n.role = 'optional';
     }
   });
-
+  RH_EXTRAS.forEach(function (o) {
+    npcs.forEach(function (n) {
+      if (n.col === o[1] && n.row === o[2]) {
+        n.id = o[0];
+        n.role = 'optional';
+      }
+    });
+  });
   // rincón de plantas, arriba a la izquierda del open space (antes era la cafetería)
   put(g, 1 + OPS_PAD, 1, 'P');
   put(g, 2 + OPS_PAD, 1, 'P');
@@ -528,12 +619,12 @@ function operaciones() {
   put(g, 38 + OPS_PAD, 1, 'P');
   // dispensadores de agua: los de la entrada se quedan cerca del ascensor
   // (que no se mueve), separados de las columnas L del ascensor mismo.
-  [[12, 1], [23, 1], [30, 1], [37, 1]].forEach(function (w) {
+  [[12, 1], [23, 1], [30, 1], [40, 1]].forEach(function (w) {
     put(g, w[0], w[1], 'W');
   });
-  [[10, 9], [OPS_MAIN_RIGHT - 1, 17], [10, 19]].forEach(function (w) {
-    put(g, w[0], w[1], 'W');
-  });
+  // (el que había en col. 10 / fila 9 quedaba flotando en el vacío: esa
+  // columna es de RH, que empieza en la fila 10 -- ya no existe.)
+  put(g, OPS_MAIN_RIGHT - 1, 17, 'W');
 
   // sala de juntas, pegada a la esquina de abajo a la derecha del rectángulo
   // principal, con dos casillas de aire alrededor de la mesa y las sillas
@@ -544,23 +635,29 @@ function operaciones() {
     decor.push({ art: 'chairUp', col: c + OPS_PAD, row: 22 });
     decor.push({ art: 'chairDown', col: c + OPS_PAD, row: 24 });
   });
-  // Más gente en la reunión, en las sillas que quedaban vacías (col 49/fila
-  // 22 sigue siendo de Guillermo).
+  // Más gente en la reunión, en las sillas que quedaban vacías (col. 55 /
+  // fila 22 sigue siendo de Guillermo -- ver OPS_DEVS). Columnas relativas
+  // a la mesa (36 a 42) + OPS_PAD, igual que la mesa y las sillas mismas:
+  // se habían quedado con el número de antes de ensanchar RH y quedaron
+  // sueltas en la mitad del cuarto, lejos de la mesa.
+  // Estilos "Plain": los de la reunión van sin diadema, no están en llamada.
   [
-    [45, 22, 'agent2'],
-    [47, 22, 'agent5'],
-    [51, 22, 'agent9'],
-    [46, 24, 'agent1'],
-    [48, 24, 'agent7'],
-    [50, 24, 'agent11'],
+    [36 + OPS_PAD, 22, 'agent2Plain'],
+    [38 + OPS_PAD, 22, 'agent5Plain'],
+    [42 + OPS_PAD, 22, 'agent9Plain'],
+    [37 + OPS_PAD, 24, 'agent1Plain'],
+    [39 + OPS_PAD, 24, 'agent7Plain'],
+    [41 + OPS_PAD, 24, 'agent11Plain'],
   ].forEach(function (m, i) {
-    npcs.push({ id: 'juntas' + i, kind: 'agent', style: m[2], col: m[0], row: m[1], role: 'none', notes: i % 2 === 0 });
+    npcs.push({ id: 'juntas' + i, kind: 'agent', style: m[2], col: m[0], row: m[1], role: 'none' });
   });
-  // vida en las paredes: tablero y agua a un lado, planta y estante al otro.
-  put(g, 34 + OPS_PAD, 21, 'R');
-  put(g, 44 + OPS_PAD, 21, 'W');
-  put(g, 34 + OPS_PAD, 25, 'P');
-  put(g, 44 + OPS_PAD, 25, 'B');
+  // vida en las paredes: tablero y agua subidos una posición (quedan
+  // pegados a la pared de arriba de la sala); planta y biblioteca todo lo
+  // abajo que da el cuarto (pegadas a la pared de abajo).
+  put(g, 34 + OPS_PAD, 20, 'R');
+  put(g, 44 + OPS_PAD, 20, 'W');
+  put(g, 34 + OPS_PAD, 26, 'P');
+  put(g, 44 + OPS_PAD, 26, 'B');
 
   // detalles sueltos por el piso -- la fila 22 (justo debajo de Danilo) se
   // dejó libre a propósito: eran cosas que antes estaban contra la pared de
@@ -569,6 +666,14 @@ function operaciones() {
   put(g, 22 + OPS_PAD, 15, 'X');
   put(g, 19 + OPS_PAD, 1, 'P');
   put(g, 44 + OPS_PAD, 9, 'B');
+  // Más vida contra la pared de abajo del open space -- plantas en el piso,
+  // esquivando las canecas, la puerta del baño y la sala de juntas.
+  put(g, OPS_MAIN_LEFT + 1, 26, 'P');
+  put(g, 24, 26, 'P');
+  put(g, 28, 26, 'P');
+  put(g, 32, 26, 'P');
+  put(g, 41, 26, 'P');
+  put(g, 45, 26, 'B');
 
   return {
     n: 2,
@@ -591,42 +696,69 @@ function operaciones() {
       {
         id: 'zorro',
         points: [
-          { col: 25, row: 23 },
-          { col: 25, row: 5 },
-          { col: 39, row: 5 },
-          { col: 39, row: 23 },
+          { col: 31, row: 23 },
+          { col: 31, row: 4 },
+          { col: 45, row: 4 },
+          { col: 45, row: 23 },
         ],
         speed: 42,
       },
-      // Danilo también se mueve, por la franja baja del piso.
+      // Danilo baja hasta la puerta de la sala de juntas, entra un poco,
+      // sale otra vez y camina un tramo a la izquierda antes de repetir.
       {
         id: 'danilo',
         points: [
-          { col: 12 + OPS_PAD, row: 24 },
-          { col: 28 + OPS_PAD, row: 24 },
+          { col: 54, row: 15 },
+          { col: 54, row: 19 },
+          { col: 54, row: 21 },
+          { col: 54, row: 19 },
+          { col: 54, row: 15 },
+          { col: 50, row: 15 },
         ],
-        speed: 26,
+        speed: 34,
       },
     ],
     decorTop: [
       // El logo se corrió lejos del ascensor -- antes quedaba encima de él.
-      { art: 'logo', col: 50, row: 1 },
+      { art: 'logo', col: 47, row: 1 },
       { art: 'clock', col: 10 + OPS_PAD, row: 0 },
       { art: 'banner', col: 8 + OPS_PAD, row: 0 },
       { art: 'banner', col: 30 + OPS_PAD, row: 0 },
+      // Cajas de galletas, al lado derecho del ascensor de operaciones.
+      { art: 'cookies', col: OPS_ELEV.col + 6, row: 1 },
       // tres canecas juntas, lejos de la sala de juntas
-      { art: 'trashCans', col: OPS_MAIN_LEFT + 1, row: 26 },
+      { art: 'trashCans', col: OPS_MAIN_LEFT + 4, row: 26 },
       // otras tres canecas contra la pared derecha, entre el estante y el dispensador de agua.
       { art: 'trashCansV', col: OPS_MAIN_RIGHT - 1, row: 13 },
+      // Letreros pequeños en la entrada de cada oficina cerrada, del lado
+      // del open space -- a la altura de la puerta.
+      { art: 'doorSignRH', col: OPS_MAIN_LEFT, row: RH_OFFICE.doorRow - 1 },
+      { art: 'doorSignTI', col: OPS_MAIN_RIGHT, row: TI_OFFICE.doorRow - 1 },
+      // Corazones también en las paredes de arriba y de abajo de RH -- ya
+      // tiene las de siempre, pero le faltaba vida en su propio cuarto.
+      { art: 'heart', col: 3, row: RH_OFFICE.y0 },
+      { art: 'heart', col: 7, row: RH_OFFICE.y0 },
+      { art: 'heart', col: 11, row: RH_OFFICE.y0 },
+      { art: 'painting', col: 2, row: RH_OFFICE.y0 },
+      { art: 'nameplate', col: 5, row: RH_OFFICE.y0 },
+      { art: 'painting', col: 9, row: RH_OFFICE.y0 },
+      { art: 'clock', col: 13, row: RH_OFFICE.y0 },
+      { art: 'heart', col: 3, row: RH_OFFICE.y1 },
+      { art: 'heart', col: 7, row: RH_OFFICE.y1 },
+      { art: 'heart', col: 11, row: RH_OFFICE.y1 },
+      { art: 'painting', col: 2, row: RH_OFFICE.y1 },
+      { art: 'clock', col: 5, row: RH_OFFICE.y1 },
+      { art: 'painting', col: 9, row: RH_OFFICE.y1 },
+      { art: 'nameplate', col: 13, row: RH_OFFICE.y1 },
       // Más corazones por las paredes -- decoración de amor y amistad.
       { art: 'heart', col: 5 + OPS_PAD, row: 0 },
       { art: 'heart', col: 33 + OPS_PAD, row: 0 },
-      { art: 'heart', col: 22, row: 0 },
-      { art: 'heart', col: 27, row: 0 },
-      { art: 'heart', col: 32, row: 0 },
-      { art: 'heart', col: 37, row: 0 },
-      { art: 'heart', col: 46, row: 0 },
-      { art: 'heart', col: 50, row: 0 },
+      { art: 'heart', col: 28, row: 0 },
+      { art: 'heart', col: 33, row: 0 },
+      { art: 'heart', col: 38, row: 0 },
+      // Se quitó el corazón que quedaba encima del letrero de COOKIES.
+      { art: 'heart', col: 52, row: 0 },
+      { art: 'heart', col: 56, row: 0 },
       // También contra las otras tres paredes del rectángulo principal, no
       // solo la de arriba -- que se vean corazones por todo el piso.
       { art: 'heart', col: OPS_MAIN_LEFT, row: 4 },
@@ -634,15 +766,27 @@ function operaciones() {
       { art: 'heart', col: OPS_MAIN_LEFT, row: 13 },
       { art: 'heart', col: OPS_MAIN_LEFT, row: 22 },
       { art: 'heart', col: OPS_MAIN_LEFT, row: 25 },
+      // Más vida contra la pared izquierda -- antes solo tenía corazones.
+      { art: 'painting', col: OPS_MAIN_LEFT, row: 6 },
+      { art: 'clock', col: OPS_MAIN_LEFT, row: 20 },
+      { art: 'banner', col: OPS_MAIN_LEFT, row: 2 },
+      // Canecas en vertical, igual que las de la pared derecha.
+      { art: 'trashCansV', col: OPS_MAIN_LEFT + 1, row: 4 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 3 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 10 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 14 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 19 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 24 },
-      { art: 'heart', col: 20, row: OPS_BOTTOM },
-      { art: 'heart', col: 28, row: OPS_BOTTOM },
-      { art: 'heart', col: 36, row: OPS_BOTTOM },
-      { art: 'heart', col: 44, row: OPS_BOTTOM },
+      { art: 'heart', col: 26, row: OPS_BOTTOM },
+      { art: 'heart', col: 34, row: OPS_BOTTOM },
+      { art: 'heart', col: 42, row: OPS_BOTTOM },
+      { art: 'heart', col: 50, row: OPS_BOTTOM },
+      // Más vida contra esta pared -- es la que da con el baño de abajo --
+      // repartida entre los corazones y esquivando la puerta (col. 37-38).
+      { art: 'painting', col: 20, row: OPS_BOTTOM },
+      { art: 'clock', col: 30, row: OPS_BOTTOM },
+      { art: 'painting', col: 46, row: OPS_BOTTOM },
+      { art: 'netSwitch', col: 55, row: OPS_BOTTOM },
       { art: 'tableItems', col: 38 + OPS_PAD, row: 23 },
       { art: 'mug', col: 41 + OPS_PAD, row: 23 },
       { art: 'nameplate', col: 39 + OPS_PAD, row: 19 },
@@ -699,36 +843,57 @@ const TERRACE_PARTY = [
 
 function terraza() {
   const g = grid(FLOOR_W, TERRACE_H, 'g');
-  fill(g, 0, 0, 31, 0, 'Y');
-  fill(g, 0, 14, 31, 14, 'Y');
+  const TR = FLOOR_W - 1;
+  fill(g, 0, 0, TR, 0, 'Y');
+  fill(g, 0, 14, TR, 14, 'Y');
   fill(g, 0, 0, 0, 14, 'Y');
-  fill(g, 31, 0, 31, 14, 'Y');
+  fill(g, TR, 0, TR, 14, 'Y');
 
-  fill(g, 14, 0, 17, 0, '#');
-  put(g, 14, 1, '#');
-  put(g, 17, 1, '#');
-  put(g, 14, 2, '#');
-  put(g, 17, 2, '#');
-  put(g, ELEV.col, ELEV.row, 'L');
-  put(g, ELEV.col + 1, ELEV.row, 'L');
+  // El ascensor de este piso queda en la mitad de la terraza en X (ancho
+  // real: col. 0 a 39, con este ascensor ocupando 19-20 quedan 19 columnas
+  // libres a cada lado) -- no es el mismo ELEV global de recepción/bienestar.
+  const TERRACE_ELEV = { col: 19, row: 1 };
+  fill(g, 18, 0, 21, 0, '#');
+  put(g, 18, 1, '#');
+  put(g, 21, 1, '#');
+  put(g, 18, 2, '#');
+  put(g, 21, 2, '#');
+  put(g, TERRACE_ELEV.col, TERRACE_ELEV.row, 'L');
+  put(g, TERRACE_ELEV.col + 1, TERRACE_ELEV.row, 'L');
 
-  // tienda de Marce, pegada a la esquina superior izquierda
-  fill(g, 2, 2, 6, 2, 'c');
-  put(g, 1, 1, 'F');
-  put(g, 6, 1, 'B');
+  // tienda de Marce, pegada a la esquina superior izquierda (un renglón
+  // más abajo que antes -- mesa y lo que va encima, todo junto).
+  fill(g, 2, 3, 6, 3, 'c');
+  put(g, 1, 2, 'F');
+  put(g, 6, 2, 'B');
 
   // mesas a la derecha, lejos de donde se arma la celebración
-  const RIGHT_TABLES = [[28, 3], [28, 8]];
+  // Cuadrícula pareja (columnas 32 y 37, filas 2/7/12): dos columnas y tres
+  // filas libres de aire entre una mesa y la siguiente, en vez de las ocho
+  // de antes que casi se tocaban entre sí.
+  const RIGHT_TABLES = [
+    [30, 2], [30, 7], [30, 12],
+    [35, 2], [35, 7], [35, 12],
+    // Mismo patrón del lado izquierdo (col. 10 y 14), esquivando la tienda
+    // de Marce y a los que ya están celebrando por esa zona. Sin las dos de
+    // arriba -- quedaban muy cerca de la tienda.
+    [10, 7], [10, 12],
+    [14, 7],
+  ];
   RIGHT_TABLES.forEach(function (t) {
     fill(g, t[0], t[1], t[0], t[1] + 1, 'm');
   });
-  const SMALL_TABLES = [[2, 7], [4, 11]];
+  const SMALL_TABLES = [
+    [2, 7], [4, 11],
+    // parte baja de la terraza
+    [10, 12], [16, 13], [24, 12],
+  ];
   SMALL_TABLES.forEach(function (t) {
     put(g, t[0], t[1], 'm');
   });
 
   [
-    [9, 1], [12, 1], [19, 1], [30, 1],
+    [9, 1], [12, 1], [25, 1], [30, 1],
     [1, 5], [1, 12], [30, 7], [30, 13],
     [8, 13], [14, 13], [21, 13], [26, 13],
   ].forEach(function (pos) {
@@ -736,16 +901,50 @@ function terraza() {
   });
 
   const npcs = [
-    { id: 'sergio', kind: 'boss', style: 'sergioBoss', col: 5, row: 4, role: 'mission', stand: true, side: 'bow', flip: true },
-    { id: 'yesica', kind: 'boss', style: 'yesica', col: 6, row: 4, role: 'none', stand: true },
-    // Marce, detrás de su propia tienda.
-    { id: 'marce', kind: 'staff', style: 'marce', col: 4, row: 1, role: 'optional', stand: true },
+    // A mitad de la terraza (ancho real: col. 0 a 39).
+    { id: 'sergio', kind: 'boss', style: 'sergioBoss', col: 19, row: 7, role: 'mission', stand: true, side: 'bow', flip: true },
+    { id: 'yesica', kind: 'boss', style: 'yesica', col: 20, row: 7, role: 'none', stand: true },
+    // Marce se corrió al puesto donde antes estaba Sergio.
+    { id: 'marce', kind: 'staff', style: 'marce', col: 5, row: 4, role: 'optional', stand: true },
     // Gente ya sentada en las mesas, para que la terraza no se vea vacía
     // mientras no se ha hablado con Sergio.
     { id: 'guest1', kind: 'guest', style: 'agent2', col: 1, row: 7, role: 'none' },
     { id: 'guest2', kind: 'guest', style: 'agent6', col: 5, row: 11, role: 'none' },
-    { id: 'guest3', kind: 'guest', style: 'staff1', col: 27, row: 3, role: 'none' },
-    { id: 'guest4', kind: 'guest', style: 'agent10', col: 29, row: 8, role: 'none' },
+    { id: 'guest3', kind: 'guest', style: 'staff1', col: 30, row: 4, role: 'none', stand: true },
+    { id: 'guest4', kind: 'guest', style: 'agent10', col: 30, row: 10, role: 'none', stand: true },
+    // Las mesas de la derecha, con gente sentada de verdad -- antes eran
+    // solo sillas vacías. Dos personas por mesa, en las sillas de la
+    // izquierda (col. t0-1); las de la derecha quedan libres para que no
+    // se vea forzado.
+    { id: 'guest5', kind: 'guest', style: 'agent1', col: 29, row: 2, role: 'none' },
+    { id: 'guest7', kind: 'guest', style: 'agent3', col: 29, row: 7, role: 'none' },
+    { id: 'guest8', kind: 'guest', style: 'agent8', col: 29, row: 8, role: 'none' },
+    { id: 'guest9', kind: 'guest', style: 'agent5', col: 29, row: 12, role: 'none' },
+    { id: 'guest11', kind: 'guest', style: 'agent11', col: 34, row: 2, role: 'none' },
+    { id: 'guest12', kind: 'guest', style: 'agent7', col: 34, row: 3, role: 'none' },
+    { id: 'guest13', kind: 'guest', style: 'agent9', col: 34, row: 7, role: 'none' },
+    { id: 'guest14', kind: 'guest', style: 'staff1', col: 34, row: 8, role: 'none' },
+    { id: 'guest15', kind: 'guest', style: 'agent0', col: 34, row: 12, role: 'none' },
+    { id: 'guest16', kind: 'guest', style: 'agent6', col: 34, row: 13, role: 'none' },
+    // Sillas de la derecha de esas mismas seis mesas (antes se dejaban
+    // vacías a propósito; ahora también llevan gente).
+    { id: 'guest17', kind: 'guest', style: 'agent4', col: 31, row: 2, role: 'none' },
+    { id: 'guest19', kind: 'guest', style: 'staff3', col: 31, row: 7, role: 'none' },
+    { id: 'guest21', kind: 'guest', style: 'agent7', col: 31, row: 12, role: 'none' },
+    { id: 'guest23', kind: 'guest', style: 'agent1', col: 36, row: 2, role: 'none' },
+    { id: 'guest25', kind: 'guest', style: 'agent3', col: 36, row: 7, role: 'none' },
+    { id: 'guest27', kind: 'guest', style: 'agent5', col: 36, row: 12, role: 'none' },
+    // Las cinco mesas nuevas del lado izquierdo (espejo de las de la
+    // derecha), con gente a los dos lados. Col. 11/fila 3 y col. 11/fila 13
+    // se saltan porque ya había alguien de la celebración justo ahí.
+    { id: 'guest32', kind: 'guest', style: 'staff2', col: 9, row: 7, role: 'none' },
+    { id: 'guest33', kind: 'guest', style: 'agent1', col: 9, row: 8, role: 'none' },
+    { id: 'guest34', kind: 'guest', style: 'agent4', col: 11, row: 7, role: 'none' },
+    { id: 'guest36', kind: 'guest', style: 'agent2', col: 9, row: 12, role: 'none' },
+    { id: 'guest37', kind: 'guest', style: 'agent9', col: 11, row: 12, role: 'none' },
+    { id: 'guest42', kind: 'guest', style: 'agent3', col: 13, row: 7, role: 'none' },
+    { id: 'guest43', kind: 'guest', style: 'agent8', col: 13, row: 8, role: 'none' },
+    { id: 'guest44', kind: 'guest', style: 'staff1', col: 15, row: 7, role: 'none' },
   ];
 
   TERRACE_PARTY.forEach(function (p) {
@@ -783,7 +982,7 @@ function terraza() {
   [[3, 0], [8, 0], [12, 0], [20, 0], [25, 0], [29, 0]].forEach(function (p) {
     hearts.push({ art: 'heart', col: p[0], row: p[1] });
   });
-  [[0, 5], [0, 9], [0, 13], [31, 4], [31, 8], [31, 12]].forEach(function (p) {
+  [[0, 5], [0, 9], [0, 13], [TR, 4], [TR, 8], [TR, 12]].forEach(function (p) {
     hearts.push({ art: 'heart', col: p[0], row: p[1] });
   });
   [[6, 14], [13, 14], [20, 14], [26, 14]].forEach(function (p) {
@@ -796,27 +995,26 @@ function terraza() {
     h: TERRACE_H,
     rows: g,
     base: 'g',
-    arch: { x: 16, y: 4, scale: 1.9 },
+    arch: { x: 19.5, y: 4, scale: 1.9 },
     zones: [
       [1, 1, 7, 4, '%'],
-      [14, 1, 17, 4, '%'],
+      [18, 1, 21, 4, '%'],
     ],
     npcs: npcs,
     decor: chairs,
     decorTop: hearts.concat([
       { art: 'trashCans', col: 2, row: 12 },
-      { art: 'mural', col: 22, row: 1 },
-      { art: 'menu', col: 3, row: 0 },
-      { art: 'coffee', col: 2, row: 1 },
-      { art: 'pastry', col: 5, row: 1 },
-      { art: 'cups', col: 3, row: 2 },
-      { art: 'mug', col: 5, row: 2 },
-      { art: 'mug', col: 28, row: 3 },
-      { art: 'cups', col: 28, row: 8 },
+      { art: 'logo', col: 23, row: 1 },
+      { art: 'menu', col: 3, row: 1 },
+      { art: 'coffee', col: 2, row: 2 },
+      { art: 'pastry', col: 5, row: 2 },
+      { art: 'cups', col: 3, row: 3 },
+      { art: 'mug', col: 5, row: 3 },
     ]),
     label: 'PISO 3 · TERRAZA',
     elevLabel: 'TERRAZA',
-    spawn: ELEV_SPAWN,
+    spawn: { col: TERRACE_ELEV.col, row: TERRACE_ELEV.row + 1 },
+    elev: TERRACE_ELEV,
   };
 }
 

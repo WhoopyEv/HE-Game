@@ -506,13 +506,107 @@
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     font-size: clamp(9px, 1.6vw, 13px);
     line-height: 1.35;
     color: var(--ink);
   }
 
+  .help-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
   .help-list b { color: var(--gold); }
+
+  /* Teclas dibujadas como teclas de verdad (con relieve), no como texto en
+     negrilla -- se leen de un vistazo, como en cualquier juego. */
+  .keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.7em;
+    height: 1.6em;
+    padding: 0 5px;
+    background: var(--panel-light);
+    border: 2px solid var(--gold);
+    border-bottom-width: 4px;
+    border-radius: 5px;
+    font-size: 0.92em;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0;
+  }
+
+  .key.is-wide { min-width: 3.6em; padding: 0 8px; }
+
+  .key-or { color: var(--ink-dim); font-size: 0.85em; padding: 0 1px; }
+
+  /* Mini D-pad de verdad (cruz), en vez de cuatro teclas de flecha sueltas
+     en fila -- mismo lenguaje visual que el D-pad táctil real del juego. */
+  .mini-dpad {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 1.5em);
+    grid-template-rows: repeat(3, 1.5em);
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .mini-dpad span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel-light);
+    border: 2px solid var(--gold);
+    border-bottom-width: 4px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    color: var(--ink);
+  }
+
+  .dp-up { grid-area: 1 / 2; }
+  .dp-left { grid-area: 2 / 1; }
+  .dp-right { grid-area: 2 / 3; }
+  .dp-down { grid-area: 3 / 2; }
+
+  /* Botón redondo, igual que el botón de acción táctil (#act), para E /
+     hablar / interactuar -- en vez de solo la letra suelta. */
+  .mini-act {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8em;
+    height: 1.8em;
+    border-radius: 50%;
+    background: var(--panel-light);
+    border: 2px solid var(--gold);
+    border-bottom-width: 4px;
+    font-weight: 700;
+    font-size: 0.85em;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  /* Icono + etiqueta corta, para la fila de controles de celular. */
+  .mobile-ctrl {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .mobile-ctrl small { font-size: 0.72em; color: var(--ink-dim); letter-spacing: 0.04em; }
+
+  .mobile-tag { color: var(--ink-dim); }
 
   #help {
     position: fixed;
@@ -576,9 +670,37 @@
   <div id="howto-screen" class="layer">
     <h2 class="help-title">CÓMO JUGAR</h2>
     <ul class="help-list">
-      <li><b>Flechas</b> o <b>WASD</b> — caminar, con <b>MAYÚS</b> corres</li>
-      <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar, avanzar y usar el ascensor</li>
-      <li>En celular: <b>D-pad</b>, botón <b>CORRER</b> y botón <b>E</b></li>
+      <li>
+        <span class="mini-dpad" aria-hidden="true">
+          <span class="dp-up">▲</span><span class="dp-left">◀</span><span class="dp-right">▶</span><span class="dp-down">▼</span>
+        </span>
+        <span class="key-or">o</span>
+        <span class="keys"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></span>
+        <span>caminar</span>
+      </li>
+      <li>
+        <span class="keys"><span class="key is-wide">MAYÚS</span></span>
+        <span>mantén para correr</span>
+      </li>
+      <li>
+        <span class="mini-act" aria-hidden="true">E</span>
+        <span class="key-or">/</span>
+        <span class="keys"><span class="key is-wide">ESPACIO</span></span>
+        <span class="key-or">/</span>
+        <span class="keys"><span class="key is-wide">ENTER</span></span>
+        <span>hablar, avanzar y usar el ascensor</span>
+      </li>
+      <li>
+        <span class="mobile-tag">En celular:</span>
+        <span class="mobile-ctrl">
+          <span class="mini-dpad" aria-hidden="true">
+            <span class="dp-up">▲</span><span class="dp-left">◀</span><span class="dp-right">▶</span><span class="dp-down">▼</span>
+          </span>
+          <small>mover</small>
+        </span>
+        <span class="mobile-ctrl"><span class="key is-wide" aria-hidden="true">CORRER</span><small>correr</small></span>
+        <span class="mobile-ctrl"><span class="mini-act" aria-hidden="true">E</span><small>hablar</small></span>
+      </li>
     </ul>
     <button id="howto-btn">Empezar</button>
     <p class="howto-skip">ESC para saltar</p>
@@ -587,17 +709,54 @@
   <div id="help-modal" class="layer">
     <h2 class="help-title">CÓMO JUGAR</h2>
     <ul class="help-list">
-      <li><b>Flechas</b> o <b>WASD</b> — caminar por el piso</li>
-      <li>Mantén <b>MAYÚS</b> para correr</li>
-      <li><b>E</b>, <b>ESPACIO</b> o <b>ENTER</b> — hablar y avanzar el diálogo</li>
-      <li><b>E</b> frente al ascensor — abrir el panel de pisos</li>
-      <li>En el ascensor: <b>↑ ↓</b> eliges piso, <b>E</b> vas, <b>← →</b> sales</li>
+      <li>
+        <span class="mini-dpad" aria-hidden="true">
+          <span class="dp-up">▲</span><span class="dp-left">◀</span><span class="dp-right">▶</span><span class="dp-down">▼</span>
+        </span>
+        <span class="key-or">o</span>
+        <span class="keys"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></span>
+        <span>caminar por el piso</span>
+      </li>
+      <li>
+        <span class="keys"><span class="key is-wide">MAYÚS</span></span>
+        <span>mantén para correr</span>
+      </li>
+      <li>
+        <span class="mini-act" aria-hidden="true">E</span>
+        <span class="key-or">/</span>
+        <span class="keys"><span class="key is-wide">ESPACIO</span></span>
+        <span class="key-or">/</span>
+        <span class="keys"><span class="key is-wide">ENTER</span></span>
+        <span>hablar y avanzar el diálogo</span>
+      </li>
+      <li>
+        <span class="mini-act" aria-hidden="true">E</span>
+        <span>frente al ascensor — abrir el panel de pisos</span>
+      </li>
+      <li>
+        <span class="keys"><span class="key">↑</span><span class="key">↓</span></span>
+        <span>elegir piso en el ascensor</span>
+        <span class="mini-act" aria-hidden="true">E</span>
+        <span>ir</span>
+        <span class="keys"><span class="key">←</span><span class="key">→</span></span>
+        <span>salir</span>
+      </li>
       <li>Los mensajes opcionales salen solos al acercarte a la persona</li>
       <li>En <b>operaciones</b> están los 5 del equipo de desarrollo: háblales para que te den su pieza</li>
       <li>Las <b>flechas doradas</b> del borde te apuntan a quién falta por visitar</li>
       <li>La <b>flecha verde</b> te apunta al ascensor cuando ya reuniste todo</li>
       <li>Con las <b>5 piezas</b> se abre la terraza, donde te esperan Sergio y Yesica</li>
-      <li>En celular: usa el <b>D-pad</b>, el botón <b>CORRER</b> y el botón <b>E</b> de abajo</li>
+      <li>
+        <span class="mobile-tag">En celular:</span>
+        <span class="mobile-ctrl">
+          <span class="mini-dpad" aria-hidden="true">
+            <span class="dp-up">▲</span><span class="dp-left">◀</span><span class="dp-right">▶</span><span class="dp-down">▼</span>
+          </span>
+          <small>mover</small>
+        </span>
+        <span class="mobile-ctrl"><span class="key is-wide" aria-hidden="true">CORRER</span><small>correr</small></span>
+        <span class="mobile-ctrl"><span class="mini-act" aria-hidden="true">E</span><small>hablar</small></span>
+      </li>
     </ul>
     <button id="help-close">Cerrar</button>
   </div>

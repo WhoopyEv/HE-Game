@@ -12,9 +12,15 @@
     confianza: { x: 4, y: 13 },
     equipo: { x: 16, y: 18 },
   };
-  const LOGO_SCALE = 3;
+  const LOGO_SCALE = 4;
   const LOGO_X = Math.round((VIEW_W - 32 * LOGO_SCALE) / 2);
   const LOGO_Y = 18;
+  // El logo que se arma al final siempre se ve completo -- si a alguien le
+  // faltó una pieza (por ejemplo probando el juego con los bloqueos
+  // desactivados), igual se revela entero, no a medias.
+  const ALL_VALUE_IDS = VALUES.map(function (v) {
+    return v.id;
+  });
 
   const STATE = {
     TITLE: 'title',
@@ -39,6 +45,12 @@
   let time = 0;
   let collected = [];
   let missionGiven = false;
+  // DEV: bloqueos de misión/ascensor desactivados a propósito para probar
+  // más rápido durante el desarrollo (entrar a la terraza sin las 5 piezas,
+  // usar el ascensor sin haber hablado con Sergio). TODO: volver a `false`
+  // antes de publicar -- son las dos únicas líneas que usan esta bandera
+  // (buscar DEV_SKIP_GATES).
+  const DEV_SKIP_GATES = true;
   let finaleTriggered = false;
   let partyOn = false;
   let floorIdx = 0;
@@ -158,7 +170,11 @@
     }
     if (bubbleFor !== npc.id) {
       bubbleFor = npc.id;
-      el['bubble-name'].textContent = msg.name;
+      // El nombre es opcional -- si no se pone (para no inventarle un
+      // "OPERACIONES" a cualquiera), el globo sale sin esa línea.
+      const name = msg.name || '';
+      el['bubble-name'].textContent = name;
+      el['bubble-name'].style.display = name ? '' : 'none';
       el['bubble-text'].textContent = msg.lines.join(' ');
       bubbleW = el.bubble.offsetWidth;
       bubbleH = el.bubble.offsetHeight;
@@ -439,26 +455,28 @@
     px(ctx, x + 3, py + 5, 2, 2, '#f4f0e6');
   }
 
+  // Mismo logo que ya está en recepción/operaciones/terraza (src/map.js,
+  // drawLogo) -- antes esta era una segunda versión hecha a mano, con otras
+  // proporciones. Se arma pieza por pieza para la animación del final.
   function drawLogoParts(g, x, y, have) {
     const has = function (id) {
       return have.indexOf(id) !== -1;
     };
-    if (has('respaldo')) {
-      px(g, x, y, 32, 22, '#0d0a12');
-      px(g, x, y, 32, 1, '#3a3244');
-      px(g, x, y + 21, 32, 1, '#3a3244');
-    }
-    if (has('oportunidad')) px(g, x + 22, y + 2, 8, 3, '#8f2fd4');
+    const w = '#f4f0e6';
+    if (has('respaldo')) px(g, x, y, 32, 22, '#0d0a12');
     if (has('aprendizaje')) {
-      px(g, x + 4, y + 6, 3, 9, '#f4f0e6');
-      px(g, x + 11, y + 3, 3, 12, '#f4f0e6');
-      px(g, x + 7, y + 9, 4, 3, '#f4f0e6');
-      px(g, x + 17, y + 6, 3, 9, '#f4f0e6');
-      px(g, x + 20, y + 6, 7, 3, '#f4f0e6');
-      px(g, x + 20, y + 12, 7, 3, '#f4f0e6');
+      // H
+      px(g, x + 2, y + 3, 4, 8, w);
+      px(g, x + 2, y + 8, 13, 3, w);
+      px(g, x + 11, y + 3, 4, 14, w);
+      // E
+      px(g, x + 18, y + 8, 12, 3, w);
+      px(g, x + 18, y + 8, 4, 9, w);
+      px(g, x + 18, y + 14, 12, 3, w);
     }
-    if (has('confianza')) px(g, x + 2, y + 11, 4, 4, '#e0453e');
-    if (has('equipo')) px(g, x + 3, y + 17, 26, 3, '#f2c50a');
+    if (has('confianza')) px(g, x + 2, y + 12, 4, 5, '#e0453e');
+    if (has('oportunidad')) px(g, x + 18, y + 3, 12, 3, '#8f2fd4');
+    if (has('equipo')) px(g, x + 2, y + 18, 28, 3, '#f2c50a');
   }
 
   function buildLogoCanvas(have) {
@@ -530,7 +548,7 @@
     if (f.phase === 'flip') {
       if (!f.flipped && f.t >= 0.35) {
         f.flipped = true;
-        logoCanvas = buildLogoCanvas(f.have);
+        logoCanvas = buildLogoCanvas(ALL_VALUE_IDS);
       }
       if (f.t >= 0.75) {
         f.phase = 'devs';
@@ -575,7 +593,7 @@
     ctx.scale(sx, 1);
     ctx.translate(-cx, 0);
     if (f.flipped || f.phase !== 'flip') {
-      if (!logoCanvas) logoCanvas = buildLogoCanvas(f.have);
+      if (!logoCanvas) logoCanvas = buildLogoCanvas(ALL_VALUE_IDS);
       ctx.drawImage(logoCanvas, LOGO_X, LOGO_Y, 32 * LOGO_SCALE, 22 * LOGO_SCALE);
     } else {
       f.pieces.forEach(function (p) {
@@ -614,7 +632,7 @@
   function confirmElevator() {
     const target = elevSel;
     closeElevator();
-    if (target === TERRACE_IDX && !complete()) {
+    if (!DEV_SKIP_GATES && target === TERRACE_IDX && !complete()) {
       Audio8.confirm();
       openDialogue(MESSAGES.terraceLocked.name, MESSAGES.terraceLocked.lines);
       return;
@@ -746,7 +764,7 @@
       return;
     }
     if (!nearElevator(player, fs.def.elev)) return;
-    if (!missionGiven) {
+    if (!DEV_SKIP_GATES && !missionGiven) {
       Audio8.confirm();
       openDialogue(MESSAGES.elevatorLocked.name, MESSAGES.elevatorLocked.lines);
       return;
@@ -787,6 +805,7 @@
         y: n.y,
         draw: function () {
           if (n.kind === 'robot') drawRobotVac(ctx, n.x, n.y);
+          else if (n.kind === 'printer') drawPrinter(ctx, n.x, n.y);
           else drawNpc(ctx, n, time);
         },
       });
@@ -973,7 +992,7 @@
   // Se apaga sola apenas se mueve, o después de unos segundos.
   function drawPlayerHint() {
     const bounce = Math.round(Math.sin(time * 5) * 2);
-    arrowTriangle(ctx, player.x + 8, player.y - 8 + bounce, 'down', 5, '#e8c25a');
+    arrowTriangle(ctx, player.x + 8, player.y - 8 + bounce, 'down', 5, '#8f2fd4');
   }
 
   function render() {
