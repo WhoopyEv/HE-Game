@@ -174,7 +174,7 @@ const MESSAGES = {
       lines: ['¿Pola, después del work, o mareos?'],
     },
     ops17: {
-      lines: ['¿Pola o miedos, después del work?'],
+      lines: ['¿Después del work, Pola o miedo?'],
     },
     ops18: {
       lines: ['¡Mis pielnas, mis pielnas!'],
