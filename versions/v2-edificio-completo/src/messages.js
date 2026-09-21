@@ -96,7 +96,7 @@ const MESSAGES = {
     brandon: {
       name: 'BRANDON',
       lines: [
-        'Buenos días, ingeniero.',
+        'Buenos días, ingenier@.',
       ],
     },
     porteria: {
