@@ -37,12 +37,18 @@ function createNpcs(def) {
       notes: !!n.notes,
       cloud: n.cloud || null,
       party: !!n.party,
-      hidden: !!n.party,
+      // Antes solo "party" podía empezar escondido; ahora también un npc
+      // suelto que arranca oculto hasta que algo lo revele (ver breakGuy).
+      hidden: !!n.party || !!n.hidden,
       cloudPhase: 0,
       stand: !!n.stand,
       still: !!n.still,
       flip: !!n.flip,
       talked: false,
+      bounce: !!n.bounce,
+      hipSway: !!n.hipSway,
+      shine: !!n.shine,
+      scale: n.scale || null,
     };
     // Los globos se reparten salteados en el ciclo para que no salgan dos vecinos a la vez.
     if (n.cloud) {
@@ -132,11 +138,17 @@ function canTalkTo(npc) {
 }
 
 function nearestBubbleNpc(player, npcs) {
+  // forceBubble se lo pone game.js a mano (breakGuy, mientras camina al
+  // ascensor) para que el mensaje se quede fijo sin importar la distancia.
+  const forced = npcs.filter(function (n) {
+    return n.forceBubble;
+  })[0];
+  if (forced) return forced;
   const pc = centerOf(player);
   let best = null;
   let bestDist = BUBBLE_RANGE;
   npcs.forEach(function (n) {
-    if (n.role !== 'optional') return;
+    if (n.role !== 'optional' || n.hidden) return;
     const nc = centerOf(n);
     const dist = Math.hypot(pc.x - nc.x, pc.y - nc.y);
     if (dist < bestDist) {
@@ -152,7 +164,7 @@ function nearestInteractive(player, npcs) {
   let best = null;
   let bestDist = INTERACT_RANGE;
   npcs.forEach(function (n) {
-    if (!canTalkTo(n)) return;
+    if (n.hidden || !canTalkTo(n)) return;
     const nc = centerOf(n);
     const dist = Math.hypot(pc.x - nc.x, pc.y - nc.y);
     if (dist < bestDist) {
@@ -163,10 +175,11 @@ function nearestInteractive(player, npcs) {
   return best;
 }
 
-function nearElevator(player) {
+function nearElevator(player, elev) {
+  const e = elev || ELEV;
   const pc = centerOf(player);
-  const ex = (ELEV.col + 1) * TILE;
-  const ey = ELEV.row * TILE + SPRITE_SIZE / 2;
+  const ex = (e.col + 1) * TILE;
+  const ey = e.row * TILE + SPRITE_SIZE / 2;
   return Math.hypot(pc.x - ex, pc.y - ey) < INTERACT_RANGE + 4;
 }
 
@@ -180,24 +193,81 @@ function cameraFor(player, floor, viewW, viewH) {
   return { x: cx, y: cy };
 }
 
-function drawPlayer(ctx, player) {
+// Marca bajo los pies para identificar al Espartano (el personaje que se
+// controla) entre el resto de la gente. Siempre visible, quieto o caminando,
+// y parpadea para que se note más.
+function drawStandMarker(ctx, x, y, t) {
+  const cx = x + 8;
+  const cy = y + 15;
+  const blink = (Math.sin(t * 4) + 1) / 2;
+  ctx.save();
+  ctx.globalAlpha = 0.35 + blink * 0.4;
+  ctx.fillStyle = '#8f2fd4';
+  ctx.fillRect(cx - 6, cy, 12, 3);
+  ctx.globalAlpha = 0.6 + blink * 0.4;
+  ctx.fillRect(cx - 4, cy, 8, 1);
+  ctx.restore();
+}
+
+function drawPlayer(ctx, player, t) {
+  drawStandMarker(ctx, player.x, player.y, t);
   const frame = player.moving ? player.frame : 0;
   if (player.dir === 'up') drawSprite(ctx, 'spartanUp', frame, player.x, player.y, false);
   else if (player.dir === 'down') drawSprite(ctx, 'spartanDown', frame, player.x, player.y, false);
   else drawSprite(ctx, 'spartanSide', frame, player.x, player.y, player.dir === 'left');
 }
 
+// La paleta del que juega ping pong: se dibuja pegada al propio personaje
+// (no como una entidad aparte con su propia posición, como antes) usando el
+// mismo valor "t" que mueve el cuerpo, así que siempre van sincronizados.
+function drawHeldPaddle(ctx, npc, t) {
+  const x = npc.flip ? npc.x - 2 : npc.x + 14;
+  const y = npc.y + 4 + t * 6;
+  ctx.fillStyle = '#6b4a2a';
+  ctx.fillRect(x + (npc.flip ? 4 : 1), y + 6, 3, 3);
+  ctx.fillStyle = '#c9454a';
+  ctx.fillRect(x + (npc.flip ? 0 : 3), y, 4, 7);
+  ctx.fillStyle = '#e06a6a';
+  ctx.fillRect(x + (npc.flip ? 1 : 4), y + 1, 2, 3);
+}
+
 // Diana es más alta y Daniel más ancho: se estira el dibujo desde los pies,
 // sin tocar la casilla que ocupan.
 function drawNpc(ctx, npc, time) {
   let bob = npc.stand || npc.still ? 0 : Math.floor(time * 4 + npc.col) % 2 === 0 ? 0 : 1;
+  // bounce: true -- la persona y su paleta comparten el mismo "t" (0 a 1),
+  // así que ya no son dos cosas separadas que hay que sincronizar a mano.
+  // flip distingue de qué lado de la mesa está, para que no salten juntos.
+  if (npc.bounce) {
+    // Sin Math.round: se mueve suave (punto flotante), igual que la paleta,
+    // en vez de dar saltos de a 1px -- para que las dos cosas se sientan
+    // como el mismo movimiento y no dos animaciones distintas.
+    const phase = npc.flip ? Math.PI : 0;
+    const t = Math.max(0, Math.sin(time * 6 + phase));
+    bob = t * 3;
+    drawHeldPaddle(ctx, npc, t);
+  }
   if (npc.party) bob = -Math.round(Math.abs(Math.sin(time * 3.4 + npc.col * 0.7)) * 3);
-  // Contoneo de cadera (Danilo): un vaivén horizontal al caminar.
+  // Contoneo de cadera: solo Danilo. El de ping pong ya no se mueve en
+  // diagonal (sin vaivén horizontal) -- nada más de arriba hacia abajo.
   const sway = npc.hipSway ? Math.sin(time * 6 + npc.col) * 1.6 : 0;
   const px = npc.x + sway;
   const frame = npc.frame || 0;
   const st = DEV_STYLES[npc.style];
-  if (!st || (!st.wide && !st.tallBody)) {
+  let scaleX = 1;
+  let scaleY = 1;
+  if (st && st.wide) {
+    scaleX = 1.18;
+  } else if (st && st.tallBody) {
+    scaleX = 0.94;
+    scaleY = 1.3;
+  } else if (npc.scale) {
+    // Escala pareja (mismo alto y ancho) -- para alguien que se ve un poco
+    // más grande que el resto, sin estirarlo ni ensancharlo como a Diana o Daniel.
+    scaleX = npc.scale;
+    scaleY = npc.scale;
+  }
+  if (scaleX === 1 && scaleY === 1) {
     drawSprite(ctx, spriteOf(npc), frame, px, npc.y + bob, npc.flip);
     return;
   }
@@ -207,7 +277,7 @@ function drawNpc(ctx, npc, time) {
   const cy = npc.y + 16;
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.scale(st.wide ? 1.18 : st.tallBody ? 0.94 : 1, st.tallBody ? 1.3 : 1);
+  ctx.scale(scaleX, scaleY);
   ctx.translate(-cx, -cy);
   drawSprite(ctx, spriteOf(npc), frame, px, npc.y + bob, npc.flip);
   ctx.restore();
@@ -307,12 +377,12 @@ function drawTalkDots(ctx, x, y, t) {
   ctx.fillRect(x + 9, py + 3, 1, 1);
 }
 
-function drawQuestMark(ctx, x, y, t) {
+function drawQuestMark(ctx, x, y, t, color) {
   const bounce = Math.round(Math.sin(t * 5) * 1.5);
   const py = y - 16 + bounce;
   ctx.fillStyle = '#241a2b';
   ctx.fillRect(x + 4, py, 8, 15);
-  ctx.fillStyle = '#e8c25a';
+  ctx.fillStyle = color || '#e8c25a';
   ctx.fillRect(x + 6, py + 2, 4, 8);
   ctx.fillRect(x + 6, py + 11, 4, 3);
 }

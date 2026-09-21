@@ -20,26 +20,26 @@ const MESSAGES = {
   title: {
     heading: 'HIRED EXPERTS',
     subheading: 'Día de Amor y Amistad',
-    prompt: 'Presiona ENTER para entrar al edificio',
+    prompt: 'Presiona ENTER para entrar al site',
   },
 
   intro: {
     name: '',
     lines: [
-      'Viernes en la mañana y el edificio tiene algo preparado.',
-      'Tú eres el Espartano. Sergio y Yesica te están esperando en recepción.',
+      'Viernes en la mañana y el edificio tiene algo preparado para tí, Espartano.',
+      'Sergio y Yesica te están esperando en recepción.',
     ],
   },
 
   sergio: {
     name: 'SERGIO Y YESICA (CUPIDOS)',
     mission: [
-      'Espartano, qué bueno verte por acá. Quiero pedirte una misión.',
-      'Hoy es Día de Amor y Amistad y los cinco del equipo de desarrollo tienen algo preparado para la empresa: una pieza cada uno.',
-      'Súbete a operaciones y recógelas. Con las cinco abrimos la terraza y celebramos allá arriba.',
+      'Espartano, qué bueno verte por acá. Queremos pedirte una misión.',
+      'Hoy es Día de Amor y Amistad y los cinco del equipo de desarrollo tienen algo preparado para la empresa.',
+      'Súbete a operaciones para ver qué tienen por decir. Luego de que las tengas, te esperamos en la terraza.',
     ],
     again: [
-      'Suba a operaciones y hable con los cinco del equipo. El ascensor está en el pasillo.',
+      'Cuando tengas las cinco piezas, sube a la terraza, te esperamos allá.',
     ],
     ready: [
       'Misión cumplida, Espartano.',
@@ -49,7 +49,7 @@ const MESSAGES = {
 
   elevatorLocked: {
     name: '',
-    lines: ['Mejor primero hablo con Sergio y Yesica, allá en recepción.'],
+    lines: ['Mejor primero hablo con Sergio y Yesica.'],
   },
 
   // Sale cuando se intenta subir a la terraza sin las cinco piezas.
@@ -61,23 +61,23 @@ const MESSAGES = {
   // Los cinco del equipo de desarrollo. Cada uno entrega una pieza al hablarle.
   devs: {
     diana: {
-      name: 'DIANA',
+      name: 'DIANA A.',
       lines: ['Acá me dieron la oportunidad cuando yo misma todavía no sabía si podía: esa pieza es suya.'],
     },
     daniel: {
-      name: 'DANIEL',
+      name: 'DANIEL R.',
       lines: ['A mí me soltaron el proyecto sin preguntarme cuántos años llevaba, y eso tiene un nombre: confianza.'],
     },
     nicolas: {
-      name: 'NICOLÁS',
+      name: 'NICOLÁS D.',
       lines: ['Todo lo que sé hacer hoy lo aprendí acá, rompiendo cosas y arreglándolas sin que nadie me hiciera sentir mal.'],
     },
     guillermo: {
-      name: 'GUILLERMO',
+      name: 'GUILLERMO M.',
       lines: ['Cuando algo se cae en este equipo, no se cae uno solo: por eso la mía es la del equipo.'],
     },
     felipe: {
-      name: 'FELIPE',
+      name: 'FELIPE P.',
       lines: ['Nunca me ha tocado resolver nada solo, siempre hay alguien detrás, y eso se llama respaldo.'],
     },
   },
@@ -86,32 +86,37 @@ const MESSAGES = {
   extras: {
     aseo: {
       name: 'SERVICIOS GENERALES',
-      lines: ['Gracias por el aseo general y por dejar siempre todo ordenado.'],
+      lines: ['Gracias ayudarnos a mantener el edificio siempre en orden.'],
+    },
+    // TODO: Nico, ajusta la frase si hay una forma más exacta en que la empresa lo pide.
+    aseoBanos: {
+      name: 'SERVICIOS GENERALES',
+      lines: ['Gracias por tu participación en el cuidado de los baños, es un tema que nos importa a todos.'],
     },
     brandon: {
       name: 'BRANDON',
       lines: [
-        'Logística es esto: que cuando usted llegue, todo esté donde tiene que estar y nadie tenga que pensar en eso.',
+        'Buenos días, ingeniero.',
       ],
     },
     porteria: {
       name: 'PORTERÍA',
-      lines: ['Buenos días, Espartano. Siga, que arriba lo están esperando.'],
+      lines: ['Buenos días, Espartano. Siga, que el Boss lo está esperando.'],
     },
     josue: {
       name: 'JOSUÉ',
       lines: ['Yo cuido un piso entero, jefe. Y en el descanso, cuido esta mesa.'],
     },
     danielPardo: {
-      name: 'DANIEL PARDO',
-      lines: ['¿Están trabajando? Pueden trabajar más fuerte.'],
+      name: 'DANIEL P.',
+      lines: ['Mmm... ¿Están trabajando? ¿Pueden trabajar más fuerte? No, mentira, sigan así chicos.'],
     },
     sebastian: {
-      name: 'SEBASTIÁN RODRÍGUEZ',
+      name: 'SEBASTIÁN R.',
       lines: ['Zorro, no te lo lleves.'],
     },
     zorro: {
-      name: 'DANIEL ZORRO',
+      name: 'D. ZORRO',
       lines: ['Si se hace algo, se hace bien.'],
     },
     marce: {
@@ -132,7 +137,24 @@ const MESSAGES = {
     },
     jonathan: {
       name: 'JHONNATAN',
-      lines: ['Bro, esto está muy family friendly.'],
+      lines: ['Esto está muy family friendly.'],
+    },
+    andresPadilla: {
+      name: 'ANDRÉS PADILLA',
+      // TODO: frase de relleno -- Nico, cámbiala por lo que Andrés realmente quiera decir.
+      lines: ['¡Nueva wave!'],
+    },
+    marco: {
+      name: 'MARCO',
+      lines: ['No ticket, no arreglo.'],
+    },
+    breakGuy: {
+      name: '',
+      lines: ['¡Pista, pista que se me acaba el break!'],
+    },
+    jorge: {
+      name: 'JORGE A.',
+      lines: ['¿Qué curioso... no?'],
     },
     danilo: {
       name: 'DANILO',

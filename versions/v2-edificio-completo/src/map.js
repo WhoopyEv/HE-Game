@@ -89,7 +89,7 @@ const COLORS = {
   balloonShine: '#f7b0ac',
 };
 
-const SOLID = '#|LDdKcSRNAEYMmZVWFBPX ';
+const SOLID = '#|LDdKcSRNAEYMmZVWFBPXC ';
 
 function px(ctx, x, y, w, h, color) {
   ctx.fillStyle = color;
@@ -271,6 +271,17 @@ function drawServerRack(ctx, x, y) {
   px(ctx, x + 1, y + 14, 14, 2, COLORS.serverDark);
 }
 
+// Switch de red: una cajita de pared con lucecitas, para variar frente al
+// rack alto -- mismos colores que el servidor, para que se lean como del
+// mismo mundo.
+function drawNetSwitch(ctx, x, y) {
+  px(ctx, x + 1, y + 5, 14, 7, COLORS.serverDark);
+  px(ctx, x + 2, y + 6, 12, 5, COLORS.server);
+  for (let i = 0; i < 4; i++) {
+    px(ctx, x + 3 + i * 3, y + 8, 1, 1, i % 2 ? COLORS.serverLed : COLORS.serverLed2);
+  }
+}
+
 function drawWhiteboard(ctx, x, y) {
   px(ctx, x, y + 2, TILE, 12, COLORS.boardFrame);
   px(ctx, x + 1, y + 3, 14, 9, COLORS.board);
@@ -392,6 +403,41 @@ function drawFridge(ctx, x, y) {
   px(ctx, x + 11, y + 6, 2, 4, COLORS.metalEdge);
 }
 
+// Archivador metálico: típico de RH, con 3 cajones y sus manijas.
+function drawFileCabinet(ctx, x, y) {
+  px(ctx, x + 2, y, 12, 16, COLORS.metalDark);
+  px(ctx, x + 3, y + 1, 10, 4, COLORS.metal);
+  px(ctx, x + 3, y + 6, 10, 4, COLORS.metal);
+  px(ctx, x + 3, y + 11, 10, 4, COLORS.metal);
+  px(ctx, x + 7, y + 2, 4, 1, COLORS.metalEdge);
+  px(ctx, x + 7, y + 7, 4, 1, COLORS.metalEdge);
+  px(ctx, x + 7, y + 12, 4, 1, COLORS.metalEdge);
+}
+
+// Una caneca sola: tapa, cuerpo y un brillo lateral para que no se vea plana.
+function drawTrashCan(ctx, x, y, body, lid, shade) {
+  px(ctx, x + 1, y, 14, 3, lid);
+  px(ctx, x + 2, y + 3, 12, 1, shade);
+  px(ctx, x + 1, y + 4, 14, 10, body);
+  px(ctx, x + 3, y + 5, 2, 8, shade);
+  px(ctx, x + 1, y + 13, 14, 1, shade);
+}
+
+// Tres canecas juntas contra la pared: verde, negra y blanca.
+function drawTrashCans(ctx, x, y) {
+  drawTrashCan(ctx, x, y, '#3f8a52', '#2f6b46', '#2d6b3d');
+  drawTrashCan(ctx, x + TILE, y, '#2e2e34', '#1a1a1e', '#1c1a24');
+  drawTrashCan(ctx, x + TILE * 2, y, '#e6e2d9', '#c9c4b6', '#b2aca1');
+}
+
+// Las mismas tres, apiladas en vertical -- para paredes que corren de arriba
+// a abajo en vez de lado a lado.
+function drawTrashCansVert(ctx, x, y) {
+  drawTrashCan(ctx, x, y, '#3f8a52', '#2f6b46', '#2d6b3d');
+  drawTrashCan(ctx, x, y + TILE, '#2e2e34', '#1a1a1e', '#1c1a24');
+  drawTrashCan(ctx, x, y + TILE * 2, '#e6e2d9', '#c9c4b6', '#b2aca1');
+}
+
 function drawShelf(ctx, x, y) {
   px(ctx, x, y, TILE, TILE, COLORS.shelfDark);
   px(ctx, x + 1, y + 1, 14, 6, COLORS.shelf);
@@ -446,6 +492,7 @@ const OBJECT_DRAW = {
   c: drawCounter,
   S: drawServerRack,
   R: drawWhiteboard,
+  C: drawFileCabinet,
   N: drawToilet,
   A: drawSink,
   E: drawHedge,
@@ -575,9 +622,11 @@ function drawCups(ctx, x, y) {
   px(ctx, x + 12, y + 5, 1, 2, '#d8d2c4');
 }
 
+// Centrada en el ancho del tile (no pegada al borde izquierdo, como antes) y
+// alta como las dos filas de la mesa, para que sí llegue hasta abajo.
 function drawPingNet(ctx, x, y) {
-  px(ctx, x - 1, y - 1, 2, TILE + 2, COLORS.pingNet);
-  px(ctx, x - 2, y - 2, 4, 2, COLORS.pingNetPost);
+  px(ctx, x + 7, y - 1, 2, TILE * 2 + 2, COLORS.pingNet);
+  px(ctx, x + 6, y - 2, 4, 2, COLORS.pingNetPost);
 }
 
 function drawRobotVac(ctx, x, y) {
@@ -834,6 +883,12 @@ function drawMonitor(ctx, x, y, kind) {
   ctx.drawImage(monitorCache[kind], Math.round(x), Math.round(y) - 8);
 }
 
+// Monitor suelto sobre un mueble (sin depender de que haya alguien sentado
+// ahí) -- mismo dibujo que el de los escritorios, reusado como decoración.
+function drawDeskMonitor(ctx, x, y) {
+  drawMonitorArt(ctx, x, y, 'flat');
+}
+
 const DECOR_DRAW = {
   chairDown: drawChairDown,
   chairUp: drawChairUp,
@@ -844,6 +899,10 @@ const DECOR_DRAW = {
   mop: drawMop,
   pingNet: drawPingNet,
   nameplate: drawNameplate,
+  deskMonitor: drawDeskMonitor,
+  trashCans: drawTrashCans,
+  trashCansV: drawTrashCansVert,
+  netSwitch: drawNetSwitch,
   banner: drawBanner,
   logo: drawLogo,
   mural: drawSpartanMural,
