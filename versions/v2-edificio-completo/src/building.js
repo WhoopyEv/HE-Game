@@ -1,5 +1,7 @@
 const FLOOR_W = 40;
-const FLOOR_H = 19;
+// El piso útil sigue llegando hasta la fila 14: lo que creció es la franja de
+// abajo, donde cuelga el baño (ahora con cubículos, ver baseShell).
+const FLOOR_H = 23;
 const TERRACE_H = 15;
 
 const ELEV = { col: 15, row: 1 };
@@ -40,13 +42,34 @@ function baseShell() {
   fill(g, FLOOR_W - 1, 0, FLOOR_W - 1, 14, '#');
   put(g, ELEV.col, ELEV.row, 'L');
   put(g, ELEV.col + 1, ELEV.row, 'L');
-  fill(g, 13, 15, 18, 18, '#');
-  fill(g, 14, 15, 17, 17, '.');
+  // Baño agrandado (antes era de 4x3 casillas por dentro, col. 14-17): ahora
+  // son 10x7 por dentro, con lavamanos a los lados de la entrada y tres
+  // cubículos contra la pared del fondo.
+  fill(g, 6, 15, 21, 22, '#');
+  fill(g, 7, 15, 20, 21, '.');
   put(g, 15, 14, 'T');
   put(g, 16, 14, 'T');
-  put(g, 14, 15, 'N');
-  put(g, 17, 15, 'A');
+  // Lavamanos y secador contra la pared de arriba, corridos a los lados para
+  // dejar libre el paso de la puerta (col. 15-16).
+  [7, 8, 9, 10, 11, 12, 13, 18, 19].forEach(function (c) {
+    put(g, c, 15, 'A');
+  });
+  // Dos secadores contra la pared de la izquierda, a mitad de altura.
+  put(g, 7, 17, 'G');
+  put(g, 7, 18, 'G');
+  // Seis cubículos al fondo: paneles divisorios, el sanitario adentro de cada
+  // uno y uno del medio con la puerta cerrada.
+  bathStalls(g, 7, 20, 21, 6);
   return g;
+}
+
+// Batería de cubículos, para reusarla en los dos baños del edificio. Cada
+// cubículo es de una sola casilla de ancho y dos de fondo (el sanitario contra
+// la pared y la casilla de adelante libre), con panel divisorio a lado y lado.
+// x0 es la columna del primer panel.
+function bathStalls(g, x0, y0, y1, count) {
+  for (let i = 0; i <= count; i++) fill(g, x0 + i * 2, y0, x0 + i * 2, y1, 'U');
+  for (let i = 0; i < count; i++) put(g, x0 + i * 2 + 1, y1, 'N');
 }
 
 // Recepción: mantiene los dos muros que separan recepción, pasillo y bienestar.
@@ -61,10 +84,15 @@ function shell() {
   return g;
 }
 
+// Anexo de bienestar (el cuarto de las sombrillas), colgado de la pared de
+// abajo igual que el baño. La puerta cae en la mitad de bienestar, donde antes
+// estaba la tercera mesa de abajo.
+const WELL_STORE = { col0: 22, col1: 37, doorCol: 29 };
+
 function baseZones() {
   return [
     [14, 1, 17, 13, ','],
-    [14, 14, 17, 17, ';'],
+    [6, 14, 21, 21, ';'],
   ];
 }
 
@@ -166,10 +194,19 @@ function floor1() {
   // alguien de aseo justo en la entrada del baño, con el mensaje del cuidado
   // de los baños -- acá y en operaciones (mismo baño, mismo lugar).
   npcs.push({ id: 'aseoBanos', kind: 'aseo', style: 'aseo2', col: 14, row: 13, role: 'optional', stand: true });
+  // al lado de uno de los secadores, adentro del baño -- persona cualquiera,
+  // no de servicios generales.
+  npcs.push({ id: 'secadorLine', kind: 'agent', style: 'agent3', col: 8, row: 17, role: 'optional', stand: true });
+  // otro par, de paso por el baño, sin diálogo -- solo para que se vea con gente.
+  npcs.push({ id: 'banoLine1', kind: 'agent', style: 'agent6', col: 12, row: 16, role: 'none', stand: true });
+  npcs.push({ id: 'banoLine2', kind: 'agent', style: 'agent9', col: 17, row: 16, role: 'none', stand: true });
 
-  // bienestar: casilleros arriba y abajo, y mesas para más gente
+  // bienestar: casilleros arriba y abajo, y mesas para más gente. Los de
+  // abajo se parten en dos para dejar libre la entrada al cuarto de las
+  // sombrillas (col. 29-30, ver WELL_STORE).
   fill(g, 20, 1, 32, 1, 'K');
-  fill(g, 21, 13, 32, 13, 'K');
+  fill(g, 21, 13, 28, 13, 'K');
+  fill(g, 31, 13, 32, 13, 'K');
   // casilleros también contra la pared del pasillo (dejando libres las puertas)
   fill(g, 19, 2, 19, 5, 'K');
   put(g, 33, 1, 'W');
@@ -181,13 +218,40 @@ function floor1() {
   put(g, 20, 12, 'P');
   fill(g, 24, 3, 28, 4, 'Z');
   // mesas blancas de bienestar -- las tres de abajo, un puesto a la derecha.
+  // La tercera (col. 29-30) se quitó: por ahí pasa el camino a la puerta del
+  // cuarto de las sombrillas.
   fill(g, 21, 9, 22, 10, 'm');
   fill(g, 25, 9, 26, 10, 'm');
-  fill(g, 29, 9, 30, 10, 'm');
   fill(g, 33, 9, 34, 10, 'm');
   fill(g, 37, 9, 38, 10, 'm');
   fill(g, 33, 4, 34, 5, 'm');
   fill(g, 37, 4, 38, 5, 'm');
+
+  // Cuarto de las sombrillas: cuelga de la pared de abajo igual que el baño y
+  // con la misma huella (16 x 8), pero con el piso gris de bienestar. Por
+  // dentro va repleto de sombrillas menos el pasillo del centro -- dos
+  // columnas alineadas con la puerta, para poder entrar.
+  fill(g, WELL_STORE.col0, 15, WELL_STORE.col1, 22, '#');
+  fill(g, WELL_STORE.col0 + 1, 15, WELL_STORE.col1 - 1, 21, '.');
+  put(g, WELL_STORE.doorCol, 14, 'T');
+  put(g, WELL_STORE.doorCol + 1, 14, 'T');
+  for (let c = WELL_STORE.col0 + 1; c <= WELL_STORE.col1 - 1; c++) {
+    if (c === WELL_STORE.doorCol || c === WELL_STORE.doorCol + 1) continue;
+    for (let r = 15; r <= 21; r++) {
+      // Una que otra casilla se deja vacía, para que el montón no quede
+      // cuadriculado; y el rincón de abajo a la derecha es donde quedó
+      // atrapado el de las opciones.
+      if (hashTile(c, r) % 9 === 3) continue;
+      if (c === WELL_STORE.col1 - 1 && r === 21) continue;
+      put(g, c, r, 'O');
+    }
+  }
+
+  // Al fondo del pasillo, el que llegó sin sombrilla; y en el rincón, el que
+  // se metió entre las sombrillas y ya no sabe cómo salir (globo siempre a la
+  // vista, ver cloudAlways).
+  npcs.push({ id: 'mojado', kind: 'bienestar', style: 'mojado', col: WELL_STORE.doorCol, row: 20, role: 'optional', stand: true });
+  npcs.push({ id: 'kowalsky', kind: 'bienestar', style: 'agent11', col: WELL_STORE.col1 - 1, row: 21, role: 'none', stand: true, cloud: 'kowalsky', cloudAlways: true });
 
   npcs.push({ id: 'ping1', kind: 'ping', style: 'pingpongA', col: 23, row: 3, dy: 8, role: 'none', stand: true, bounce: true });
   npcs.push({ id: 'josue', kind: 'logistica', style: 'josue', col: 29, row: 3, dy: 8, role: 'optional', stand: true, flip: true, bounce: true });
@@ -204,8 +268,10 @@ function floor1() {
   // Las 3 mesas junto a donde estaban los casilleros: toda su gente, un puesto a la derecha.
   npcs.push({ id: 'wel1', kind: 'bienestar', style: 'agent3', col: 21, row: 8, role: 'none', notes: true });
   npcs.push({ id: 'wel2', kind: 'bienestar', style: 'agent5', col: 25, row: 8, role: 'none', side: 'pineapple' });
-  npcs.push({ id: 'wel3', kind: 'bienestar', style: 'agent7', col: 29, row: 11, role: 'none', side: 'mug' });
-  npcs.push({ id: 'wel4', kind: 'bienestar', style: 'staff2', col: 29, row: 8, role: 'none', stand: true });
+  // Los dos de la mesa que se quitó quedan de pie a los lados de la entrada
+  // al cuarto de las sombrillas.
+  npcs.push({ id: 'wel3', kind: 'bienestar', style: 'agent7', col: 28, row: 10, role: 'none', stand: true, side: 'mug' });
+  npcs.push({ id: 'wel4', kind: 'bienestar', style: 'staff2', col: 31, row: 10, role: 'none', stand: true });
   npcs.push({ id: 'wel5', kind: 'bienestar', style: 'sup1', col: 37, row: 8, role: 'none' });
   npcs.push({ id: 'wel6', kind: 'bienestar', style: 'agent9', col: 35, row: 12, role: 'none', stand: true });
   npcs.push({ id: 'wel7', kind: 'bienestar', style: 'agent0', col: 33, row: 3, role: 'none', notes: true });
@@ -230,19 +296,24 @@ function floor1() {
     h: FLOOR_H,
     rows: g,
     base: '.',
-    zones: baseZones().concat([[19, 1, 38, 13, '~']]),
+    zones: baseZones().concat([
+      [19, 1, 38, 13, '~'],
+      [WELL_STORE.col0, 14, WELL_STORE.col1, 21, '~'],
+    ]),
     npcs: npcs,
     ping: { aCol: 23, bCol: 29, row: 3 },
     robot: { col0: 2, col1: 7, row: 11, speed: 11 },
+    dryers: [
+      { col: 7, row: 17 },
+      { col: 7, row: 18 },
+    ],
     decor: [
       { art: 'chairWu', col: 21, row: 8 },
       { art: 'chairYu', col: 25, row: 8 },
-      { art: 'chairBu', col: 29, row: 8 },
       { art: 'chairWu', col: 33, row: 8 },
       { art: 'chairYu', col: 37, row: 8 },
       { art: 'chairBd', col: 21, row: 11 },
       { art: 'chairWd', col: 25, row: 11 },
-      { art: 'chairYd', col: 29, row: 11 },
       { art: 'chairBd', col: 33, row: 11 },
       { art: 'chairWd', col: 37, row: 11 },
       { art: 'chairYu', col: 33, row: 3 },
@@ -258,6 +329,24 @@ function floor1() {
       // donde estaban los casilleros de la parte baja izquierda de bienestar,
       // en vertical porque esa es una pared que corre de arriba a abajo.
       { art: 'trashCansV', col: 19, row: 9 },
+      // las mismas tres canecas, en el rincón libre del baño, al lado de los
+      // cubículos.
+      { art: 'trashCansV', col: 20, row: 17 },
+      // espejos encima de los lavamanos (van sobre la pared del baño), la
+      // placa al lado de la puerta y el trapero en la esquina de abajo.
+      { art: 'puddle', col: WELL_STORE.doorCol, row: 21 },
+      { art: 'puddle', col: WELL_STORE.doorCol + 1, row: 21 },
+      { art: 'mirror', col: 7, row: 14 },
+      { art: 'mirror', col: 8, row: 14 },
+      { art: 'mirror', col: 9, row: 14 },
+      { art: 'mirror', col: 10, row: 14 },
+      { art: 'mirror', col: 11, row: 14 },
+      { art: 'mirror', col: 12, row: 14 },
+      { art: 'mirror', col: 13, row: 14 },
+      { art: 'mirror', col: 18, row: 14 },
+      { art: 'mirror', col: 19, row: 14 },
+      { art: 'wcSign', col: 17, row: 14 },
+      { art: 'mop', col: 20, row: 21 },
       // dos pantallas en el mostrador de recepción, como dos computadores
       { art: 'deskMonitor', col: 3, row: 3 },
       { art: 'deskMonitor', col: 5, row: 3 },
@@ -293,7 +382,9 @@ const OPS_W = 55 + OPS_PAD;
 // antes quedaban casi pegados. Todo lo que no es "bienvenida junto al
 // ascensor" (café, máquinas, logística) se corrió hacia abajo ese mismo
 // tanto, y el piso creció lo necesario para que siga cabiendo todo.
-const OPS_H = OPS_BOTTOM + 5;
+// +9 filas debajo del open space: las necesita el baño, que ahora lleva
+// cubículos adentro (ver bathStalls).
+const OPS_H = OPS_BOTTOM + 9;
 
 // El ascensor de este piso no es el mismo ELEV global (col. 15) de los otros
 // dos pisos -- acá está en la mitad del mesón del centro (ver OPS_BANKS_X),
@@ -303,7 +394,8 @@ const OPS_ELEV_SPAWN = { col: OPS_ELEV.col, row: OPS_ELEV.row + 1 };
 // El baño de este piso tampoco queda en la columna fija de los otros dos
 // pisos (13-18) -- acá se recentró para quedar alineado con el ascensor,
 // justo en la mitad del open space.
-const OPS_BATH = { col0: 35, col1: 40, doorCol: 37 };
+// Agrandado (antes era de 4x3 casillas por dentro, col. 36-39).
+const OPS_BATH = { col0: 28, col1: 43, doorCol: 37 };
 
 // Tres columnas de mesones, mismo ancho (10 -- un puesto menos de cada lado
 // que antes, para que no quedaran tan pegados) y mismo espacio entre ellas y
@@ -412,6 +504,9 @@ const OPS_EXTRAS = [
   ['ops15', 24, 6],
   ['ops16', 39, 21],
   ['ops17', 48, 6],
+  // Los dos que contestan el saludo de la llamada.
+  ['opsCall1', 22, 6],
+  ['opsCall2', 51, 11],
 ];
 
 function opsShell() {
@@ -436,12 +531,20 @@ function opsShell() {
   put(g, OPS_ELEV.col + 2, 1, '#');
   put(g, OPS_ELEV.col - 1, 2, '#');
   put(g, OPS_ELEV.col + 2, 2, '#');
-  fill(g, OPS_BATH.col0, OPS_BOTTOM + 1, OPS_BATH.col1, OPS_BOTTOM + 4, '#');
-  fill(g, OPS_BATH.col0 + 1, OPS_BOTTOM + 1, OPS_BATH.col1 - 1, OPS_BOTTOM + 3, '.');
+  // Mismo baño que el de recepción/bienestar (10x7 por dentro, con cubículos).
+  fill(g, OPS_BATH.col0, OPS_BOTTOM + 1, OPS_BATH.col1, OPS_BOTTOM + 8, '#');
+  fill(g, OPS_BATH.col0 + 1, OPS_BOTTOM + 1, OPS_BATH.col1 - 1, OPS_BOTTOM + 7, '.');
   put(g, OPS_BATH.doorCol, OPS_BOTTOM, 'T');
   put(g, OPS_BATH.doorCol + 1, OPS_BOTTOM, 'T');
-  put(g, OPS_BATH.col0 + 1, OPS_BOTTOM + 1, 'N');
-  put(g, OPS_BATH.col1 - 1, OPS_BOTTOM + 1, 'A');
+  [1, 2, 3, 4, 5, 6, 7].forEach(function (d) {
+    put(g, OPS_BATH.col0 + d, OPS_BOTTOM + 1, 'A');
+  });
+  put(g, OPS_BATH.col1 - 3, OPS_BOTTOM + 1, 'A');
+  put(g, OPS_BATH.col1 - 2, OPS_BOTTOM + 1, 'A');
+  // Dos secadores contra la pared de la izquierda, a mitad de altura.
+  put(g, OPS_BATH.col0 + 1, OPS_BOTTOM + 3, 'G');
+  put(g, OPS_BATH.col0 + 1, OPS_BOTTOM + 4, 'G');
+  bathStalls(g, OPS_BATH.col0 + 1, OPS_BOTTOM + 6, OPS_BOTTOM + 7, 6);
   return g;
 }
 
@@ -482,7 +585,17 @@ function operaciones() {
   });
 
   // alguien de aseo en la entrada del baño de este piso también (ver OPS_BATH).
-  npcs.push({ id: 'aseoBanos', kind: 'aseo', style: 'aseo4', col: OPS_BATH.col0 + 1, row: OPS_BOTTOM - 1, role: 'optional', stand: true });
+  npcs.push({ id: 'aseoBanos', kind: 'aseo', style: 'aseo4', col: OPS_BATH.col0 + 8, row: OPS_BOTTOM - 1, role: 'optional', stand: true });
+  // alguien de paso por el baño, sin diálogo.
+  npcs.push({ id: 'opsBanoLine', kind: 'agent', style: 'agent7', col: OPS_BATH.col0 + 6, row: OPS_BOTTOM + 2, role: 'none', stand: true });
+  // Los tres hombres araña, juntos y mirándose entre ellos (el meme) -- el
+  // motor no tiene una pose de "señalar", así que la señal es que quedan
+  // encarados: los de los lados voltean hacia el del medio.
+  npcs.push({ id: 'spiderman1', kind: 'agent', style: 'spiderman', col: OPS_BATH.col0 + 8, row: OPS_BOTTOM + 4, role: 'optional', stand: true, flip: false });
+  npcs.push({ id: 'spiderman2', kind: 'agent', style: 'spiderman', col: OPS_BATH.col0 + 9, row: OPS_BOTTOM + 5, role: 'optional', stand: true });
+  npcs.push({ id: 'spiderman3', kind: 'agent', style: 'spiderman', col: OPS_BATH.col0 + 10, row: OPS_BOTTOM + 4, role: 'optional', stand: true, flip: true });
+  // Otra persona más, testigo de la escena.
+  npcs.push({ id: 'banoWitness', kind: 'agent', style: 'agent1', col: OPS_BATH.col0 + 2, row: OPS_BOTTOM + 2, role: 'none', stand: true });
   // el de logística saluda al lado del ascensor (que en este piso está
   // reposicionado -- ver OPS_ELEV).
   // Dos filas más abajo: en la fila del ascensor (y una más) ahora hay
@@ -493,7 +606,9 @@ function operaciones() {
   // recalculados para el nuevo acomodo de los tres mesones.
   npcs.push({ id: 'zorro', kind: 'logistica', style: 'zorro', col: 31, row: 23, role: 'optional', stand: true });
   // Danilo, caminando por la parte baja del piso con su contoneo.
-  npcs.push({ id: 'danilo', kind: 'guest', style: 'danilo', col: 54, row: 15, role: 'optional', stand: true, hipSway: true, shine: true });
+  // El grito le sale solo cada tanto mientras hace la ronda (ver cloudShout),
+  // así que ya no necesita que uno se le acerque para que diga algo.
+  npcs.push({ id: 'danilo', kind: 'guest', style: 'danilo', col: 54, row: 15, role: 'none', stand: true, hipSway: true, shine: true, cloud: 'danilo', cloudShout: true });
 
   // ---- TI: oficina cerrada, colgada por fuera del rectángulo principal ----
   // Puerta de dos casillas, igual que la de RH.
@@ -688,6 +803,10 @@ function operaciones() {
     ],
     npcs: npcs,
     decor: decor,
+    dryers: [
+      { col: OPS_BATH.col0 + 1, row: OPS_BOTTOM + 3 },
+      { col: OPS_BATH.col0 + 1, row: OPS_BOTTOM + 4 },
+    ],
     // Ronda de Zorro: un circuito por los pasillos abiertos del piso, sin cruzar
     // mesones ni la sala de juntas. Empieza abajo y sube. Usa los dos
     // pasillos que quedan entre los tres mesones (columnas 23-26 y 37-40).
@@ -711,10 +830,11 @@ function operaciones() {
           { col: 54, row: 19 },
           { col: 54, row: 21 },
           { col: 54, row: 19 },
-          { col: 54, row: 15 },
-          { col: 50, row: 15 },
+          { col: 54, row: 17 },
+          { col: 50, row: 17 },
+          { col: 54, row: 17 },
         ],
-        speed: 34,
+        speed: 46,
       },
     ],
     decorTop: [
@@ -771,19 +891,35 @@ function operaciones() {
       { art: 'banner', col: OPS_MAIN_LEFT, row: 2 },
       // Canecas en vertical, igual que las de la pared derecha.
       { art: 'trashCansV', col: OPS_MAIN_LEFT + 1, row: 4 },
+      // Las mismas tres canecas, en el rincón libre del baño, al lado de los
+      // cubículos; y espejos encima de los lavamanos.
+      { art: 'trashCansV', col: OPS_BATH.col1 - 1, row: OPS_BOTTOM + 3 },
+      { art: 'mirror', col: OPS_BATH.col0 + 1, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col0 + 2, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col0 + 3, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col0 + 4, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col0 + 5, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col0 + 6, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col0 + 7, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col1 - 3, row: OPS_BOTTOM },
+      { art: 'mirror', col: OPS_BATH.col1 - 2, row: OPS_BOTTOM },
+      { art: 'wcSign', col: OPS_BATH.doorCol + 2, row: OPS_BOTTOM },
+      { art: 'mop', col: OPS_BATH.col1 - 1, row: OPS_BOTTOM + 7 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 3 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 10 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 14 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 19 },
       { art: 'heart', col: OPS_MAIN_RIGHT, row: 24 },
       { art: 'heart', col: 26, row: OPS_BOTTOM },
-      { art: 'heart', col: 34, row: OPS_BOTTOM },
-      { art: 'heart', col: 42, row: OPS_BOTTOM },
+      // Corridos: en col. 34 y 42 quedaban encima de los espejos del baño.
+      { art: 'heart', col: 24, row: OPS_BOTTOM },
+      { art: 'heart', col: 44, row: OPS_BOTTOM },
       { art: 'heart', col: 50, row: OPS_BOTTOM },
       // Más vida contra esta pared -- es la que da con el baño de abajo --
       // repartida entre los corazones y esquivando la puerta (col. 37-38).
       { art: 'painting', col: 20, row: OPS_BOTTOM },
-      { art: 'clock', col: 30, row: OPS_BOTTOM },
+      // Corrido: en col. 30 quedaba encima de los espejos del baño.
+      { art: 'clock', col: 22, row: OPS_BOTTOM },
       { art: 'painting', col: 46, row: OPS_BOTTOM },
       { art: 'netSwitch', col: 55, row: OPS_BOTTOM },
       { art: 'tableItems', col: 38 + OPS_PAD, row: 23 },
@@ -979,7 +1115,8 @@ function terraza() {
   });
 
   const hearts = [];
-  [[3, 0], [8, 0], [12, 0], [20, 0], [25, 0], [29, 0]].forEach(function (p) {
+  // (el de la col. 3 se quitó: quedaba encima del letrero del menú de la tienda)
+  [[8, 0], [12, 0], [20, 0], [25, 0], [29, 0]].forEach(function (p) {
     hearts.push({ art: 'heart', col: p[0], row: p[1] });
   });
   [[0, 5], [0, 9], [0, 13], [TR, 4], [TR, 8], [TR, 12]].forEach(function (p) {

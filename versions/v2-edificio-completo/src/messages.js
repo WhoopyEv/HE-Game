@@ -93,11 +93,24 @@ const MESSAGES = {
       name: 'SERVICIOS GENERALES',
       lines: ['Gracias por tu participación en el cuidado de los baños, es un tema que nos importa a todos.'],
     },
+    mojado: {
+      lines: ['Qué lavada la que me pegué.'],
+    },
+    secadorLine: {
+      lines: ['Qué lavada me pegué hoy, tocó toda la jornada con papel higiénico en los zapatos.'],
+    },
+    spiderman1: {
+      lines: ['Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?'],
+    },
+    spiderman2: {
+      lines: ['Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?'],
+    },
+    spiderman3: {
+      lines: ['Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?'],
+    },
     brandon: {
       name: 'BRANDON',
-      lines: [
-        'Buenos días, ingenier@.',
-      ],
+      lines: ['Los detalles son lo más importante.'],
     },
     porteria: {
       name: 'PORTERÍA',
@@ -177,6 +190,12 @@ const MESSAGES = {
     ops16: {
       lines: ['Oxxo, después del work, o mareos?'],
     },
+    opsCall1: {
+      lines: ['"Thanks for calling Cordoba Legal Group, in what can I help you today, sir?..."'],
+    },
+    opsCall2: {
+      lines: ['"Thanks for calling Cordoba Legal Group, in what can I help you today, Mrs?..."'],
+    },
     ops17: {
       lines: ['¿Después del work, Oxxo o miedo?'],
     },
@@ -185,7 +204,6 @@ const MESSAGES = {
       lines: ['Esto está muy family friendly.'],
     },
     marco: {
-      name: 'MARCO',
       lines: ['Reiniciar arregla el 90% de los problemas. El otro 10% soy yo.'],
     },
     rhRecluta: {
@@ -226,10 +244,6 @@ const MESSAGES = {
       name: 'JORGE ALVARADO',
       lines: ['¿Qué curioso... no?'],
     },
-    danilo: {
-      name: 'DANILO',
-      lines: ['¡VENTAAAA!'],
-    },
     dorilocos: {
       name: 'BIENESTAR',
       lines: ['Uff, qué buenos dorilocos.'],
@@ -263,6 +277,8 @@ const MESSAGES = {
   // Globos cortos de la celebración en la terraza (sin tildes: se dibujan con
   // la fuente de píxeles del juego, que es solo de mayúsculas).
   clouds: {
+    danilo: { name: 'DANILO', text: '¡VENTAAAA!' },
+    kowalsky: 'Kowalsky, ¿opciones? ¿Ahora cómo salgo?',
     diana: 'Gracias, HE',
     daniel: '¡Gracias por tanto!',
     nicolas: 'Gracias, equipo',

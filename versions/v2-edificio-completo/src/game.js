@@ -786,6 +786,17 @@
     ctx.fillRect(Math.round(ballX), Math.round(ballY), 2, 2);
   }
 
+  // El secador en sí ya quedó pintado en el fondo (ver 'G' en OBJECT_DRAW);
+  // acá solo se agrega el chorrito de aire, que sí necesita redibujarse cada
+  // cuadro para verse animado.
+  function drawDryers(fs) {
+    const dryers = fs.def.dryers;
+    if (!dryers) return;
+    dryers.forEach(function (d) {
+      drawDryerPuff(ctx, d.col * TILE, d.row * TILE, time);
+    });
+  }
+
   function visible(x, y, cam) {
     return x > cam.x - CULL && x < cam.x + VIEW_W + CULL && y > cam.y - CULL && y < cam.y + VIEW_H + CULL;
   }
@@ -925,10 +936,19 @@
   // mensajes opcionales del resto del edificio, repartidos por turnos.
   function updateClouds(fs, cam) {
     const active = [];
-    if (partyOn && !helpOpen() && state !== STATE.FINALE_END) {
+    const party = partyOn && state !== STATE.FINALE_END;
+    if (!helpOpen()) {
       fs.npcs.forEach(function (n) {
         if (!n.cloud || n.hidden || parade || !visible(n.x, n.y, cam)) return;
-        if ((time + n.cloudPhase) % 12 > 4.2) return;
+        // Los globos fijos (cloudAlways) se ven siempre; los de la
+        // celebración solo hay fiesta, y por turnos para que no salgan todos
+        // al tiempo.
+        if (n.cloudShout) {
+          // El grito entra y sale cada tanto, no se queda fijo.
+          if ((time + n.cloudPhase) % 3.4 > 1.4) return;
+        } else if (!n.cloudAlways) {
+          if (!party || (time + n.cloudPhase) % 12 > 4.2) return;
+        }
         if (active.length < cloudEls.length) active.push(n);
       });
     }
@@ -939,7 +959,13 @@
         node.classList.remove('is-visible');
         return;
       }
-      node.textContent = MESSAGES.clouds[n.cloud] || '';
+      // Un globo puede ser solo la frase (los de la terraza) o traer nombre.
+      const cloud = MESSAGES.clouds[n.cloud] || '';
+      const cloudName = typeof cloud === 'string' ? '' : cloud.name;
+      node.firstChild.textContent = cloudName;
+      node.firstChild.style.display = cloudName ? '' : 'none';
+      node.lastChild.textContent = typeof cloud === 'string' ? cloud : cloud.text;
+      node.classList.toggle('is-shout', !!n.cloudShout);
       node.style.left = Math.round((n.x + 8 - cam.x) * scale) + 'px';
       node.style.top = Math.round((n.y - cam.y) * scale) + 'px';
       node.classList.add('is-visible');
@@ -1006,6 +1032,7 @@
     ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
     ctx.drawImage(backgroundFor(fs), 0, 0);
     drawPingScene(fs);
+    drawDryers(fs);
     drawEntities(fs, cam);
     if (playerHintTimer > 0) drawPlayerHint();
     drawIndicators(fs, cam, updateBubble(fs, cam));
@@ -1137,6 +1164,10 @@
     for (let i = 0; i < 8; i++) {
       const node = document.createElement('div');
       node.className = 'cloud';
+      // Nombre arriba y frase abajo, como en el globo de cercanía. Los globos
+      // de la terraza no llevan nombre y esa línea se esconde.
+      node.appendChild(document.createElement('b'));
+      node.appendChild(document.createElement('span'));
       el.clouds.appendChild(node);
       cloudEls.push(node);
     }

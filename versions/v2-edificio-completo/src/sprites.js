@@ -341,6 +341,7 @@ function personSit(st) {
 
 function personStand(st) {
   if (st.tallBody) return buildStandTall(st);
+  if (st.spidermanMask) return buildSpiderman(st);
   const rows = st.long ? buildStandLong(st) : st.hairLong ? buildStandLongPants(st) : buildStand(st);
   return st.bald ? baldenHead(rows, st.skin || 's') : rows;
 }
@@ -472,6 +473,12 @@ const NAMED_STYLES = {
   rhRecluta: { hair: 'H', hairDark: 'k', shirt: 'p', shirtDark: 'P', skin: 's', pants: 'Z', femHair: true },
   // Mafe, al lado de Marce: uniforme azul oscuro, pelo negro largo.
   mafe: { hair: 'H', hairDark: 'k', shirt: 'z', shirtDark: 'Z', skin: 'i', hairLong: true },
+  // El que llegó sin sombrilla: pelo negro pegado a la cabeza y ropa gris y
+  // oscura, como de tela empapada.
+  mojado: { hair: 'H', hairDark: 'k', shirt: 'v', shirtDark: 'V', skin: 's', pants: 'Z' },
+  // Los tres hombres araña del baño de operaciones: torso y "máscara" rojos,
+  // piernas azules -- mismo cuerpo que cualquier agente, solo cambia el color.
+  spiderman: { hair: 'r', hairDark: 'R', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'c', spidermanMask: true },
 };
 
 // --- el equipo de desarrollo ---
@@ -691,6 +698,29 @@ function buildFox(st) {
   rows[6] = '..eeewwwwwweee..';
   rows[7] = '....ewwkkwwe....';
   rows[8] = '.....wwwwww.....';
+  return rows;
+}
+
+// Máscara de hombre araña: toda la cabeza roja, con los lentes blancos en
+// vez de las mejillas de piel a la vista -- mismo cuerpo que buildStand,
+// solo se repintan las filas de la cara.
+function buildSpiderman(st) {
+  const rows = buildStand(st);
+  // Cabeza entera roja pareja (nada de rojo oscuro/negro alrededor de los
+  // ojos), lentes blancos, y el cuello también rojo -- no se le ve piel.
+  rows[2] = '....krrrrrrk....';
+  rows[3] = '...krrrrrrrrk...';
+  rows[4] = '...krrrrrrrrk...';
+  rows[5] = '...krrrrrrrrk...';
+  rows[6] = '...krwwrrwwrk...';
+  rows[7] = '....krrrrrrk....';
+  rows[8] = '.....krrrrrk....';
+  // Brazos azules (donde se veía la piel) y una telaraña sencilla al centro
+  // de la camiseta.
+  rows[10] = '.kcrrrrkkrrrrck.';
+  rows[11] = '.kcrrkkkkkkrrck.';
+  // Zapatos rojos en vez de cafés.
+  rows[14] = '...krrk..krrk...';
   return rows;
 }
 

@@ -36,6 +36,8 @@ function createNpcs(def) {
       ghost: !!n.ghost,
       notes: !!n.notes,
       cloud: n.cloud || null,
+      cloudAlways: !!n.cloudAlways,
+      cloudShout: !!n.cloudShout,
       party: !!n.party,
       // Antes solo "party" podía empezar escondido; ahora también un npc
       // suelto que arranca oculto hasta que algo lo revele (ver breakGuy).

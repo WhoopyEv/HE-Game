@@ -72,6 +72,8 @@ const COLORS = {
   boardFrame: '#8a8f98',
   porcelain: '#eef2f4',
   porcelainDark: '#c3ccd1',
+  stall: '#d7dbe0',
+  stallDark: '#9aa3ad',
   hedge: '#3f7a3c',
   hedgeDark: '#2e5c2c',
   parapet: '#8a8578',
@@ -89,7 +91,7 @@ const COLORS = {
   balloonShine: '#f7b0ac',
 };
 
-const SOLID = '#|LDdKcSRNAEYMmZVWFBPXC ';
+const SOLID = '#|LDdKcSRNAEYMmZVWFBPXCGUO ';
 
 function px(ctx, x, y, w, h, color) {
   ctx.fillStyle = color;
@@ -314,6 +316,133 @@ function drawSink(ctx, x, y) {
   px(ctx, x + 5, y + 11, 6, 2, COLORS.metalEdge);
 }
 
+// Secador de manos de pared: caja metálica con la boquilla oscura abajo.
+function drawHandDryer(ctx, x, y) {
+  px(ctx, x + 3, y + 1, 10, 10, COLORS.metal);
+  px(ctx, x + 4, y + 2, 8, 8, COLORS.metalDark);
+  px(ctx, x + 6, y + 4, 4, 3, COLORS.metalEdge);
+  px(ctx, x + 6, y + 10, 4, 2, '#1c1a24');
+}
+
+// Chorrito de aire del secador, encendiéndose y apagándose -- se dibuja cada
+// cuadro por separado (no queda horneado en el fondo, como el resto del
+// baño), para que se vea animado.
+function drawDryerPuff(ctx, x, y, time) {
+  const on = Math.sin(time * 6) > 0;
+  if (!on) return;
+  ctx.globalAlpha = 0.8;
+  px(ctx, x + 6, y + 13, 4, 1, '#dcecff');
+  px(ctx, x + 7, y + 15, 2, 1, '#dcecff');
+  ctx.globalAlpha = 1;
+}
+
+// Revoltijo determinista a partir de la casilla: sirve para que el cuarto de
+// las sombrillas se vea desordenado pero salga siempre igual (el fondo se
+// dibuja una sola vez y se guarda).
+function hashTile(col, row) {
+  let h = col * 374761393 + row * 668265263;
+  h = (h ^ (h >> 13)) * 1274126177;
+  return (h ^ (h >> 16)) >>> 0;
+}
+
+// Sombrillas abiertas, de medio lado: la lona con gajos de color y blancos,
+// el remate arriba y el palo saliendo en diagonal. 'C' es el color de cada
+// sombrilla y 'c' su sombra; el resto es igual para todas.
+const UMBRELLA_TONES = [
+  ['#3a3244', '#241a2b'],
+  ['#e0453e', '#a32b28'],
+  ['#3a3244', '#241a2b'],
+  ['#4a8fd4', '#2f5f96'],
+  ['#2e2e34', '#1a1a1e'],
+  ['#e8c84a', '#a88a1e'],
+  ['#3a3244', '#241a2b'],
+  ['#4fa06a', '#2f6b46'],
+  ['#2e2e34', '#1a1a1e'],
+  ['#3b4a63', '#222b3b'],
+  ['#3a3244', '#241a2b'],
+  ['#b061c0', '#7a3d8a'],
+];
+
+const UMBRELLA_ART = [
+  '.......k........',
+  '.....kkkkkk.....',
+  '...kkwkCCkwkk...',
+  '..kwwwkCCCkwwwk.',
+  '.kwwwkCCCCkwwwwk',
+  'kwwwkCCCCCkwwwwk',
+  'kaaakccccckaaaak',
+  '.kkkkkkkkkkkkkk.',
+  '.......kGk......',
+  '.......kGk......',
+  '........kGk.....',
+  '........kGk.....',
+  '.........kGk....',
+  '.........kGk....',
+  '.........kkk....',
+];
+
+const UMBRELLA_KEYS = { k: '#241a2b', w: '#f4f0e6', a: '#c9c4b6', G: '#9aa0ab' };
+
+function drawUmbrella(ctx, x, y, col, row) {
+  const seed = hashTile(col, row);
+  const tone = UMBRELLA_TONES[seed % UMBRELLA_TONES.length];
+  const flip = ((seed >> 4) & 1) === 1;
+  const dy = (seed >> 6) % 2;
+  UMBRELLA_ART.forEach(function (line, r) {
+    for (let c = 0; c < line.length; c++) {
+      const ch = line[c];
+      if (ch === '.') continue;
+      const color = ch === 'C' ? tone[0] : ch === 'c' ? tone[1] : UMBRELLA_KEYS[ch];
+      px(ctx, x + (flip ? 15 - c : c), y + dy + r, 1, 1, color);
+    }
+  });
+}
+
+// Charco, para el que llegó sin sombrilla. Va en la mitad de arriba de su
+// casilla y bien ancho, para que quede justo a los pies del que está parado
+// en la casilla de encima y no se lo tape el personaje.
+function drawPuddle(ctx, x, y) {
+  px(ctx, x + 2, y, 12, 2, '#4a8fd4');
+  px(ctx, x, y + 2, TILE, 5, '#4a8fd4');
+  px(ctx, x + 1, y + 7, 14, 1, '#2f5f96');
+  px(ctx, x + 2, y + 1, 4, 1, '#7fb2e8');
+  px(ctx, x + 10, y + 4, 4, 1, '#7fb2e8');
+}
+
+// Panel divisorio de los cubículos del baño: va de arriba a abajo, así que se
+// dibuja como una lámina angosta en el centro de la casilla.
+function drawStallWall(ctx, x, y) {
+  px(ctx, x + 6, y, 4, TILE, COLORS.stallDark);
+  px(ctx, x + 7, y, 2, TILE, COLORS.stall);
+}
+
+// Placa de baño para la pared, al lado de la puerta: las dos figuritas de
+// siempre sobre fondo oscuro con borde dorado.
+function drawWcSign(ctx, x, y) {
+  const w = '#f4f0e6';
+  px(ctx, x + 2, y + 2, 12, 12, '#241a2b');
+  px(ctx, x + 2, y + 2, 12, 1, '#e8c25a');
+  px(ctx, x + 2, y + 13, 12, 1, '#e8c25a');
+  px(ctx, x + 4, y + 4, 2, 2, w);
+  px(ctx, x + 4, y + 7, 2, 3, w);
+  px(ctx, x + 4, y + 10, 1, 2, w);
+  px(ctx, x + 6, y + 10, 1, 2, w);
+  px(ctx, x + 10, y + 4, 2, 2, w);
+  px(ctx, x + 10, y + 7, 2, 2, w);
+  px(ctx, x + 9, y + 9, 4, 2, w);
+  px(ctx, x + 10, y + 11, 1, 1, w);
+  px(ctx, x + 12, y + 11, 1, 1, w);
+}
+
+// Espejo de pared, para colgar encima de los lavamanos (va en decorTop, sobre
+// la pared, no en el piso).
+function drawMirror(ctx, x, y) {
+  px(ctx, x + 1, y + 3, 14, 11, COLORS.metalEdge);
+  px(ctx, x + 2, y + 4, 12, 9, '#bcd3dd');
+  px(ctx, x + 3, y + 5, 3, 7, '#dcf0f7');
+  px(ctx, x + 8, y + 5, 2, 7, '#cde3ec');
+}
+
 function drawHedge(ctx, x, y) {
   px(ctx, x, y + 2, TILE, 13, COLORS.hedgeDark);
   px(ctx, x + 1, y + 1, 14, 12, COLORS.hedge);
@@ -503,6 +632,9 @@ const OBJECT_DRAW = {
   C: drawFileCabinet,
   N: drawToilet,
   A: drawSink,
+  G: drawHandDryer,
+  U: drawStallWall,
+  O: drawUmbrella,
   E: drawHedge,
   Y: drawParapet,
   M: drawTable,
@@ -1016,6 +1148,9 @@ const DECOR_DRAW = {
   deskMonitor: drawDeskMonitor,
   trashCans: drawTrashCans,
   trashCansV: drawTrashCansVert,
+  mirror: drawMirror,
+  puddle: drawPuddle,
+  wcSign: drawWcSign,
   netSwitch: drawNetSwitch,
   banner: drawBanner,
   logo: drawLogo,
