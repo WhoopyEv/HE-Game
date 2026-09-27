@@ -281,7 +281,7 @@ function floor1() {
   npcs.push({ id: 'wel2', kind: 'bienestar', style: 'agent5', col: 25, row: 8, role: 'none', side: 'pineapple' });
   // Los dos de la mesa que se quitó quedan de pie a los lados de la entrada
   // al cuarto de las sombrillas.
-  npcs.push({ id: 'wel3', kind: 'bienestar', style: 'agent7', col: 28, row: 10, role: 'none', stand: true, side: 'mug' });
+  npcs.push({ id: 'wel3', kind: 'bienestar', style: 'agent7', col: 28, row: 10, role: 'optional', stand: true, side: 'mug' });
   npcs.push({ id: 'wel4', kind: 'bienestar', style: 'staff2', col: 31, row: 10, role: 'none', stand: true });
   npcs.push({ id: 'wel5', kind: 'bienestar', style: 'sup1', col: 37, row: 8, role: 'none' });
   npcs.push({ id: 'wel6', kind: 'bienestar', style: 'agent9', col: 35, row: 12, role: 'none', stand: true });

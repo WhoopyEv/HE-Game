@@ -40,6 +40,7 @@
   ];
 
   let ctx = null;
+  let finaleCtx = null;
   let state = STATE.TITLE;
   let player = null;
   let time = 0;
@@ -554,7 +555,7 @@
   }
 
   // Ícono de pieza (de la v3): un rombo del color del valor con un brillito.
-  function drawPieceIcon(x, y, color, bob) {
+  function drawPieceIcon(ctx, x, y, color, bob) {
     const py = y + bob;
     px(ctx, x + 1, py + 1, 14, 14, '#241a2b');
     px(ctx, x + 2, py + 2, 12, 12, color);
@@ -674,9 +675,9 @@
     }
   }
 
-  // Se dibuja en coordenadas de pantalla (fuera de la cámara del piso), igual
-  // que el confeti, para que quede fija encima de la terraza.
-  function drawFinaleLogo() {
+  // Canvas sobre los globos HTML: el fondo translúcido los atenúa y el logo
+  // queda delante, mientras el diálogo final conserva su propia capa superior.
+  function drawFinaleLogo(ctx) {
     const f = finaleLogo;
     if (!f) return;
     ctx.fillStyle = 'rgba(13, 10, 18, 0.72)';
@@ -686,7 +687,7 @@
       f.pieces.forEach(function (p) {
         const t = Math.max(0, Math.min(1, (f.t - p.delay) / 0.75));
         const e = easeOutFinale(t);
-        drawPieceIcon(p.fromX + (p.toX - p.fromX) * e, p.fromY + (p.toY - p.fromY) * e, p.color, 0);
+        drawPieceIcon(ctx, p.fromX + (p.toX - p.fromX) * e, p.fromY + (p.toY - p.fromY) * e, p.color, 0);
       });
       return;
     }
@@ -707,7 +708,7 @@
       ctx.drawImage(logoCanvas, LOGO_X, LOGO_Y, 32 * LOGO_SCALE, 22 * LOGO_SCALE);
     } else {
       f.pieces.forEach(function (p) {
-        drawPieceIcon(p.toX, p.toY, p.color, 0);
+        drawPieceIcon(ctx, p.toX, p.toY, p.color, 0);
       });
     }
     ctx.restore();
@@ -1058,7 +1059,7 @@
   function updateClouds(fs, cam) {
     const active = [];
     const party = partyOn && state !== STATE.FINALE_END;
-    if (!helpOpen()) {
+    if (!helpOpen() && state !== STATE.FINALE_END) {
       fs.npcs.forEach(function (n) {
         if (!n.cloud || n.hidden || parade || !visible(n.x, n.y, cam)) return;
         // Los globos fijos (cloudAlways) se ven siempre; los de la
@@ -1165,7 +1166,8 @@
     updateClouds(fs, cam);
     drawGuides(fs, cam);
     if (partyOn) drawConfetti();
-    if (finaleLogo) drawFinaleLogo();
+    finaleCtx.clearRect(0, 0, VIEW_W, VIEW_H);
+    if (finaleLogo) drawFinaleLogo(finaleCtx);
   }
 
   function handleInput() {
@@ -1280,6 +1282,17 @@
     Dialogue.init();
     const canvas = document.getElementById('game');
     ctx = Engine.init(canvas, VIEW_W, VIEW_H);
+    const finaleCanvas = document.createElement('canvas');
+    finaleCanvas.id = 'finale-canvas';
+    finaleCanvas.width = VIEW_W;
+    finaleCanvas.height = VIEW_H;
+    finaleCanvas.setAttribute('aria-hidden', 'true');
+    finaleCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none;z-index:2';
+    el.stage.appendChild(finaleCanvas);
+    finaleCtx = finaleCanvas.getContext('2d');
+    finaleCtx.imageSmoothingEnabled = false;
+    document.getElementById('dialogue').style.zIndex = '3';
+    el['end-screen'].style.zIndex = '3';
     Engine.onFirstInput(function () {
       Audio8.unlock();
     });

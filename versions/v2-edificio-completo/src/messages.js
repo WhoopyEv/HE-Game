@@ -96,6 +96,9 @@ const MESSAGES = {
 
   // Mensajes opcionales: salen en globo al acercarse, no dan pieza.
   extras: {
+    wel3: {
+      lines: ['DEESDE SEPTIEMBREEE... SE SIENTE QUE VIENE DICIEMBREEEE'],
+    },
     aseo: {
       name: 'SERVICIOS GENERALES',
       lines: [
@@ -318,26 +321,22 @@ const MESSAGES = {
     patricia: {
       name: 'PATRICIA',
       lines: [
-        'A mí no me mire, yo soy de Presidencia.',
-        'Ay, noooo, ¿y los meseros a qué hora van a llegar, eh?',
         'Yo hice seis semestres de finanzas en la San Marino, tráteme serio.',
+        'Ay, noooo, ¿y los meseros a qué hora van a llegar?',
+        'A mí no me mire, yo soy de Presidencia.',
         'La pobreza me está respirando en la nuca, Marce.',
         'Una cosa es estar sin plata y otra muy distinta parecer pobre.',
         '¿Usted sabe cuánto cuesta mantener un Mercedes?',
         'Marce, yo no puedo seguir viviendo así.',
         '¿Ese es Nicolás Mora?... Bueno, tampoco está tan mal.',
         'El Cuartel me tiene envidia, eso es todo.',
-        'Yo no necesito consejos financieros, gracias.',
         'No tengo efectivo… pero tengo seis semestres de finanzas.',
-        '¿Esto lo va a pagar la empresa o me toca a mí?',
-        'Qué pena, pero yo no hago fila.',
         '¿Y usted sí sabe con quién está hablando?',
         'Ay, no, qué pobreza la mía.',
         'Si esto sigue así, voy a tener que vender el Mercedes.',
         'Yo no estoy interesada en Nicolás Mora… para nada... obvio no.',
         'Seis semestres, mi amor. Seis.',
         'Nicolás podrá ser raro, pero plata sí parece que tiene.',
-        'A mí no me involucren en problemas de Terramoda.',
         '¿Y los meseros? ¿Es que nadie quiere pensar en los meseros?',
       ],
     },
