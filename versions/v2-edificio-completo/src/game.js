@@ -743,9 +743,7 @@
   function confirmElevator() {
     const target = elevSel;
     closeElevator();
-    // TEMP: bloqueo de la terraza desactivado para probar -- avísame cuando
-    // quieras que lo vuelva a poner.
-    if (false && target === TERRACE_IDX && !complete()) {
+    if (target === TERRACE_IDX && !complete()) {
       Audio8.confirm();
       openDialogue(MESSAGES.terraceLocked.name, MESSAGES.terraceLocked.lines);
       return;
@@ -877,9 +875,7 @@
       return;
     }
     if (!nearElevator(player, fs.def.elev)) return;
-    // TEMP: bloqueo del ascensor desactivado para probar -- avísame cuando
-    // quieras que lo vuelva a poner.
-    if (false && !missionGiven) {
+    if (!missionGiven) {
       Audio8.confirm();
       openDialogue(MESSAGES.elevatorLocked.name, MESSAGES.elevatorLocked.lines);
       return;
