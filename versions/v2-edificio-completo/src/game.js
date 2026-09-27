@@ -50,6 +50,9 @@
   let floorIdx = 0;
   let elevSel = 0;
   let breakGuyDone = false;
+  // idle -> patricia -> donArmando -> marcela -> leaving -> done
+  let juntasEventPhase = 'idle';
+  let juntasEventTimer = 0;
   let labelTimer = 0;
   let flashTimer = 0;
   let playerHintTimer = 0;
@@ -59,6 +62,7 @@
   let finaleLogo = null;
   let logoCanvas = null;
   let bubbleFor = null;
+  let bubbleMsgRef = null;
   let bubbleW = 0;
   let bubbleH = 0;
   const floors = [];
@@ -157,19 +161,31 @@
       return null;
     }
     const npc = nearestBubbleNpc(player, fs.npcs);
-    const msg = npc ? MESSAGES.extras[npc.id] : null;
+    // forceMessage: una línea puntual de un evento con guion (ver
+    // updateJuntasEvent), por encima de sus frases normales de globo.
+    const msg = npc ? npc.forceMessage || MESSAGES.extras[npc.id] : null;
     if (!msg) {
       hideBubble();
       return null;
     }
-    if (bubbleFor !== npc.id) {
+    if (bubbleFor !== npc.id || bubbleMsgRef !== msg) {
       bubbleFor = npc.id;
+      bubbleMsgRef = msg;
       // El nombre es opcional -- si no se pone (para no inventarle un
       // "OPERACIONES" a cualquiera), el globo sale sin esa línea.
       const name = msg.name || '';
       el['bubble-name'].textContent = name;
       el['bubble-name'].style.display = name ? '' : 'none';
-      el['bubble-text'].textContent = msg.lines.join(' ');
+      if (npc.forceMessage) {
+        // Línea de guion: siempre la misma, no se turna con las de siempre.
+        el['bubble-text'].textContent = msg.lines[0];
+      } else {
+        // Si tiene varias frases, se turnan: una por acercamiento, no todas
+        // juntas de una vez.
+        const idx = (npc.lineIndex || 0) % msg.lines.length;
+        npc.lineIndex = idx + 1;
+        el['bubble-text'].textContent = msg.lines[idx];
+      }
       bubbleW = el.bubble.offsetWidth;
       bubbleH = el.bubble.offsetHeight;
     }
@@ -178,7 +194,7 @@
     const anchorX = (npc.x + 8 - cam.x) * scale;
     const half = bubbleW / 2;
     const left = Math.max(half + 8, Math.min(stageW - half - 8, anchorX));
-    const top = Math.max(bubbleH + 18, (npc.y - cam.y) * scale);
+    const top = Math.max(bubbleH + 18, (npc.y - npcHeadExtra(npc) - cam.y) * scale);
     el.bubble.style.left = Math.round(left) + 'px';
     el.bubble.style.top = Math.round(top) + 'px';
     el.bubble.style.setProperty('--tail', Math.round(anchorX - left + half) + 'px');
@@ -392,6 +408,106 @@
     // Piernas alternando (mismo truco que movePatrolNpc con Zorro/Danilo).
     npc.animTime = (npc.animTime || 0) + dt;
     npc.frame = Math.floor(npc.animTime * 6) % 2;
+  }
+
+  // ¿El jugador cruzó la puerta hacia adentro de la sala de juntas nueva
+  // (la de encima de RH)? Cols del pod: 1 a OPS_MAIN_LEFT-1; filas: antes
+  // de donde empieza RH (RH_OFFICE.y0).
+  function insideRhJuntas(p) {
+    return p.x / TILE < OPS_MAIN_LEFT && p.y / TILE < RH_OFFICE.y0;
+  }
+
+  // Evento de una sola vez: Patricia y sus meseros interrumpen la reunión,
+  // Don Armando y Marcela la sacan, y se van corriendo al ascensor. Los
+  // globos son automáticos (con su propio cronómetro, ver forceMessage en
+  // updateBubble) -- el jugador puede seguir caminando mientras tanto.
+  function updateJuntasEvent(fs, dt) {
+    if (juntasEventPhase === 'done' || floorIdx !== 1) return;
+    const byId = function (id) {
+      return fs.npcs.filter(function (n) {
+        return n.id === id;
+      })[0];
+    };
+    const patricia = byId('patricia');
+    const donArmando = byId('donArmando');
+    const marcela = byId('marcela');
+    if (!patricia || !donArmando || !marcela) return;
+
+    if (juntasEventPhase === 'idle') {
+      if (insideRhJuntas(player)) {
+        juntasEventPhase = 'entering';
+        juntasEventTimer = 0;
+      }
+      return;
+    }
+
+    // Espera ~2 segundos después de entrar antes de que arranque el primer globo.
+    if (juntasEventPhase === 'entering') {
+      juntasEventTimer += dt;
+      if (juntasEventTimer < 2) return;
+      juntasEventPhase = 'patricia';
+      juntasEventTimer = 0;
+      patricia.forceBubble = true;
+      patricia.forceMessage = { name: 'PATRICIA FERNÁNDEZ', lines: ['¡Y llegaron los meserooos!'] };
+      return;
+    }
+
+    if (juntasEventPhase === 'patricia' || juntasEventPhase === 'donArmando' || juntasEventPhase === 'marcela') {
+      juntasEventTimer += dt;
+      if (juntasEventTimer < 3) return;
+      if (juntasEventPhase === 'patricia') {
+        patricia.forceBubble = false;
+        patricia.forceMessage = null;
+        donArmando.forceBubble = true;
+        donArmando.forceMessage = { name: 'ARMANDO MENDOZA SÁENZ', lines: ['Patricia Fernández, salga de acá.'] };
+        juntasEventPhase = 'donArmando';
+      } else if (juntasEventPhase === 'donArmando') {
+        donArmando.forceBubble = false;
+        donArmando.forceMessage = null;
+        marcela.forceBubble = true;
+        marcela.forceMessage = { name: 'MARCELA VALENCIA', lines: ['Lárgate con tus meseros, aquí no entra nadie.'] };
+        juntasEventPhase = 'marcela';
+      } else {
+        marcela.forceBubble = false;
+        marcela.forceMessage = null;
+        juntasEventPhase = 'leaving';
+        const guards = ['guard0', 'guard1', 'guard2'].map(byId).filter(Boolean);
+        [patricia].concat(guards).forEach(function (n, i) {
+          n.leaveTarget = { col: OPS_ELEV.col + 1 + i, row: OPS_ELEV.row };
+        });
+      }
+      juntasEventTimer = 0;
+      return;
+    }
+
+    if (juntasEventPhase === 'leaving') {
+      const guards = ['guard0', 'guard1', 'guard2'].map(byId).filter(Boolean);
+      const walkers = [patricia].concat(guards);
+      let allDone = true;
+      walkers.forEach(function (n) {
+        if (n.hidden) return;
+        const target = n.leaveTarget;
+        const tx = target.col * TILE;
+        const ty = target.row * TILE;
+        const dx = tx - n.x;
+        const dy = ty - n.y;
+        const dist = Math.hypot(dx, dy);
+        const step = 46 * dt;
+        if (dist <= step) {
+          n.x = tx;
+          n.y = ty;
+          n.hidden = true;
+          return;
+        }
+        allDone = false;
+        n.x += (dx / dist) * step;
+        n.y += (dy / dist) * step;
+        n.flip = dx < 0;
+        n.animTime = (n.animTime || 0) + dt;
+        n.frame = Math.floor(n.animTime * 6) % 2;
+      });
+      if (allDone) juntasEventPhase = 'done';
+    }
   }
 
   // Después de hablar con Marce: todos van saliendo del ascensor y se reparten
@@ -626,7 +742,9 @@
   function confirmElevator() {
     const target = elevSel;
     closeElevator();
-    if (target === TERRACE_IDX && !complete()) {
+    // TEMP: bloqueo de la terraza desactivado para probar -- avísame cuando
+    // quieras que lo vuelva a poner.
+    if (false && target === TERRACE_IDX && !complete()) {
       Audio8.confirm();
       openDialogue(MESSAGES.terraceLocked.name, MESSAGES.terraceLocked.lines);
       return;
@@ -758,7 +876,9 @@
       return;
     }
     if (!nearElevator(player, fs.def.elev)) return;
-    if (!missionGiven) {
+    // TEMP: bloqueo del ascensor desactivado para probar -- avísame cuando
+    // quieras que lo vuelva a poner.
+    if (false && !missionGiven) {
       Audio8.confirm();
       openDialogue(MESSAGES.elevatorLocked.name, MESSAGES.elevatorLocked.lines);
       return;
@@ -892,10 +1012,11 @@
       // Sergio ya no necesita el "!" en los pisos de abajo una vez dada la
       // misión -- solo vuelve a aparecer en la terraza, para el cierre.
       if (n.role === 'mission' && missionGiven && floorIdx !== TERRACE_IDX) return;
-      if (n === near) drawPrompt(ctx, n.x, n.y, time);
-      else if (n.piece) drawPieceMark(ctx, n.x, n.y, time, pieceColor(n.piece));
-      else if (n.role === 'mission') drawQuestMark(ctx, n.x, n.y, time, '#8f2fd4');
-      else drawTalkDots(ctx, n.x, n.y, time);
+      const ny = n.y - npcHeadExtra(n);
+      if (n === near) drawPrompt(ctx, n.x, ny, time);
+      else if (n.piece) drawPieceMark(ctx, n.x, ny, time, pieceColor(n.piece));
+      else if (n.role === 'mission') drawQuestMark(ctx, n.x, ny, time, '#8f2fd4');
+      else drawTalkDots(ctx, n.x, ny, time);
     });
     const elev = fs.def.elev || ELEV;
     const elevX = elev.col * TILE + 8;
@@ -946,6 +1067,9 @@
         if (n.cloudShout) {
           // El grito entra y sale cada tanto, no se queda fijo.
           if ((time + n.cloudPhase) % 3.4 > 1.4) return;
+        } else if (n.cloudFastShout) {
+          // 2s visible, 1s escondido (ciclo de 3s).
+          if ((time + n.cloudPhase) % 3 > 2) return;
         } else if (!n.cloudAlways) {
           if (!party || (time + n.cloudPhase) % 12 > 4.2) return;
         }
@@ -1146,6 +1270,7 @@
     moveRobot(current());
     movePatrols(current(), dt);
     updateBreakGuy(current(), dt);
+    updateJuntasEvent(current(), dt);
     if (partyOn) updateConfetti(dt);
     render();
   }

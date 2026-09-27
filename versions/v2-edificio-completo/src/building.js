@@ -22,6 +22,12 @@ function grid(w, h, ch) {
   return rows;
 }
 
+// Hash determinístico chiquito para decidir qué casillas saltarse en un
+// montón de objetos (sombrillas, etc.) sin que se vea cuadriculado.
+function hashTile(c, r) {
+  return Math.abs(c * 73856093 ^ r * 19349663);
+}
+
 function put(g, col, row, ch) {
   if (g[row] && col >= 0 && col < g[row].length) g[row][col] = ch;
 }
@@ -253,7 +259,7 @@ function floor1() {
   npcs.push({ id: 'mojado', kind: 'bienestar', style: 'mojado', col: WELL_STORE.doorCol, row: 20, role: 'optional', stand: true });
   npcs.push({ id: 'kowalsky', kind: 'bienestar', style: 'agent11', col: WELL_STORE.col1 - 1, row: 21, role: 'none', stand: true, cloud: 'kowalsky', cloudAlways: true });
 
-  npcs.push({ id: 'ping1', kind: 'ping', style: 'pingpongA', col: 23, row: 3, dy: 8, role: 'none', stand: true, bounce: true });
+  npcs.push({ id: 'ping1', kind: 'ping', style: 'pingpongA', col: 23, row: 3, dy: 8, role: 'optional', stand: true, bounce: true });
   npcs.push({ id: 'josue', kind: 'logistica', style: 'josue', col: 29, row: 3, dy: 8, role: 'optional', stand: true, flip: true, bounce: true });
 
   npcs.push({ id: 'robot', kind: 'robot', style: 'robot', col: 2, row: 11, role: 'optional', stand: true, ghost: true });
@@ -266,7 +272,12 @@ function floor1() {
   // Gente de bienestar en sus propias actividades: sentados almorzando, con
   // audífonos o de pie conversando, repartidos por las mesas del piso.
   // Las 3 mesas junto a donde estaban los casilleros: toda su gente, un puesto a la derecha.
-  npcs.push({ id: 'wel1', kind: 'bienestar', style: 'agent3', col: 21, row: 8, role: 'none', notes: true });
+  // Betty, sola en la primera mesa al entrar a bienestar -- se quitó a
+  // wel1/wel9 de acá; la silla de enfrente (chairBd, col 21 fila 11) se deja
+  // vacía a propósito.
+  // De pie, como Patricia -- sentada, la mesa le tapa la falda.
+  // Patricia toma el puesto donde estaba Betty (que se fue a la terraza).
+  npcs.push({ id: 'patricia', kind: 'staff', style: 'patricia', col: 21, row: 8, role: 'optional', stand: true });
   npcs.push({ id: 'wel2', kind: 'bienestar', style: 'agent5', col: 25, row: 8, role: 'none', side: 'pineapple' });
   // Los dos de la mesa que se quitó quedan de pie a los lados de la entrada
   // al cuarto de las sombrillas.
@@ -276,7 +287,6 @@ function floor1() {
   npcs.push({ id: 'wel6', kind: 'bienestar', style: 'agent9', col: 35, row: 12, role: 'none', stand: true });
   npcs.push({ id: 'wel7', kind: 'bienestar', style: 'agent0', col: 33, row: 3, role: 'none', notes: true });
   npcs.push({ id: 'wel8', kind: 'bienestar', style: 'staff0', col: 37, row: 6, role: 'none', side: 'mug' });
-  npcs.push({ id: 'wel9', kind: 'bienestar', style: 'agent2', col: 21, row: 11, role: 'none', side: 'mug' });
   npcs.push({ id: 'wel10', kind: 'bienestar', style: 'agent6', col: 25, row: 11, role: 'none', notes: true });
   npcs.push({ id: 'wel11', kind: 'bienestar', style: 'agent10', col: 37, row: 11, role: 'none', side: 'pineapple' });
   npcs.push({ id: 'wel12', kind: 'bienestar', style: 'staff1', col: 37, row: 3, role: 'none' });
@@ -447,6 +457,17 @@ const RH_BANKS = [
   { col0: 4, col1: 11, row: 19 },
 ];
 
+// Sala de juntas nueva, colgada de la misma pared izquierda, por ENCIMA de
+// RH -- misma técnica (sidePod), comparte la pared compartida y termina
+// justo donde empieza el techo de RH, como TI y la vieja RH hacían del
+// otro lado, una encima de la otra.
+// Ampliada dos filas hacia arriba (llega hasta la pared de arriba del
+// piso) para que la mesa pueda tener dos filas de alto en vez de una.
+const RH_JUNTAS = { x1: 0, y0: 0, y1: RH_OFFICE.y0 - 1, doorRow: 4 };
+// Un poco más corta que antes (col. 3-10 en vez de 3-12), y con menos
+// gente sentada -- Don Armando preside desde la izquierda, de pie.
+const RH_JUNTAS_TABLE = { col0: 4, col1: 11, row0: 4, row1: 5 };
+
 // Frases sueltas de RH, sin nombre propio -- cualquiera del piso.
 const RH_EXTRAS = [
   ['rhLine1', 4, 13],
@@ -492,7 +513,8 @@ const OPS_EXTRAS = [
   // Diego G., en el mesón de la derecha.
   ['diegoG', 50, 6, 'diegoG'],
   // Frases sueltas de operaciones, sin nombre propio -- cualquiera del piso.
-  ['ops6', 20, 6],
+  // El de más a la izquierda del mesón de arriba a la izquierda.
+  ['juntaComplicada', 19, 6],
   ['ops7', 35, 6],
   ['ops8', 20, 11],
   ['ops9', 35, 16],
@@ -501,11 +523,15 @@ const OPS_EXTRAS = [
   ['ops12', 39, 16],
   ['ops13', 24, 21],
   ['ops14', 39, 11],
-  ['ops15', 24, 6],
   ['ops16', 39, 21],
   ['ops17', 48, 6],
-  // Los dos que contestan el saludo de la llamada.
-  ['opsCall1', 22, 6],
+  // Estos tres se corrieron del mesón de arriba a la izquierda -- quedó
+  // muy sobrecargado (5 comentarios en la misma mesa). Cada uno a otro
+  // NPC, en un mesón que solo tenía un comentario.
+  ['ops6', 37, 6],
+  ['ops15', 35, 21],
+  ['opsCall1', 20, 21],
+  // El otro que contesta el saludo de la llamada.
   ['opsCall2', 51, 11],
 ];
 
@@ -723,6 +749,61 @@ function operaciones() {
       }
     });
   });
+  // ---- Sala de juntas nueva, colgada por fuera, encima de RH ----
+  sidePod(g, OPS_MAIN_LEFT, RH_JUNTAS.x1, RH_JUNTAS.y0, RH_JUNTAS.y1, RH_JUNTAS.doorRow, true);
+  fill(g, RH_JUNTAS_TABLE.col0, RH_JUNTAS_TABLE.row0, RH_JUNTAS_TABLE.col1, RH_JUNTAS_TABLE.row1, 'M');
+  // tableros y plantas por las dos paredes largas, alternados, como en RH.
+  put(g, RH_JUNTAS.x1 + 1, RH_JUNTAS.y0 + 1, 'R');
+  put(g, RH_JUNTAS.x1 + 1, 3, 'P');
+  put(g, RH_JUNTAS.x1 + 1, 7, 'R');
+  put(g, OPS_MAIN_LEFT - 1, RH_JUNTAS.y0 + 1, 'P');
+  put(g, OPS_MAIN_LEFT - 1, 3, 'R');
+  put(g, OPS_MAIN_LEFT - 1, 7, 'P');
+  // Todos de pie, sin sillas -- traje y corbata los hombres (mismo cuerpo
+  // de Don Armando, cabeza normal), vestido/falda las mujeres (mismo look
+  // de Patricia y Marcela).
+  const RH_JUNTAS_STYLES = ['suit0', 'suit1', 'dress0', 'suit2', 'dress1', 'suit3', 'dress2'];
+  let rhJuntasIdx = 0;
+  [RH_JUNTAS_TABLE.row0 - 1, RH_JUNTAS_TABLE.row1 + 1].forEach(function (r) {
+    for (let c = RH_JUNTAS_TABLE.col0; c <= RH_JUNTAS_TABLE.col1; c++) {
+      const style = RH_JUNTAS_STYLES[rhJuntasIdx % RH_JUNTAS_STYLES.length];
+      npcs.push({ id: 'rhJuntas' + rhJuntasIdx, kind: 'agent', style: style, col: c, row: r, role: 'none', stand: true });
+      rhJuntasIdx++;
+    }
+  });
+  // Marcela y Betty, cambiadas de puesto: Marcela ahora abajo, Betty arriba.
+  npcs.forEach(function (n) {
+    if (n.col === RH_JUNTAS_TABLE.col0 && n.row === RH_JUNTAS_TABLE.row1 + 1) {
+      n.id = 'marcela';
+      n.style = 'marcela';
+      // Sin comentarios opcionales -- solo habla en el evento (forceMessage).
+      n.role = 'none';
+    }
+  });
+  npcs.forEach(function (n) {
+    if (n.col === RH_JUNTAS_TABLE.col0 && n.row === RH_JUNTAS_TABLE.row0 - 1) {
+      n.id = 'betty';
+      n.style = 'betty';
+      // En este piso no dice nada -- es una Betty distinta a la de recepción.
+      n.role = 'none';
+    }
+  });
+  // Patricia, en la entrada de la sala (por fuera, del lado del open
+  // space), y detrás de ella cuatro hombres de uniforme vino.
+  // Sin comentarios opcionales acá -- solo habla en el evento (forceMessage).
+  npcs.push({ id: 'patricia', kind: 'staff', style: 'patricia', col: OPS_MAIN_LEFT + 1, row: RH_JUNTAS.doorRow, role: 'none', stand: true });
+  // En una sola columna, uno detrás de otro, atrás de Patricia.
+  const GUARD_STYLES_CYCLE = ['guard0', 'guard1', 'guard2'];
+  // Columnas ajustadas uno por uno: el de arriba a la izquierda, los otros
+  // dos a la derecha (el de abajo se corrió acá desde la izquierda).
+  const GUARD_COLS = [OPS_MAIN_LEFT + 1, OPS_MAIN_LEFT + 2, OPS_MAIN_LEFT + 2];
+  GUARD_STYLES_CYCLE.forEach(function (style, i) {
+    npcs.push({ id: 'guard' + i, kind: 'agent', style: style, col: GUARD_COLS[i], row: RH_JUNTAS.doorRow - 1 + i, role: 'none', stand: true });
+  });
+  // Don Armando: de pie, presidiendo la mesa desde la izquierda.
+  // Sin comentarios opcionales -- solo habla en el evento (forceMessage).
+  npcs.push({ id: 'donArmando', kind: 'staff', style: 'donArmando', col: RH_JUNTAS_TABLE.col0 - 1, row: RH_JUNTAS_TABLE.row0, role: 'none', stand: true });
+
   // rincón de plantas, arriba a la izquierda del open space (antes era la cafetería)
   put(g, 1 + OPS_PAD, 1, 'P');
   put(g, 2 + OPS_PAD, 1, 'P');
@@ -886,11 +967,11 @@ function operaciones() {
       { art: 'heart', col: OPS_MAIN_LEFT, row: 22 },
       { art: 'heart', col: OPS_MAIN_LEFT, row: 25 },
       // Más vida contra la pared izquierda -- antes solo tenía corazones.
-      { art: 'painting', col: OPS_MAIN_LEFT, row: 6 },
+      { art: 'painting', col: OPS_MAIN_LEFT, row: 3 },
       { art: 'clock', col: OPS_MAIN_LEFT, row: 20 },
       { art: 'banner', col: OPS_MAIN_LEFT, row: 2 },
       // Canecas en vertical, igual que las de la pared derecha.
-      { art: 'trashCansV', col: OPS_MAIN_LEFT + 1, row: 4 },
+      { art: 'trashCansV', col: OPS_MAIN_LEFT + 1, row: 10 },
       // Las mismas tres canecas, en el rincón libre del baño, al lado de los
       // cubículos; y espejos encima de los lavamanos.
       { art: 'trashCansV', col: OPS_BATH.col1 - 1, row: OPS_BOTTOM + 3 },
@@ -1044,10 +1125,10 @@ function terraza() {
     { id: 'mafe', kind: 'staff', style: 'mafe', col: 3, row: 2, role: 'optional', stand: true, counterFront: true },
     // Gente ya sentada en las mesas, para que la terraza no se vea vacía
     // mientras no se ha hablado con Sergio.
-    { id: 'guest1', kind: 'guest', style: 'agent2', col: 1, row: 7, role: 'none' },
-    { id: 'guest2', kind: 'guest', style: 'agent6', col: 5, row: 11, role: 'none' },
+    // Betty, sola en esta mesa (la otra silla, col. 3, se deja vacía a propósito).
+    { id: 'betty', kind: 'guest', style: 'betty', col: 3, row: 7, role: 'optional', stand: true },
+    { id: 'guest2', kind: 'guest', style: 'agent6', col: 5, row: 11, role: 'optional' },
     { id: 'guest3', kind: 'guest', style: 'staff1', col: 30, row: 4, role: 'none', stand: true },
-    { id: 'guest4', kind: 'guest', style: 'agent10', col: 30, row: 10, role: 'none', stand: true },
     // Las mesas de la derecha, con gente sentada de verdad -- antes eran
     // solo sillas vacías. Dos personas por mesa, en las sillas de la
     // izquierda (col. t0-1); las de la derecha quedan libres para que no
@@ -1058,13 +1139,13 @@ function terraza() {
     { id: 'guest9', kind: 'guest', style: 'agent5', col: 29, row: 12, role: 'none' },
     { id: 'guest11', kind: 'guest', style: 'agent11', col: 34, row: 2, role: 'none' },
     { id: 'guest12', kind: 'guest', style: 'agent7', col: 34, row: 3, role: 'none' },
-    { id: 'guest13', kind: 'guest', style: 'agent9', col: 34, row: 7, role: 'none' },
+    { id: 'guest13', kind: 'guest', style: 'agent9', col: 34, row: 7, role: 'optional' },
     { id: 'guest14', kind: 'guest', style: 'staff1', col: 34, row: 8, role: 'none' },
     { id: 'guest15', kind: 'guest', style: 'agent0', col: 34, row: 12, role: 'none' },
     { id: 'guest16', kind: 'guest', style: 'agent6', col: 34, row: 13, role: 'none' },
     // Sillas de la derecha de esas mismas seis mesas (antes se dejaban
     // vacías a propósito; ahora también llevan gente).
-    { id: 'guest17', kind: 'guest', style: 'agent4', col: 31, row: 2, role: 'none' },
+    { id: 'guest17', kind: 'guest', style: 'agent4', col: 31, row: 2, role: 'optional' },
     { id: 'guest19', kind: 'guest', style: 'staff3', col: 31, row: 7, role: 'none' },
     { id: 'guest21', kind: 'guest', style: 'agent7', col: 31, row: 12, role: 'none' },
     { id: 'guest23', kind: 'guest', style: 'agent1', col: 36, row: 2, role: 'none' },
@@ -1073,14 +1154,17 @@ function terraza() {
     // Las cinco mesas nuevas del lado izquierdo (espejo de las de la
     // derecha), con gente a los dos lados. Col. 11/fila 3 y col. 11/fila 13
     // se saltan porque ya había alguien de la celebración justo ahí.
-    { id: 'guest32', kind: 'guest', style: 'staff2', col: 9, row: 7, role: 'none' },
+    { id: 'guest32', kind: 'guest', style: 'staff2', col: 9, row: 7, role: 'optional' },
     { id: 'guest33', kind: 'guest', style: 'agent1', col: 9, row: 8, role: 'none' },
     { id: 'guest34', kind: 'guest', style: 'agent4', col: 11, row: 7, role: 'none' },
-    { id: 'guest36', kind: 'guest', style: 'agent2', col: 9, row: 12, role: 'none' },
-    { id: 'guest37', kind: 'guest', style: 'agent9', col: 11, row: 12, role: 'none' },
+    // Sola en esta mesa -- se quitó a guest36/guest37 que estaban sentados acá.
+    { id: 'plaid', kind: 'guest', style: 'plaid', col: 9, row: 12, role: 'optional', stand: true },
     { id: 'guest42', kind: 'guest', style: 'agent3', col: 13, row: 7, role: 'none' },
     { id: 'guest43', kind: 'guest', style: 'agent8', col: 13, row: 8, role: 'none' },
     { id: 'guest44', kind: 'guest', style: 'staff1', col: 15, row: 7, role: 'none' },
+    // Don Armando, corriendo de un lado a otro de la terraza gritando por
+    // Betty (ver patrol más abajo). El grito entra y sale solo (cloudFastShout).
+    { id: 'donArmandoT', kind: 'staff', style: 'donArmando', col: 29, row: 10, role: 'none', stand: true, cloud: 'donArmandoT', cloudFastShout: true },
   ];
 
   TERRACE_PARTY.forEach(function (p) {
@@ -1139,8 +1223,13 @@ function terraza() {
     ],
     npcs: npcs,
     decor: chairs,
+    // Don Armando corre de un lado a otro (con solo 2 puntos, "llegar al
+    // final" es lo mismo que "volver" -- va y viene sin parar).
+    patrols: [
+      { id: 'donArmandoT', points: [{ col: 29, row: 10 }, { col: 37, row: 10 }], speed: 65 },
+    ],
     decorTop: hearts.concat([
-      { art: 'trashCans', col: 2, row: 12 },
+      { art: 'trashCans', col: 2, row: 13 },
       { art: 'logo', col: 23, row: 1 },
       { art: 'menu', col: 3, row: 0 },
       { art: 'coffee', col: 2, row: 1 },

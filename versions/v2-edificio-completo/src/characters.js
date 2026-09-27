@@ -1,5 +1,5 @@
 const SPRITE_SIZE = 16;
-const WALK_SPEED = 58;
+const WALK_SPEED = 72;
 const RUN_MULT = 1.7;
 const ANIM_FPS = 7;
 const INTERACT_RANGE = 26;
@@ -38,6 +38,9 @@ function createNpcs(def) {
       cloud: n.cloud || null,
       cloudAlways: !!n.cloudAlways,
       cloudShout: !!n.cloudShout,
+      // Igual que cloudShout (entra y sale solo), pero con su propio ritmo:
+      // 2s visible, 1s escondido -- para Don Armando gritando en la terraza.
+      cloudFastShout: !!n.cloudFastShout,
       party: !!n.party,
       // Antes solo "party" podía empezar escondido; ahora también un npc
       // suelto que arranca oculto hasta que algo lo revele (ver breakGuy).
@@ -64,6 +67,17 @@ function createNpcs(def) {
 
 function spriteOf(npc) {
   return npc.style + (npc.stand ? 'Stand' : 'Sit');
+}
+
+// Casi todos los sprites miden 16 filas; alguno especial (Don Armando, por
+// la frente) mide más y esas filas de más crecen hacia arriba (ver
+// drawSprite). Lo que vaya ENCIMA del personaje (globo, iconos de "E",
+// signos...) tiene que arrancar más arriba también, o le queda encima de
+// la frente en vez de flotar sobre la cabeza.
+function npcHeadExtra(npc) {
+  const frames = SPRITES[spriteOf(npc)];
+  const f = frames && frames[0];
+  return f ? Math.max(0, f.length - 16) : 0;
 }
 
 function boxBlocked(floor, x, y) {

@@ -479,6 +479,24 @@ const NAMED_STYLES = {
   // Los tres hombres araña del baño de operaciones: torso y "máscara" rojos,
   // piernas azules -- mismo cuerpo que cualquier agente, solo cambia el color.
   spiderman: { hair: 'r', hairDark: 'R', shirt: 'r', shirtDark: 'R', skin: 's', pants: 'c', spidermanMask: true },
+  // Patricia Fernández: piel blanca, rubia (mona), sin diadema. Traje
+  // ejecutivo con falda, un solo tono para que se vea de oficina.
+  patricia: { hair: 'y', hairDark: 'Y', shirt: 'v', shirtDark: 'V', skin: 's', pants: 'V', femHair: true, long: true },
+  // Betty: piel blanca, pelo negro, camiseta verde oliva (lo más cercano que
+  // hay en la paleta a 88770b -- ya no queda ninguna letra libre) y falda
+  // café claro. Las gafas rojas se agregan aparte (ver addBettyGlasses).
+  // shirtDark = pants (mismo truco que Patricia): así la sentada, que
+  // reusa shirtDark para la parte de abajo, también se ve con la falda
+  // café en vez de quedar mezclada con el verde de arriba.
+  betty: { hair: 'l', hairDark: 'L', shirt: 'O', shirtDark: 'u', skin: 's', pants: 'u', femHair: true, long: true },
+  // Marcela Valencia: piel blanca, cabello negro largo, falda -- mismo
+  // truco que Patricia (shirtDark = falda) para que la sentada también
+  // se vea con la falda en vez de mezclarse con el color de arriba.
+  marcela: { hair: 'l', hairDark: 'L', shirt: 'c', shirtDark: 'C', skin: 's', pants: 'C', femHair: true, long: true },
+  // Mujer nueva, piel blanca, cabello negro largo, sin diadema, pantalón
+  // (no falda) -- el color de camiseta no importa, se tapa entera con el
+  // cuadro rojo/negro de addPlaidShirt.
+  plaid: { hair: 'l', hairDark: 'L', shirt: 'k', shirtDark: 'k', skin: 's', pants: 'Z', femHair: true, hairLong: true },
 };
 
 // --- el equipo de desarrollo ---
@@ -497,6 +515,25 @@ function curlyHair(rows, hair, hD) {
 
 function addGlasses(rows) {
   rows[6] = '...ksMMMsMMMk...';
+  return rows;
+}
+
+// Gafas rojas de Betty: marco rojo y lente blanco, cubriendo toda la fila
+// del ojo -- así no hace falta dibujar el puntito negro aparte, se ahorra
+// ese pixel. Deja los mechones de pelo de los bordes (femHair) intactos.
+function addBettyGlasses(rows) {
+  rows[6] = rows[6].slice(0, 3) + 'RwwwRRwwwR' + rows[6].slice(13);
+  return rows;
+}
+
+// Camisa a cuadros (negro/rojo oscuro), tipo leñador -- pisa las 4 filas
+// del torso de buildStandLongPants (8-11), sin importar qué color de
+// camiseta traiga el estilo.
+function addPlaidShirt(rows) {
+  rows[8] = rows[8].slice(0, 3) + 'kRkRkkRkRk' + rows[8].slice(13);
+  rows[9] = rows[9].slice(0, 3) + 'RkRkkkkRkR' + rows[9].slice(13);
+  rows[10] = rows[10].slice(0, 3) + 'kRkRkkRkRk' + rows[10].slice(13);
+  rows[11] = rows[11].slice(0, 3) + 'RkRkkkkRkR' + rows[11].slice(13);
   return rows;
 }
 
@@ -600,6 +637,14 @@ Object.keys(NAMED_STYLES).forEach(function (key) {
   SPRITES[key + 'Stand'] = [devFrame(NAMED_STYLES[key], false)];
 });
 
+SPRITES.bettyStand = [addBettyGlasses(SPRITES.bettyStand[0])];
+SPRITES.bettySit = [addBettyGlasses(SPRITES.bettySit[0])];
+// Camisa de cuadros negros y rojos, como de leñador -- tapa toda la fila
+// del torso (y la de abajo, el borde oscuro) sin importar el color base.
+SPRITES.plaidStand = [addPlaidShirt(SPRITES.plaidStand[0])];
+// Segundo cuadro con las piernas caminando, para cuando sale corriendo con
+// los meseros (ver el evento de la sala de juntas en game.js).
+SPRITES.patriciaStand = [SPRITES.patriciaStand[0], personWalkLegs(devFrame(NAMED_STYLES.patricia, false))];
 SPRITES.brandonStand = [addBeard(SPRITES.brandonStand[0], NAMED_STYLES.brandon.hair)];
 SPRITES.frehynnerStand = [spikyHair(SPRITES.frehynnerStand[0], NAMED_STYLES.frehynner.hair, NAMED_STYLES.frehynner.hairDark)];
 // Se sienta en su puesto (como Sebastián y Daniel Pardo): el pelo levantado
@@ -735,21 +780,139 @@ function foxWalkLegs(rows) {
 // Mismo truco que foxWalkLegs pero para el molde genérico de pie
 // (buildStand): piernas juntas al centro, para alternar con el cuadro quieto
 // mientras alguien camina (breakGuy y cualquier otro agente que patrulle).
+// Últimas dos filas (no siempre son 14/15 -- Don Armando mide más por la
+// frente), para que sirva igual con un sprite más alto que el estándar.
 function personWalkLegs(rows) {
-  rows[14] = '....knnkknnk....';
-  rows[15] = '....kkkkkk......';
+  rows[rows.length - 2] = '....knnkknnk....';
+  rows[rows.length - 1] = '....kkkkkk......';
   return rows;
 }
 
 const ZORRO_STYLE = { hair: 'e', hairDark: 'E', shirt: 'K', shirtDark: 'X', skin: 'e', pants: 'Z' };
 SPRITES.zorroStand = [buildFox(ZORRO_STYLE), foxWalkLegs(buildFox(ZORRO_STYLE))];
 
+// Don Armando: personaje especial, dibujado entero a mano (no por el pipeline
+// genérico de devFrame) para que quede igual a la referencia -- cabeza bien
+// alargada por lo frentón, con el CUERPO intacto (mismas filas que
+// cualquier otro personaje, sin achicar nada). El sprite mide más de 16
+// filas -- eso lo aguanta el motor (ver makeSpriteCanvas/drawSprite), que
+// hace crecer esas filas de más hacia arriba en vez de estirar o achicar
+// el resto. Anteojos de marco gris (mismo dibujo que addGlasses), traje
+// azul con camisa blanca y corbata roja.
+function buildDonArmando(st) {
+  const s = st.skin || 's';
+  const pants = st.pants || 'Z';
+  const hair = st.hair;
+  const hD = st.hairDark;
+  const sh = st.shirt;
+  const shD = st.shirtDark;
+  return [
+    '................',
+    '......kkkk......',
+    '....k' + hD + rep(hair, 4) + hD + 'k....',
+    '...k' + hD + rep(hair, 6) + hD + 'k...',
+    '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
+    // Filas EXTRA de frente -- lo que hace que la cabeza sea más grande
+    // que la de cualquier otro personaje. El resto de acá para abajo es
+    // exactamente igual a un personaje normal (buildStand).
+    '...k' + rep(s, 8) + 'k...',
+    '...k' + rep(s, 8) + 'k...',
+    '...k' + rep(s, 8) + 'k...',
+    '...k' + rep(s, 8) + 'k...',
+    '...k' + rep(s, 8) + 'k...',
+    '...k' + rep(s, 8) + 'k...',
+    // ---- a partir de acá, cuerpo normal, sin tocar ----
+    '...k' + rep(s, 8) + 'k...',
+    '...ksMMMsMMMk...',
+    '....k' + rep(s, 6) + 'k....',
+    '.....k' + rep(s, 5) + 'k....',
+    '..kk' + rep(sh, 2) + 'wrrw' + rep(sh, 2) + 'kk..',
+    '.k' + s + rep(sh, 3) + 'wrrw' + rep(sh, 3) + s + 'k.',
+    '.k' + s + rep(sh, 3) + 'wrrw' + rep(sh, 3) + s + 'k.',
+    '.kk' + rep(shD, 3) + 'wwww' + rep(shD, 3) + 'kk.',
+    '...k' + rep(pants, 8) + 'k...',
+    '...knnk..knnk...',
+    '...kkk...kkk....',
+  ];
+}
+const DON_ARMANDO_STYLE = { hair: 'l', hairDark: 'L', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z' };
+// Segundo cuadro con las piernas caminando, para cuando corre por la
+// terraza gritando (ver su patrol en building.js).
+SPRITES.donArmandoStand = [buildDonArmando(DON_ARMANDO_STYLE), personWalkLegs(buildDonArmando(DON_ARMANDO_STYLE))];
+SPRITES.donArmandoSit = [SPRITES.donArmandoStand[0]];
+
+// Mismo torso de Don Armando (saco + corbata), pero con la cabeza normal
+// de cualquier persona (buildStand) -- para la gente de la oficina nueva
+// de operaciones: todos con traje, no con ropa de agente cualquiera.
+function buildSuit(st) {
+  const s = st.skin || 's';
+  const pants = st.pants || 'Z';
+  const hair = st.hair;
+  const hD = st.hairDark;
+  const sh = st.shirt;
+  const shD = st.shirtDark;
+  return [
+    '................',
+    '......kkkk......',
+    '....k' + hD + rep(hair, 4) + hD + 'k....',
+    '...k' + hD + rep(hair, 6) + hD + 'k...',
+    '...k' + hair + rep(s, 2) + rep(hair, 2) + rep(s, 2) + hair + 'k...',
+    '...k' + rep(s, 8) + 'k...',
+    '...k' + rep(s, 2) + 'k' + rep(s, 2) + 'k' + rep(s, 2) + 'k...',
+    '....k' + rep(s, 6) + 'k....',
+    '.....k' + rep(s, 5) + 'k....',
+    '..kk' + rep(sh, 2) + 'wrrw' + rep(sh, 2) + 'kk..',
+    '.k' + s + rep(sh, 3) + 'wrrw' + rep(sh, 3) + s + 'k.',
+    '.k' + s + rep(sh, 3) + 'wrrw' + rep(sh, 3) + s + 'k.',
+    '.kk' + rep(shD, 3) + 'wwww' + rep(shD, 3) + 'kk.',
+    '...k' + rep(pants, 8) + 'k...',
+    '...knnk..knnk...',
+    '...kkk...kkk....',
+  ];
+}
+// Hombres: traje y corbata, varios colores. Mujeres: vestido/falda, como
+// Patricia y Marcela (pelo largo, sin diadema).
+const SUIT_STYLES = [
+  { hair: 'h', hairDark: 'H', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z' },
+  { hair: 'l', hairDark: 'L', shirt: 'f', shirtDark: 'F', skin: 'u', pants: 'Z' },
+  { hair: 'n', hairDark: 'H', shirt: 'q', shirtDark: 'Q', skin: 'i', pants: 'Z' },
+  { hair: 'H', hairDark: 'k', shirt: 'z', shirtDark: 'Z', skin: 's', pants: 'Z' },
+];
+const DRESS_STYLES = [
+  { hair: 'l', hairDark: 'L', shirt: 'g', shirtDark: 'G', skin: 's', pants: 'G', femHair: true, long: true },
+  { hair: 'n', hairDark: 'H', shirt: 'p', shirtDark: 'P', skin: 'u', pants: 'P', femHair: true, long: true },
+  { hair: 'H', hairDark: 'k', shirt: 'q', shirtDark: 'Q', skin: 'i', pants: 'Q', femHair: true, long: true },
+];
+SUIT_STYLES.forEach(function (st, i) {
+  SPRITES['suit' + i + 'Stand'] = [buildSuit(st)];
+});
+DRESS_STYLES.forEach(function (st, i) {
+  SPRITES['dress' + i + 'Stand'] = [devFrame(st, false)];
+});
+
+// Guardia/escolta: camiseta color vino (lo más cerca que hay en la paleta a
+// a30034 -- ya no queda ninguna letra libre para agregar el hex exacto).
+const GUARD_STYLES = [
+  { hair: 'w', hairDark: 'W', shirt: 'R', shirtDark: 'T', skin: 'u', pants: 'Z' },
+  { hair: 'H', hairDark: 'k', shirt: 'R', shirtDark: 'T', skin: 's', pants: 'Z' },
+  { hair: 'l', hairDark: 'L', shirt: 'R', shirtDark: 'T', skin: 'i', pants: 'Z' },
+  { hair: 'n', hairDark: 'H', shirt: 'R', shirtDark: 'T', skin: 'u', pants: 'Z' },
+];
+GUARD_STYLES.forEach(function (st, i) {
+  // Segundo cuadro con las piernas caminando, para cuando salen corriendo
+  // detrás de Patricia (ver el evento de la sala de juntas en game.js).
+  SPRITES['guard' + i + 'Stand'] = [devFrame(st, false), personWalkLegs(devFrame(st, false))];
+});
+
 const spriteCache = {};
 
 function makeSpriteCanvas(frame) {
   const c = document.createElement('canvas');
   c.width = 16;
-  c.height = 16;
+  // Casi todos miden 16 filas; algún personaje especial (Don Armando, por
+  // la frente) puede tener más -- se dibuja igual de alto que el resto lo
+  // pida (ver drawSprite, que alinea los pies para que no flote ni se hunda).
+  c.height = frame.length;
   const g = c.getContext('2d');
   frame.forEach(function (row, y) {
     for (let x = 0; x < row.length; x++) {
@@ -773,12 +936,16 @@ function drawSprite(ctx, name, frame, x, y, flip) {
   // Por si a un NPC quieto se le pide un cuadro de caminado que no tiene:
   // vuelve al único cuadro que sí existe, en vez de romper.
   const img = getSprite(name, frame % SPRITES[name].length);
+  // Si el sprite mide más de 16 filas (cabeza extra larga), esas filas de
+  // más crecen hacia ARRIBA, no hacia abajo -- así los pies quedan en el
+  // mismo sitio que los de cualquier otro personaje, sin moverse de casilla.
+  const dy = y - (img.height - 16);
   if (!flip) {
-    ctx.drawImage(img, Math.round(x), Math.round(y));
+    ctx.drawImage(img, Math.round(x), Math.round(dy));
     return;
   }
   ctx.save();
-  ctx.translate(Math.round(x) + 16, Math.round(y));
+  ctx.translate(Math.round(x) + 16, Math.round(dy));
   ctx.scale(-1, 1);
   ctx.drawImage(img, 0, 0);
   ctx.restore();

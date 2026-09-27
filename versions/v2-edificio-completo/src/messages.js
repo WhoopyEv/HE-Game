@@ -9,12 +9,12 @@ const VALUES = [
   { id: 'aprendizaje', color: '#f4f0e6', label: 'APRENDIZAJE' },
   { id: 'equipo', color: '#f2c50a', label: 'EQUIPO' },
   { id: 'respaldo', color: '#0d0a12', label: 'RESPALDO' },
-];
+]
 
-const VALUE_BY_ID = {};
+const VALUE_BY_ID = {}
 VALUES.forEach(function (v) {
-  VALUE_BY_ID[v.id] = v;
-});
+  VALUE_BY_ID[v.id] = v
+})
 
 const MESSAGES = {
   title: {
@@ -55,30 +55,42 @@ const MESSAGES = {
   // Sale cuando se intenta subir a la terraza sin las cinco piezas.
   terraceLocked: {
     name: '',
-    lines: ['La terraza está cerrada hasta que estén las cinco piezas. Todavía falta gente por escuchar en operaciones.'],
+    lines: [
+      'La terraza está cerrada hasta que estén las cinco piezas. Todavía falta gente por escuchar en operaciones.',
+    ],
   },
 
   // Los cinco del equipo de desarrollo. Cada uno entrega una pieza al hablarle.
   devs: {
     diana: {
       name: 'DIANA A.',
-      lines: ['A mí me dieron la oportunidad antes de que yo misma estuviera segura de poder. Mira, esta pieza es para ti.'],
+      lines: [
+        'A mí me dieron la oportunidad antes de que yo misma estuviera segura de poder. Mira, esta pieza es para ti.',
+      ],
     },
     daniel: {
       name: 'DANIEL R.',
-      lines: ['Desde el primer día confiaron en mí y me dieron espacio para demostrar lo que podía hacer.'],
+      lines: [
+        'Desde el primer día confiaron en mí y me dieron espacio para demostrar lo que podía hacer.',
+      ],
     },
     nicolas: {
       name: 'NICOLÁS D.',
-      lines: ['Llegué con bastante conocimiento, pero acá he aprendido mucho más haciendo, equivocándome y trabajando con el equipo.'],
+      lines: [
+        'Llegué con bastante conocimiento, pero acá he aprendido mucho más haciendo, equivocándome y trabajando con el equipo.',
+      ],
     },
     guillermo: {
       name: 'GUILLERMO M.',
-      lines: ['Cuando hay un problema, nadie se queda solo tratando de resolverlo. Nos metemos todos y lo sacamos como equipo.'],
+      lines: [
+        'Cuando hay un problema, nadie se queda solo tratando de resolverlo. Nos metemos todos y lo sacamos como equipo.',
+      ],
     },
     felipe: {
       name: 'FELIPE P.',
-      lines: ['Más de una vez me he quedado mirando algo sin saber qué hacer, y siempre termina llegando alguien a dar una mano.'],
+      lines: [
+        'Más de una vez me he quedado mirando algo sin saber qué hacer, y siempre termina llegando alguien a dar una mano.',
+      ],
     },
   },
 
@@ -86,43 +98,59 @@ const MESSAGES = {
   extras: {
     aseo: {
       name: 'SERVICIOS GENERALES',
-      lines: ['Que el edificio se vea así de limpio no es casualidad — es trabajo de todos los días.'],
+      lines: [
+        'Que el edificio se vea así de limpio no es casualidad — es trabajo de todos los días.',
+      ],
     },
     // TODO: Nico, ajusta la frase si hay una forma más exacta en que la empresa lo pide.
     aseoBanos: {
       name: 'SERVICIOS GENERALES',
-      lines: ['Gracias por tu participación en el cuidado de los baños, es un tema que nos importa a todos.'],
+      lines: [
+        'Gracias por tu participación en el cuidado de los baños, es un tema que nos importa a todos.',
+      ],
     },
     mojado: {
       lines: ['Qué lavada la que me pegué.'],
     },
     secadorLine: {
-      lines: ['Qué lavada me pegué hoy, tocó toda la jornada con papel higiénico en los zapatos.'],
+      lines: [
+        'Qué lavada me pegué hoy, tocó toda la jornada con papel higiénico en los zapatos.',
+      ],
     },
     spiderman1: {
-      lines: ['Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?'],
+      lines: [
+        'Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?',
+      ],
     },
     spiderman2: {
-      lines: ['Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?'],
+      lines: [
+        'Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?',
+      ],
     },
     spiderman3: {
-      lines: ['Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?'],
+      lines: [
+        'Cuando todos se quejan del baño, pero nadie ensucia el baño... ¿o sí?',
+      ],
     },
     brandon: {
       name: 'BRANDON',
       lines: ['Los detalles son lo más importante.'],
     },
     porteria: {
-      name: 'PORTERÍA',
       lines: ['Buenos días, Espartano. Siga, que el Boss lo está esperando.'],
     },
     josue: {
       name: 'JOSUÉ',
       lines: ['Yo cuido un piso entero, jefe. Y en el break, cuido esta mesa.'],
     },
+    ping1: {
+      lines: ['Los meseros todavía no han llegado ¿o si?'],
+    },
     danielPardo: {
       name: 'DANIEL PARDO',
-      lines: ['Mmm... ¿Están trabajando? ¿Pueden trabajar más fuerte? No, mentira, sigan así chicos.'],
+      lines: [
+        'Mmm... ¿Están trabajando? ¿Pueden trabajar más fuerte? No, mentira, sigan así chicos.',
+      ],
     },
     sebastian: {
       name: 'SEBASTIÁN RODRIGUEZ',
@@ -138,7 +166,7 @@ const MESSAGES = {
     },
     mafe: {
       name: 'MAFE',
-      lines: ['Muy buenos días, ¿qué se te antoja?'],
+      lines: ['Ya se acabó todo, hoy pagaron, lo siento.'],
     },
     robot: {
       name: 'ESPERANCITA',
@@ -157,6 +185,9 @@ const MESSAGES = {
       lines: ['Estoy cansada, jefe.'],
     },
     // Frases sueltas de operaciones, sin nombre -- cualquiera del piso.
+    juntaComplicada: {
+      lines: ['No entres. La junta está… complicada.'],
+    },
     ops6: {
       lines: ['Hey, qué buenas métricas, muchachos.'],
     },
@@ -167,7 +198,7 @@ const MESSAGES = {
       lines: ['Ja, papi, cero lates este mes.'],
     },
     ops9: {
-      lines: ['Que no baje más el dólar, por favor, jajaja.'],
+      lines: ['Que no baje más el dólar, por favor.'],
     },
     ops10: {
       lines: ['A tres de cumplir la meta del mes.'],
@@ -185,16 +216,20 @@ const MESSAGES = {
       lines: ['Muchachosss, se cayó Forth... mentira, bromita.'],
     },
     ops15: {
-      lines: ['¿Quién pa\' tomarnos algo, después del work?'],
+      lines: ["¿Quién pa' tomarnos algo, después del work?"],
     },
     ops16: {
       lines: ['Oxxo, después del work, o mareos?'],
     },
     opsCall1: {
-      lines: ['"Thanks for calling Cordoba Legal Group, in what can I help you today, sir?..."'],
+      lines: [
+        '"Thanks for calling Cordoba Legal Group, in what can I help you today, Sir?..."',
+      ],
     },
     opsCall2: {
-      lines: ['"Thanks for calling Cordoba Legal Group, in what can I help you today, Mrs?..."'],
+      lines: [
+        '"Thanks for calling Cordoba Legal Group, in what can I help you today, Mrs?..."',
+      ],
     },
     ops17: {
       lines: ['¿Después del work, Oxxo o miedo?'],
@@ -234,7 +269,7 @@ const MESSAGES = {
       lines: ['Necesito más información que "no funciona".'],
     },
     tiLine2: {
-      lines: ['No es que no quiera ayudarte. Es que necesito el ticket.'],
+      lines: ['Si no hay ticket. No hay problema, es rumor.'],
     },
     breakGuy: {
       name: '',
@@ -254,11 +289,15 @@ const MESSAGES = {
     },
     ops1: {
       name: 'OPERACIONES',
-      lines: ['Uno entra a contestar llamadas y termina aprendiendo a hablarle a cualquiera sin miedo.'],
+      lines: [
+        'Uno entra a contestar llamadas y termina aprendiendo a hablarle a cualquiera sin miedo.',
+      ],
     },
     ops2: {
       name: 'OPERACIONES',
-      lines: ['Lo mejor de este piso es que si uno se traba, voltea y siempre hay alguien que le ayuda.'],
+      lines: [
+        'Lo mejor de este piso es que si uno se traba, voltea y siempre hay alguien que le ayuda.',
+      ],
     },
     ops3: {
       name: 'OPERACIONES',
@@ -266,11 +305,82 @@ const MESSAGES = {
     },
     ops5: {
       name: 'OPERACIONES',
-      lines: ['Cuando cierro turno y miro para atrás, siempre hay alguien más que también se quedó.'],
+      lines: [
+        'Cuando cierro turno y miro para atrás, siempre hay alguien más que también se quedó.',
+      ],
     },
     ops4: {
       name: 'OPERACIONES',
-      lines: ['Llevo tres años acá y todavía me río con los mismos de la primera semana.'],
+      lines: [
+        'Llevo tres años acá y todavía me río con los mismos de la primera semana.',
+      ],
+    },
+    patricia: {
+      name: 'PATRICIA',
+      lines: [
+        'A mí no me mire, yo soy de Presidencia.',
+        'Ay, noooo, ¿y los meseros a qué hora van a llegar, eh?',
+        'Yo hice seis semestres de finanzas en la San Marino, tráteme serio.',
+        'La pobreza me está respirando en la nuca, Marce.',
+        'Una cosa es estar sin plata y otra muy distinta parecer pobre.',
+        '¿Usted sabe cuánto cuesta mantener un Mercedes?',
+        'Marce, yo no puedo seguir viviendo así.',
+        '¿Ese es Nicolás Mora?... Bueno, tampoco está tan mal.',
+        'El Cuartel me tiene envidia, eso es todo.',
+        'Yo no necesito consejos financieros, gracias.',
+        'No tengo efectivo… pero tengo seis semestres de finanzas.',
+        '¿Esto lo va a pagar la empresa o me toca a mí?',
+        'Qué pena, pero yo no hago fila.',
+        '¿Y usted sí sabe con quién está hablando?',
+        'Ay, no, qué pobreza la mía.',
+        'Si esto sigue así, voy a tener que vender el Mercedes.',
+        'Yo no estoy interesada en Nicolás Mora… para nada... obvio no.',
+        'Seis semestres, mi amor. Seis.',
+        'Nicolás podrá ser raro, pero plata sí parece que tiene.',
+        'A mí no me involucren en problemas de Terramoda.',
+        '¿Y los meseros? ¿Es que nadie quiere pensar en los meseros?',
+      ],
+    },
+    betty: {
+      name: 'BETTY',
+      lines: [
+        '¿Por qué nadie se sentará al lado mío?',
+        'Las cifras no mienten. Las personas sí.',
+        '¿Dónde estará Don Armando? Tengo que hablar con él.',
+        'Molesten y molesten con sus meseros, pero ¿y las cifras quién las arregla?',
+        'Nicolás dice que todavía podemos salvar esto.',
+        'El Cuartel ya sabe todo.',
+        'Patricia lleva seis semestres recordándomelo.',
+        'Las cifras de Ecomoda no están cuadrando.',
+        'No quiero causar problemas... pero mire estos números de Ecomoda.',
+        'Terramoda no es tan sencillo de explicar.',
+        'Yo no debería saber tantas cosas de esta empresa.',
+        'Esto empezó como una empresa de moda y terminó como una novela.',
+      ],
+    },
+    donArmando: {
+      name: 'ARMANDO',
+      lines: [
+        'En Ecomoda no hay lugar para la mediocridad.',
+        '¿Betty? Necesito esas cifras sobre mi escritorio.',
+        'Alguien tiene que pensar en la empresa.',
+      ],
+    },
+    // Frases sueltas de la terraza, repartidas en mesas distintas.
+    plaid: {
+      lines: ['Pandebono y cappuccino. No hay mejor combinación.'],
+    },
+    guest2: {
+      lines: ['Quien me presta un tenedor, no traje :C'],
+    },
+    guest13: {
+      lines: ['¿Ya hicieron el amigo secreto o solo yo compré regalo?'],
+    },
+    guest17: {
+      lines: ['¿Ya vieron a Patricia? Anda preguntando por los meseros otra vez.'],
+    },
+    guest32: {
+      lines: ['¿Alguien vio si ya repartieron las empanadas? Yo solo vine a comer.'],
     },
   },
 
@@ -278,6 +388,7 @@ const MESSAGES = {
   // la fuente de píxeles del juego, que es solo de mayúsculas).
   clouds: {
     danilo: { name: 'DANILO', text: '¡VENTAAAA!' },
+    donArmandoT: '¡BETTY! ¡BETTY!',
     kowalsky: 'Kowalsky, ¿opciones? ¿Ahora cómo salgo?',
     diana: 'Gracias, HE',
     daniel: '¡Gracias por tanto!',
@@ -309,8 +420,8 @@ const MESSAGES = {
   credits: ['Daniel', 'Diana', 'Nicolás', 'Guillermo', 'Felipe'],
 
   dedication: 'Hecho por el equipo de desarrollo · Día de Amor y Amistad 2026',
-};
+}
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { MESSAGES, VALUES, VALUE_BY_ID };
+  module.exports = { MESSAGES, VALUES, VALUE_BY_ID }
 }

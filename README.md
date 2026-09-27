@@ -1,136 +1,128 @@
-# Hired Experts — "Gracias, jefe" 🛡️
+﻿# Hired Experts — «Gracias, jefe» 🛡️
 
-Minijuego pixel-art para el Día de Amor y Amistad (viernes 18 de septiembre de 2026), hecho por el
-equipo de desarrollo.
+Minijuego web en pixel art creado por el equipo de desarrollo para el Día de Amor y Amistad de 2026. Es un homenaje a Hired Experts, con personajes de la empresa, mensajes de agradecimiento y bromas internas.
 
-Juegas como **el Espartano** y recorres el **edificio completo de Hired Experts**: 8 pisos, ascensor,
-y en cada piso alguien que te deja un mensaje de agradecimiento. Marce te da la misión en recepción
-y te espera arriba en la terraza. Al reunir los 6 mensajes, todo el edificio se reúne frente al arco
-de globos y ocurre la escena final dedicada a Hired Experts.
+Juegas como **el Espartano**, un guiño a Sergio y a su expresión «mis espartanos». Exploras la oficina con vista desde arriba, reúnes cinco piezas y participas en una celebración en la terraza.
 
-(El Espartano es porque a Sergio le gustan los espartanos y nos llama "mis espartanos".)
+## Cómo jugar
 
----
-
-## Cómo jugarlo
-
-**Doble clic en `index.html`.** No hay que instalar ni compilar nada.
+Abre **[index.html](index.html)** en el navegador. No necesitas instalar dependencias ni compilar.
 
 | Acción | Teclado | Táctil |
 |---|---|---|
-| Caminar | Flechas o WASD | D-pad en pantalla |
-| Hablar / avanzar | **E**, ESPACIO o ENTER | Botón **E** |
-| Usar el ascensor | **E** frente a las puertas | Botón **E** |
-| Elegir piso | ↑ ↓ y **E** para ir, ← → para salir | Toca el piso en la lista |
+| Caminar | Flechas o WASD | Cruceta en pantalla |
+| Hablar / avanzar un diálogo | E, ESPACIO o ENTER | Botón E |
+| Abrir el ascensor | E frente a las puertas | Botón E |
+| Elegir piso | ↑ / ↓ y E para confirmar | Toca el piso en la lista |
+| Cerrar el selector del ascensor | ← / → | — |
 
-El HUD muestra ❤ x/6. El ascensor marca con ❤ los pisos cuyo mensaje ya recogiste.
+Habla primero con **Sergio y Yesica en recepción** para recibir la misión y habilitar el ascensor. Después visita operaciones y conversa con los cinco integrantes del equipo de desarrollo. El HUD muestra tu progreso; la terraza se desbloquea cuando reúnes las cinco piezas.
 
----
+## Recorrido actual
 
-## El edificio
+El edificio tiene **3 pisos**:
 
-| Piso | Qué hay | ❤ |
+| Piso | Espacio | Qué sucede |
 |---|---|---|
-| 1 | Recepción (Marce, Brandon, portería, servicios generales, logo de HE) y Bienestar (casilleros, ping-pong, almuerzo) | — |
-| 2 | TI (manager y salones de training) y Recursos Humanos (3 managers y la oficina de Sergio) | Sergio |
-| 3-7 | Dos oficinas de cubículos con agentes, un supervisor al final de cada hilera y suboficinas de manager | 1 manager por piso |
-| 8 | Terraza: pasto, mesas con sillas de colores, la tienda de Marce y corazones decorando el borde | — (cierra el juego) |
+| 1 | Recepción y bienestar | Inicio de la misión y conversaciones opcionales |
+| 2 | Operaciones | Exploración de la oficina y entrega de las cinco piezas |
+| 3 | Terraza | Celebración, animación del logo y mensaje final del equipo |
 
-Todos los pisos comparten la misma forma: oficina 01 · pasillo angosto con el ascensor y el baño ·
-oficina 02.
+Cada integrante entrega una pieza que representa un valor de Hired Experts:
 
----
+| Personaje | Valor | Color |
+|---|---|---|
+| Diana | Oportunidad | Morado |
+| Daniel | Confianza | Rojo |
+| Nicolás | Aprendizaje | Blanco |
+| Guillermo | Equipo | Amarillo |
+| Felipe | Respaldo | Negro |
 
-## Editar los mensajes
+Otros personajes muestran mensajes opcionales en globos al acercarse. Al final, las piezas forman el logo de la empresa y aparece la dedicatoria del equipo de desarrollo.
 
-Todo el texto vive en **[`src/messages.js`](src/messages.js)** — el único archivo que hay que tocar
-para personalizar los agradecimientos. No hace falta entender el resto del código.
+## Versiones del proyecto
 
-Los **mensajes obligatorios** (los que dan ❤) están en `floors`, uno por piso, y son de **una sola
-frase** a propósito, para que recorrer 8 pisos no se sienta largo:
+**La carpeta `versions/v2-edificio-completo/` contiene el código que usa actualmente `index.html`**, mediante `<base href="versions/v2-edificio-completo/">`. Su nombre es histórico: el mapa actual está reducido a tres pisos.
 
-```js
-floors: {
-  3: {
-    name: 'GERENTE PISO 3',
-    lines: ['Gracias, Hired Experts, por dejarnos equivocarnos sin miedo.'],
-  },
-}
+| Ruta | Contenido y uso actual |
+|---|---|
+| `index.html` | Entrada principal; carga los scripts y el audio de la versión del edificio |
+| `versions/v2-edificio-completo/` | Versión del edificio, con su propia página, código, audio y configuración Docker |
+| `versions/v1-un-piso/` | Primera versión conservada como referencia |
+| `src/` | Implementación alternativa de plataformas lateral: saltos, obstáculos y piezas coleccionables |
+| `artifact.html` | Fragmento HTML que actualmente carga la versión de plataformas de `src/`; no equivale a la entrada principal |
+| `docs/PLAN.md` | Plan de la versión de plataformas (v3); no describe el juego que carga la página principal |
+
+Los README y planes dentro de las carpetas de versiones pueden describir estados anteriores. Para el recorrido actual, las definiciones de `building.js`, `messages.js` y la lógica de `game.js` de la v2 son la referencia.
+
+## Tecnología y estructura
+
+El juego usa **HTML, CSS y JavaScript puro**, sin frameworks, dependencias de paquetes ni backend. Los escenarios y personajes se dibujan con Canvas a partir de tiles, matrices de píxeles y paletas. Los efectos de sonido se sintetizan con Web Audio; la versión del edificio también utiliza un archivo MP3 local.
+
+```text
+index.html                          Página principal y estilos
+build-artifact.js                   Extrae estilos y cuerpo de index.html
+artifact.html                       Fragmento de la versión de plataformas
+versions/
+  v2-edificio-completo/              Código de la versión actualmente enlazada
+    index.html                      Entrada propia de esta versión
+    assets/300-espartanos.mp3        Audio del Espartano
+    src/
+      sprites.js                    Pixel art y paletas
+      map.js                        Tiles, mobiliario y decoración
+      building.js                   Mapas, posiciones y personajes de los 3 pisos
+      messages.js                   Valores, diálogos, dedicatoria y créditos
+      engine.js                     Canvas, controles y bucle del juego
+      characters.js                 Movimiento, colisiones y personajes
+      dialogue.js                   Diálogos con efecto de escritura
+      audio.js                      Efectos sintetizados y reproducción del MP3
+      game.js                       Estados, misión, ascensor y celebración
+    Dockerfile                      Servidor estático con Nginx
+    docker-compose.yml              Publicación en el puerto 4001
+  v1-un-piso/                        Primera versión
+src/                                Código de la alternativa de plataformas
+docs/PLAN.md                        Diseño de la alternativa de plataformas
 ```
 
-Los **mensajes opcionales** (no cuentan para el ❤ y se pueden repetir) están en `extras`, indexados
-por el `id` del personaje: `aseo`, `brandon`, `porteria`, `mgrTi`, `mgrRh1`, `mgrRh2`, `mgrRh3`.
+## Personalizar la versión actual
 
-Ahí mismo están el texto de la intro, los diálogos de Marce, el mensaje final y los créditos.
+Edita **[versions/v2-edificio-completo/src/messages.js](versions/v2-edificio-completo/src/messages.js)** para cambiar los textos:
 
-Los mensajes opcionales **aparecen solos en un globo** cuando te acercas a la persona; los
-obligatorios se leen con **E** en la caja de diálogo de abajo.
+- `VALUES`: nombres y colores de las cinco piezas.
+- `MESSAGES.sergio`: misión y respuestas de Sergio y Yesica.
+- `MESSAGES.devs`: agradecimientos de los cinco integrantes.
+- `MESSAGES.extras`: conversaciones opcionales al acercarse.
+- `MESSAGES.clouds`: globos de la celebración.
+- `MESSAGES.finale`, `credits` y `dedication`: cierre del juego.
 
-Los nombres de los gerentes de los pisos 3-7 están como placeholder (`GERENTE PISO 3`, etc.) hasta
-que se definan las personas reales.
+Las posiciones, decoraciones y personajes se configuran en **[building.js](versions/v2-edificio-completo/src/building.js)**. La secuencia de eventos y las condiciones de progreso viven en **[game.js](versions/v2-edificio-completo/src/game.js)**.
 
----
+Editar los archivos del `src/` de la raíz cambia la alternativa de plataformas. Para modificar el juego que abre la página principal, utiliza el `src/` de la v2.
 
-## Personalizar a alguien (easter eggs)
+## Publicar
 
-Todos los cubículos son iguales y tienen el mismo espacio de mesa; solo algunas personas tienen
-objeto o mensaje. Se configura en la tabla `PERSONAL` de **[`src/building.js`](src/building.js)**:
+### Sitio estático
 
-```js
-const PERSONAL = {
-  3: [
-    { col: 20, row: 1, item: 'pineapple', id: 'nicolas' },
-  ],
-};
+Puedes publicar la carpeta del proyecto en un servidor estático conservando la estructura de rutas. La entrada principal necesita `versions/v2-edificio-completo/src/` y `versions/v2-edificio-completo/assets/`.
+
+También puedes publicar únicamente el contenido de `versions/v2-edificio-completo/`, usando su propio `index.html` como entrada junto con `src/` y `assets/`.
+
+### Docker
+
+Con Docker Compose disponible, ejecuta desde la raíz:
+
+```bash
+docker compose -f versions/v2-edificio-completo/docker-compose.yml up --build -d
 ```
 
-- `col` / `row`: la posición de esa persona en el piso.
-- `item`: el objeto que queda sobre su escritorio — `pineapple`, `headphones`, `duck`, `ball`,
-  `mug` o `plant`.
-- `id`: opcional. Si lo pones, esa persona habla: escribe su frase en `MESSAGES.extras.nicolas`
-  y saldrá sola en un globo al pasar cerca.
+Abre `http://localhost:4001`. Esta opción sirve la página propia de la v2 con Nginx.
 
-Hoy el piso 3 tiene la piña, los audífonos, el pato y el balón repartidos en la primera hilera de
-la oficina 02, sin mensaje todavía.
-
----
-
-## Estructura
-
-```
-index.html          la página; ábrela y ya
-build-artifact.js   genera artifact.html (versión para publicar en web)
-src/
-  sprites.js        pixel art como matrices de caracteres + paleta
-  map.js            dibujo de tiles, terrenos, mobiliario y decoración
-  building.js       los 8 pisos: mapas, zonas y personajes
-  messages.js       ← los textos (lo que vas a querer editar)
-  engine.js         canvas, escalado, teclado y táctil, game loop
-  characters.js     el Espartano y los NPC; movimiento, colisiones y cámara
-  dialogue.js       caja de diálogo con efecto máquina de escribir
-  audio.js          sonidos chiptune generados con WebAudio
-  game.js           máquina de estados, ascensor y orquestación
-docs/PLAN.md        el plan de diseño completo
-versions/v1-un-piso/  la versión anterior (un solo piso), congelada
-```
-
-**Sin dependencias, sin build, sin assets externos.** Todo el arte se dibuja por código —incluido el
-logo de la empresa— y el audio se sintetiza en el navegador con WebAudio.
-
-Los pisos 3-7 se generan con una sola plantilla parametrizada, así que agregar detalle a un piso no
-obliga a rehacer los demás. La cámara sigue al Espartano porque cada piso es más grande que la
-pantalla.
-
----
-
-## Publicar en web
+### Estado del generador de fragmentos
 
 ```bash
 node build-artifact.js
 ```
 
-Genera `artifact.html`, que es `index.html` sin las etiquetas `<html>/<head>/<body>` — el formato
-que piden los hosts que envuelven el contenido en su propia plantilla. `index.html` sigue siendo
-la fuente de verdad: edita ese y vuelve a generar.
+Este comando requiere Node.js y **sobrescribe `artifact.html`** extrayendo el bloque `<style>` y el contenido de `<body>` de la página principal. Los archivos JavaScript y el audio siguen siendo recursos separados.
 
-Al ser estático, también funciona tal cual en Netlify Drop o GitHub Pages subiendo la carpeta.
+Actualmente también omite el `<base>` del `<head>`. Por eso, el fragmento generado no conserva las rutas de la entrada principal: sus referencias `src/...` y `assets/...` necesitan resolverse respecto a `versions/v2-edificio-completo/` en el sitio que lo integre. Para publicar directamente el juego actual, utiliza una de las opciones anteriores.
