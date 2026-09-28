@@ -459,8 +459,10 @@ const NAMED_STYLES = {
   mgrRh3: { hair: 'j', hairDark: 'J', shirt: 'c', shirtDark: 'C', skin: 'u', pants: 'Z', long: true },
   // Chaqueta naranja fosforescente.
   brandon: { hair: 'H', hairDark: 'k', shirt: 'I', shirtDark: 'E', skin: 'u', pants: 'Z' },
-  // Jonathan: piel clara y pelo negro (mismo peinado, antes era castaño).
-  jonathan: { hair: 'l', hairDark: 'L', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z' },
+  // Jonathan: piel clara y pelo negro, ahora largo -- mismo truco que
+  // marce/mafe (hairLong sin femHair): pelo largo pero con pantalón normal,
+  // sigue viéndose como hombre.
+  jonathan: { hair: 'l', hairDark: 'L', shirt: 'x', shirtDark: 'X', skin: 's', pants: 'Z', hairLong: true },
   frehynner: { hair: 'n', hairDark: 'H', shirt: 'g', shirtDark: 'G', skin: 'i', pants: 'Z' },
   // Marco, de TI: piel blanca, pelo negro.
   marco: { hair: 'l', hairDark: 'L', shirt: 'z', shirtDark: 'Z', skin: 's', pants: 'Z' },

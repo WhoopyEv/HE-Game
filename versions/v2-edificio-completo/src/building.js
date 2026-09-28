@@ -784,8 +784,8 @@ function operaciones() {
     if (n.col === RH_JUNTAS_TABLE.col0 && n.row === RH_JUNTAS_TABLE.row0 - 1) {
       n.id = 'betty';
       n.style = 'betty';
-      // En este piso no dice nada -- es una Betty distinta a la de recepción.
-      n.role = 'none';
+      // También tiene sus comentarios opcionales, igual que en la terraza.
+      n.role = 'optional';
     }
   });
   // Patricia, en la entrada de la sala (por fuera, del lado del open
@@ -1078,10 +1078,11 @@ function terraza() {
   put(g, TERRACE_ELEV.col + 1, TERRACE_ELEV.row, 'L');
 
   // tienda de Marce, pegada a la esquina superior izquierda (un renglón
-  // más abajo que antes -- mesa y lo que va encima, todo junto).
-  fill(g, 2, 3, 6, 3, 'c');
+  // más abajo que antes -- mesa y lo que va encima, todo junto). Agrandada
+  // hacia la derecha (más ancha).
+  fill(g, 2, 3, 9, 3, 'c');
   put(g, 1, 1, 'F');
-  put(g, 6, 1, 'B');
+  put(g, 9, 1, 'B');
 
   // mesas a la derecha, lejos de donde se arma la celebración
   // Cuadrícula pareja (columnas 32 y 37, filas 2/7/12): dos columnas y tres
@@ -1118,15 +1119,16 @@ function terraza() {
 
   const npcs = [
     // A mitad de la terraza (ancho real: col. 0 a 39).
-    { id: 'sergio', kind: 'boss', style: 'sergioBoss', col: 19, row: 7, role: 'mission', stand: true, side: 'bow', flip: true },
-    { id: 'yesica', kind: 'boss', style: 'yesica', col: 20, row: 7, role: 'none', stand: true },
-    // Marce se corrió al puesto donde antes estaba Sergio.
-    { id: 'marce', kind: 'staff', style: 'marce', col: 5, row: 4, role: 'optional', stand: true },
-    { id: 'mafe', kind: 'staff', style: 'mafe', col: 3, row: 2, role: 'optional', stand: true, counterFront: true },
+    { id: 'sergio', kind: 'boss', style: 'sergioBoss', col: 19, row: 9, role: 'mission', stand: true, side: 'bow', flip: true },
+    { id: 'yesica', kind: 'boss', style: 'yesica', col: 20, row: 9, role: 'none', stand: true },
+    // Marce se corrió al puesto donde antes estaba Sergio (y 3 más a la derecha).
+    { id: 'marce', kind: 'staff', style: 'marce', col: 8, row: 4, role: 'optional', stand: true },
+    { id: 'mafe', kind: 'staff', style: 'mafe', col: 6, row: 2, role: 'optional', stand: true, counterFront: true },
     // Gente ya sentada en las mesas, para que la terraza no se vea vacía
     // mientras no se ha hablado con Sergio.
-    // Betty, sola en esta mesa (la otra silla, col. 3, se deja vacía a propósito).
-    { id: 'betty', kind: 'guest', style: 'betty', col: 3, row: 7, role: 'optional', stand: true },
+    // Betty, sola en esta mesa -- guest33 y guest34 se corrieron a la mesa
+    // de la izquierda (la de guest32).
+    { id: 'betty', kind: 'guest', style: 'betty', col: 9, row: 7, role: 'optional', stand: true },
     { id: 'guest2', kind: 'guest', style: 'agent6', col: 5, row: 11, role: 'optional' },
     { id: 'guest3', kind: 'guest', style: 'staff1', col: 30, row: 4, role: 'none', stand: true },
     // Las mesas de la derecha, con gente sentada de verdad -- antes eran
@@ -1154,9 +1156,12 @@ function terraza() {
     // Las cinco mesas nuevas del lado izquierdo (espejo de las de la
     // derecha), con gente a los dos lados. Col. 11/fila 3 y col. 11/fila 13
     // se saltan porque ya había alguien de la celebración justo ahí.
-    { id: 'guest32', kind: 'guest', style: 'staff2', col: 9, row: 7, role: 'optional' },
-    { id: 'guest33', kind: 'guest', style: 'agent1', col: 9, row: 8, role: 'none' },
-    { id: 'guest34', kind: 'guest', style: 'agent4', col: 11, row: 7, role: 'none' },
+    // Cambiado de puesto con Betty -- ahora solo en la mesa pequeña.
+    { id: 'guest32', kind: 'guest', style: 'staff2', col: 3, row: 7, role: 'optional' },
+    // Se corrieron de la mesa de Betty a esta (la silla que quedaba libre,
+    // y de pie al lado por falta de otra silla).
+    { id: 'guest33', kind: 'guest', style: 'agent1', col: 1, row: 7, role: 'none' },
+    { id: 'guest34', kind: 'guest', style: 'agent4', col: 1, row: 8, role: 'none', stand: true },
     // Sola en esta mesa -- se quitó a guest36/guest37 que estaban sentados acá.
     { id: 'plaid', kind: 'guest', style: 'plaid', col: 9, row: 12, role: 'optional', stand: true },
     { id: 'guest42', kind: 'guest', style: 'agent3', col: 13, row: 7, role: 'none' },
@@ -1164,7 +1169,7 @@ function terraza() {
     { id: 'guest44', kind: 'guest', style: 'staff1', col: 15, row: 7, role: 'none' },
     // Don Armando, corriendo de un lado a otro de la terraza gritando por
     // Betty (ver patrol más abajo). El grito entra y sale solo (cloudFastShout).
-    { id: 'donArmandoT', kind: 'staff', style: 'donArmando', col: 29, row: 10, role: 'none', stand: true, cloud: 'donArmandoT', cloudFastShout: true },
+    { id: 'donArmandoT', kind: 'staff', style: 'donArmando', col: 26, row: 10, role: 'none', stand: true, cloud: 'donArmandoT', cloudFastShout: true },
   ];
 
   TERRACE_PARTY.forEach(function (p) {
@@ -1218,7 +1223,7 @@ function terraza() {
     base: 'g',
     arch: { x: 19.5, y: 4, scale: 1.9 },
     zones: [
-      [1, 1, 7, 4, '%'],
+      [1, 1, 10, 4, '%'],
       [18, 1, 21, 4, '%'],
     ],
     npcs: npcs,
@@ -1226,16 +1231,19 @@ function terraza() {
     // Don Armando corre de un lado a otro (con solo 2 puntos, "llegar al
     // final" es lo mismo que "volver" -- va y viene sin parar).
     patrols: [
-      { id: 'donArmandoT', points: [{ col: 29, row: 10 }, { col: 37, row: 10 }], speed: 65 },
+      { id: 'donArmandoT', points: [{ col: 26, row: 10 }, { col: 34, row: 10 }], speed: 65 },
     ],
     decorTop: hearts.concat([
       { art: 'trashCans', col: 2, row: 13 },
       { art: 'logo', col: 23, row: 1 },
       { art: 'menu', col: 3, row: 0 },
+      { art: 'cookies', col: 7, row: 0 },
       { art: 'coffee', col: 2, row: 1 },
       { art: 'pastry', col: 5, row: 1 },
+      { art: 'mug', col: 8, row: 1 },
       { art: 'cups', col: 3, row: 3 },
       { art: 'mug', col: 5, row: 3 },
+      { art: 'cups', col: 7, row: 3 },
     ]),
     label: 'PISO 3 · TERRAZA',
     elevLabel: 'TERRAZA',

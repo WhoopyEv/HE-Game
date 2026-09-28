@@ -169,7 +169,7 @@ const MESSAGES = {
     },
     mafe: {
       name: 'MAFE',
-      lines: ['Ya se acabó todo, hoy pagaron, lo siento.'],
+      lines: ['Ya se acabó todo, lo siento. Se nota que hoy pagaron.'],
     },
     robot: {
       name: 'ESPERANCITA',
@@ -343,26 +343,42 @@ const MESSAGES = {
     betty: {
       name: 'BETTY',
       lines: [
-        '¿Por qué nadie se sentará al lado mío?',
-        'Las cifras no mienten. Las personas sí.',
-        '¿Dónde estará Don Armando? Tengo que hablar con él.',
         'Molesten y molesten con sus meseros, pero ¿y las cifras quién las arregla?',
+        'Las cifras de Ecomoda no están cuadrando.',
+        'Yo no debería saber tantas cosas de esta empresa.',
+        'No quiero causar problemas... pero mire estos números de Ecomoda.',
+        'Las cifras no mienten. Las personas sí.',
         'Nicolás dice que todavía podemos salvar esto.',
         'El Cuartel ya sabe todo.',
         'Patricia lleva seis semestres recordándomelo.',
-        'Las cifras de Ecomoda no están cuadrando.',
-        'No quiero causar problemas... pero mire estos números de Ecomoda.',
         'Terramoda no es tan sencillo de explicar.',
-        'Yo no debería saber tantas cosas de esta empresa.',
-        'Esto empezó como una empresa de moda y terminó como una novela.',
+      ],
+    },
+    marcela: {
+      name: 'MARCELA',
+      lines: [
+        '¿Y por qué Betty sabe tanto de esto?',
+        'No me gusta nada lo que está pasando aquí.',
+        'Armando me dijo que todo estaba bajo control.',
+        'La junta no terminó nada bien.',
+        '¿Alguien me puede explicar qué está pasando en esta empresa?',
+        'Armando tiene mucho que explicarme.',
+        'No sé qué me preocupa más: las cifras o Armando.',
+        'Betty, ¿usted sabía de esto?',
+        'Yo sabía que algo no estaba bien.',
       ],
     },
     donArmando: {
-      name: 'ARMANDO',
+      name: 'DON ARMANDO',
       lines: [
-        'En Ecomoda no hay lugar para la mediocridad.',
-        '¿Betty? Necesito esas cifras sobre mi escritorio.',
-        'Alguien tiene que pensar en la empresa.',
+        'Esta empresa no se va a quebrar. ¿Cierto, Betty?',
+        'La junta se salió un poquito de control.',
+        'Necesito cinco minutos... y a Betty.',
+        '¡Betty! Necesito hablar con usted.',
+        'Betty, arregle esto, por favor.',
+        'Todo está bajo control... más o menos.',
+        'Yo puedo explicar lo de Terramoda.',
+        'Si preguntan, estoy en una reunión.',
       ],
     },
     // Frases sueltas de la terraza, repartidas en mesas distintas.
@@ -376,10 +392,14 @@ const MESSAGES = {
       lines: ['¿Ya hicieron el amigo secreto o solo yo compré regalo?'],
     },
     guest17: {
-      lines: ['¿Ya vieron a Patricia? Anda preguntando por los meseros otra vez.'],
+      lines: [
+        '¿Ya vieron a Patricia? Anda preguntando por los meseros otra vez.',
+      ],
     },
     guest32: {
-      lines: ['¿Alguien vio si ya repartieron las empanadas? Yo solo vine a comer.'],
+      lines: [
+        '¿Alguien vio si ya repartieron las empanadas? Yo solo vine a comer.',
+      ],
     },
   },
 

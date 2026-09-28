@@ -507,7 +507,12 @@
         n.animTime = (n.animTime || 0) + dt;
         n.frame = Math.floor(n.animTime * 6) % 2;
       });
-      if (allDone) juntasEventPhase = 'done';
+      if (allDone) {
+        juntasEventPhase = 'done';
+        // Ya pasó el evento -- ahora sí pueden tener comentarios opcionales.
+        donArmando.role = 'optional';
+        marcela.role = 'optional';
+      }
     }
   }
 
