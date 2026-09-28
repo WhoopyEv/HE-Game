@@ -430,9 +430,9 @@ const MESSAGES = {
   finale: {
     name: 'EL EQUIPO DE DESARROLLO',
     lines: [
-      'HE nos da oportunidades, confianza, aprendizaje, equipo y respaldo.',
-      'Eso es lo que significa para nosotros ser parte de esta familia.',
-      '¡Feliz Día de Amor y Amistad!',
+      'Cada uno llegó por su lado, y todos terminamos encontrando lo mismo acá.',
+      'Eso es HE para nosotros: no solo un trabajo, una familia.',
+      '¡Feliz Día de Amor y Amistad! Gracias por tanto.',
     ],
   },
 
